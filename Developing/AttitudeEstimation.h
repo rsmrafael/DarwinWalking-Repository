@@ -5,7 +5,6 @@
 
 #include "MotionModule.h"
 #include "CM730.h"
-#include "Kalman.h"
 
 namespace Robot
 {
@@ -27,11 +26,9 @@ namespace Robot
 			double m_AttPitchEstimation(double a_x);
             
 			unsigned char m_table[CM730::MAXNUM_ADDRESS];
-			CM730* m_Controller;
-			Kalman FilterPitch,FilterRoll;			
+			CM730* m_Controller;			
 			 
 			bool m_UpdateNavData(void);
-
 			
         public:
             static AttitudeEstimation* GetInstance() { return m_UniqueInstance; }

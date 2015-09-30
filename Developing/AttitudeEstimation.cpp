@@ -1,3 +1,5 @@
+//qualquer modificação aleatória pra dar pull
+
 
 #include <cmath>
 #include <cstdio>
@@ -20,6 +22,7 @@ using namespace Robot;
 AttitudeEstimation *AttitudeEstimation::m_UniqueInstance = new AttitudeEstimation();
 
 AttitudeEstimation::AttitudeEstimation(){
+	//kfOut = fopen("");
 }
 
 AttitudeEstimation::~AttitudeEstimation(){ 

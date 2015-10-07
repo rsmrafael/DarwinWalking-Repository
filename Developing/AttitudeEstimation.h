@@ -5,8 +5,8 @@
 
 #include "MotionModule.h"
 #include "CM730.h"
-#include "Kalman.h"
-#include <stdlib.h>
+//#include "Kalman.h"
+#include <stdio.h>
 
 namespace Robot
 {
@@ -16,10 +16,11 @@ namespace Robot
             static AttitudeEstimation* m_UniqueInstance; 
             AttitudeEstimation();
 
-            FILE* cfOut, kfOut, anglesOut;
+            FILE* cfOut, anglesOut, IMUOut;
 			double m_Roll,m_Pitch;
 			double m_RollAcc,m_PitchAcc;
 			double m_RollGyro,m_PitchGyro;
+			double m_RollRate, m_PitchRate;
 			double m_dt;
 			double m_Fallen;
 			double m_gx,m_gy,m_gz,m_ax,m_ay,m_az;
@@ -30,7 +31,7 @@ namespace Robot
             
 			unsigned char m_table[CM730::MAXNUM_ADDRESS];
 			CM730* m_Controller;
-			Kalman FilterPitch,FilterRoll;			
+			//Kalman FilterPitch,FilterRoll;			
 			 
 			bool m_UpdateNavData(void);
 

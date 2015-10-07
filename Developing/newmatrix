@@ -1,0 +1,12 @@
+[cos(t3 + t4 + t5)*cos(t1) + sin(t3 + t4 + t5)*sin(t1)*sin(t2),    sin(t3 + t4 + t5)*cos(t1)*sin(t2) - cos(t3 + t4 + t5)*sin(t1), sin(t3 + t4 + t5)*cos(t2)]
+[ sin(t1)*(cos(t2)*cos(t6) - cos(t3 + t4 + t5)*sin(t2)*sin(t6)) + sin(t3 + t4 + t5)*cos(t1)*sin(t6), cos(t1)*(cos(t2)*cos(t6) - cos(t3 + t4 + t5)*sin(t2)*sin(t6)) - sin(t3 + t4 + t5)*sin(t1)*sin(t6), - cos(t6)*sin(t2) - cos(t3 + t4 + t5)*cos(t2)*sin(t6)]
+[ sin(t1)*(cos(t2)*sin(t6) + cos(t3 + t4 + t5)*cos(t6)*sin(t2)) - sin(t3 + t4 + t5)*cos(t1)*cos(t6), cos(t1)*(cos(t2)*sin(t6) + cos(t3 + t4 + t5)*cos(t6)*sin(t2)) + sin(t3 + t4 + t5)*cos(t6)*sin(t1),   cos(t3 + t4 + t5)*cos(t2)*cos(t6) - sin(t2)*sin(t6)]
+
+
+
+m[2][0] = sin(t1)*(cos(t2)*sin(t6) + cos(t3 + t4 + t5)*cos(t6)*sin(t2)) - sin(t3 + t4 + t5)*cos(t1)*cos(t6)
+m[1][0] = sin(t1)*(cos(t2)*cos(t6) - cos(t3 + t4 + t5)*sin(t2)*sin(t6)) + sin(t3 + t4 + t5)*cos(t1)*sin(t6)
+m[0][0] = cos(t3 + t4 + t5)*cos(t1) + sin(t3 + t4 + t5)*sin(t1)*sin(t2)
+
+r1 = -asin(m[2][0]);
+p1 = atan2(m[1][0]/cos(r1), m[0][0]/cos(r1));

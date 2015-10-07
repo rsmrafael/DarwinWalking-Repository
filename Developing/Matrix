@@ -1,0 +1,26 @@
+{{Cos[a] Cos[b] Cos[c] - Sen[a] Sen[c], 	-(Cos[c] Sen[a]) - Cos[a] Cos[b] Sen[c],	 Cos[a] Sen[b]}, 
+{Cos[b] Cos[c] Sen[a] + Cos[a] Sen[c],		 Cos[a] Cos[c] - Cos[b] Sen[a] Sen[c],		 Sen[a] Sen[b]}, 
+{-(Cos[c] Sen[b]),							 Sen[b] Sen[c],								 Cos[b]}}
+
+
+{{Cos[d],									 0,											 Sen[d]},
+{0,											 1,											 0},
+{-Sen[d],									 0,											 Cos[d]}}
+
+
+
+rotationMatrix[][] = 
+{{Cos[a]Cos[b]Cos[c]Cos[d] - Sen[a]Sen[c]Cos[d] -Sen[d]Cos[a]Sen[b],	 	-Cos[c]Sen[a],		 					Cos[a]Cos[b]Cos[c]Sen[d]-Sen[a]Sen[c]Sen[d]+Cos[a]Sen[b]Cos[d]},
+{Cos[b]Cos[c]Sen[a]Cos[d]+Cos[a]Sen[c]Cos[d] - Sen[a]Sen[b]Sen[d],			Cos[a] Cos[c] - Cos[b] Sen[a] Sen[c],	Cos[b]Cos[c]Sen[a]Sen[d]+Cos[a]Sen[c]Sen[d] + Sen[a]Sen[b]Cos[d]},
+{-Cos[c]Sen[b]Cos[d] -Cos[b]Sen[d], 										Sen[b]Sen[c], 							-Cos[c]Sen[b]Sen[d] + Cos[b]Cos[d]}}
+;
+
+
+if(rotationMatrix[2][0] != 1 && rotationMatrix[2][0] != -1){
+	r1 = -Math.asin(rotationMatrix[2][0]);
+	r2 = Math.PI - r1;
+	p1 = atan2(rotationMatrix[1][0]/cos(r1), rotationMatrix[0][0]/cos(r1));
+	p2 = atan2(rotationMatrix[1][0]/cos(r2), rotationMatrix[0][0]/cos(r2));
+}
+
+a, b, c, d = θ1, θ2, θ3+θ4+θ5, θ6, respectivamente.

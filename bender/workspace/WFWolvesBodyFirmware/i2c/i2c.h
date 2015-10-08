@@ -1,0 +1,16 @@
+#ifndef I2C_H_
+#define I2C_H_
+
+void I2C_Init(void);
+
+void I2C_start(void);
+void I2C_stop(void);
+void I2C_write(unsigned char output_data);
+unsigned char I2C_read(unsigned char ack);
+unsigned char I2C_ReadRegister(unsigned char address, unsigned char reg);
+void I2C_ReadMultipleRegisters(unsigned char address, unsigned char startreg, unsigned char* buffer, unsigned short length);
+void I2C_ReadMultipleRegisters2(unsigned char address, unsigned short startreg, unsigned char* buffer, unsigned short length);
+void I2C_WriteRegister(unsigned char address, unsigned char reg, unsigned char value);
+void I2C_WriteMultipleRegisters2(unsigned char address, unsigned short startreg, const unsigned char* data, unsigned short length);
+
+#endif /* I2C_H_ */

@@ -1,0 +1,246 @@
+#include <iostream>
+#include <sstream>
+#include <unistd.h>
+#include <signal.h>
+#include <string>
+#include <algorithm>
+#include <cctype>
+
+#include "Body/Body.h"
+#include "Vision/Vision.h"
+#include "Agent/WolvesRemoteControl.h"
+#include "Agent/WolvesAttacker.h"
+#include "Agent/WolvesAttackerNew.h"
+#include "Agent/WolvesGoalie.h"
+#include "Agent/WolvesScienceTruck.h"
+#include "Agent/WolvesPhotographer.h"
+#include "Network/GameControllerServer.h"
+#include "Network/SimulationServerConnection.h"
+#include "Debugging/Debugger.h"
+#include "Debugging/Services/FileService.h"
+#include "Debugging/Services/ImageService.h"
+#include "Debugging/Services/ColorCalibrationService.h"
+#include "Debugging/Services/BodyDataService.h"
+#include "Debugging/Services/VisionDataService.h"
+#include "Debugging/Services/ControlService.h"
+#include "LEDs.h"
+#include "Config.h"
+#include "Game.h"
+#include "Debugging/Data/PBImage.h"
+#include "Vision/Data/YUVImage.h"
+#include "Debugging/DebugDrawer.h"
+
+#define OUR_TEAM_ID			20
+
+using namespace std;
+
+bool mTerminate;
+IAgent* mSelectedAgent;
+
+void sighandler(int sig) {
+	mTerminate = true;
+}
+
+string int2str(int value) {
+    ostringstream strout;
+    string str;
+
+    strout << value;
+    str = strout.str();
+
+    return str;
+}
+
+void setSelectedAI(IAgent* selectedAI) {
+	mSelectedAgent = selectedAI;
+}
+
+int main(int argc, char *argv[]) {
+	signal(SIGINT, &sighandler);
+
+	Vision::VisionMode visionMode = Vision::normalMode;
+	string pathName = "";
+	int repeatCount = 0;
+	bool simulationMode = false;
+	for (int i = 1; i < argc; i++) {
+		if (strcmp(argv[i], "--pbf") == 0) {
+			if (i + 1 < argc) {
+				pathName = argv[i + 1];
+				if (visionMode == Vision::normalMode) {
+					visionMode = Vision::debugMode;
+				}
+				i++;
+			} else {
+				printf("Missing PBF filename!\n");
+				return 1;
+			}
+		} else if (strcmp(argv[i], "--autoadvance") == 0) {
+			if (i + 1 < argc) {
+				repeatCount = atoi(argv[i + 1]);
+				visionMode = Vision::testMode;
+				i++;
+			} else {
+				printf("Missing repeat count!\n");
+				return 1;
+			}
+		} else if (strcmp(argv[i], "--simulation") == 0) {
+			simulationMode = true;
+		} else if (strcmp(argv[i], "--help") == 0) {
+			printf("Known command line options:\n");
+			printf("--help                      Prints this message\n");
+			printf("--pbf <file>                Load images and color calibration from file or whole directory\n");
+			printf("--autoadvance <repeatcount> Auto-advances to next PBF after <repeatcount> captures\n");
+			printf("--simulation                Starts in simulation mode regardless of config.ini\n");
+			return 0;
+		}
+	}
+
+	// Force Debugger to initialize
+	Debugger::GetInstance();
+
+	Vision* mVision;
+	Body* mBody;
+	WolvesRemoteControl* mRemoteControl;
+	mRemoteControl = new WolvesRemoteControl();
+	GameControllerServer* mGameController;
+	LEDs* mLEDs;
+	Game* mGame;
+	mGame = new Game(setSelectedAI);
+
+	Body::BodyType bodyType = Body::Regular;
+	string selectedBody = Config::GetInstance()->GetString("Body", "selectedBody", "");
+	transform(selectedBody.begin(), selectedBody.end(), selectedBody.begin(), static_cast<int (*)(int)>(toupper));
+	if (selectedBody == "ROOMBA") {
+		bodyType = Body::Roomba;
+	}
+
+	if (!simulationMode) {
+		simulationMode = Config::GetInstance()->GetBoolean("Simulation", "simulationMode", false);
+	}
+	if (simulationMode) {
+		string serveraddress = Config::GetInstance()->GetString("Simulation", "serveraddress", "127.0.0.1");
+		string port = Config::GetInstance()->GetString("Simulation", "serverport", "3490");
+		SimulationServerConnection::createInstance(serveraddress, port);
+		bodyType = Body::Simulator;
+		visionMode = Vision::simulationMode;
+		Debugger::INFO("WolvesKI2", "Using simulation mode!");
+	}
+
+#ifdef DEBUG_X86
+	mBody = new Body("/dev/ttyS0", bodyType);
+#else
+	mBody = new Body("/dev/ttyACM0", bodyType);
+#endif
+
+	mVision = new Vision(mGame, mBody, visionMode, pathName, repeatCount);
+
+
+
+	// Add services to debugger
+	FileService* mFileService = new FileService();
+	Debugger::GetInstance()->addPacketListener(mFileService);
+	ImageService* mImageService = new ImageService(mVision);
+	Debugger::GetInstance()->addPacketListener(mImageService);
+	ColorCalibrationService* mColorCalibrationService = new ColorCalibrationService(mVision);
+	Debugger::GetInstance()->addPacketListener(mColorCalibrationService);
+	BodyDataService* mBodyDataService = new BodyDataService(mBody, mRemoteControl);
+	Debugger::GetInstance()->addPacketListener(mBodyDataService);
+	VisionDataService* mVisionDataService = new VisionDataService(mVision);
+	Debugger::GetInstance()->addPacketListener(mVisionDataService);
+	mVision->setVisionDataService(mVisionDataService);
+	BotControlService* mControlService = new BotControlService(mGame, mVision);
+	Debugger::GetInstance()->addPacketListener(mControlService);
+
+	mGame->addAvailableAI("GOALIE", new WolvesGoalie());
+	mGame->addAvailableAI("SCIENCETRUCK", new WolvesScienceTruck());
+	mGame->addAvailableAI("ATTACKER", new WolvesAttacker());
+	mGame->addAvailableAI("ATTACKERNEW", new WolvesAttackerNew());
+	mGame->addAvailableAI("PHOTOGRAPHER", new WolvesPhotographer());
+
+// Select AI based on configuration
+	string selectedAI = Config::GetInstance()->GetString("AI", "selectedAI", "");
+	mGame->setSelectedAI(selectedAI);
+
+	mGameController = new GameControllerServer(mGame, OUR_TEAM_ID);
+	mLEDs = new LEDs();
+
+	bool disableAI = Config::GetInstance()->GetBoolean("AI", "disableAI", false);
+
+	// ap Debug =======
+	mGame->setBotAllowedToMove(true);
+	mGame->setGameState(Game::PLAYING);
+	// ap Debug ======
+
+	srand(time(NULL));
+
+	mTerminate = false;
+	while (!mTerminate) {
+		DebugDrawer::newCycle();
+		if (!disableAI) {
+			//Debugger::INFO("WolvesKI2", "New cycle!");
+			mLEDs->toggle(0);
+			if (mGame->isAllowedToMove()) {
+				mBody->setParalysis(false);
+			} else {
+				Debugger::WARN("WolvesKI2", "Robot is currently not allowed to move!");
+				mBody->setParalysis(true);
+			}
+
+			if (mRemoteControl->IsActive()) {
+				if (!mRemoteControl->Process(mVision, mBody, mGame)) {
+					mTerminate = true;
+				}
+			} else {
+				if (!mSelectedAgent->Process(mVision, mBody, mGame)) {
+					mTerminate = true;
+				}
+			}
+		} else {
+			Debugger::DEBUG("WolvesKI2", "Refreshing vision...");
+			//mVision->setSearchBall(true);
+			mVision->RefreshVision();
+			Debugger::DEBUG("WolvesKI2", "Done!");
+			//Debugger::DEBUG("WolvesKI2", "Ball: %s (%i, %i @ %i)", (mVision->ball.found)?"true":"false", mVision->ball.Xpos, mVision->ball.Ypos, mVision->ball.distance);
+			//mVision->PrintObjects(mVision->getObjectsLeft());
+			mLEDs->toggle(0);
+			Debugger::DEBUG("WolvesKI2", "Moving body...");
+			mBody->PanTilt()->SetPosition(0, 0);
+			//Debugger::DEBUG("WolvesKI2", "Waiting...");
+			//usleep(500*1000);
+		}
+
+		mControlService->update();
+
+		if (visionMode == Vision::testMode) {
+			if (mVision->isFileListExhausted()) {
+				Debugger::INFO("WolvesKI2", "PBF file list exhausted in test mode, exiting...");
+				mTerminate = true;
+			}
+		}
+	}
+
+	Debugger::INFO("WolvesKI2", "Terminating program...");
+	mBody->Stop();
+	mGame->save();
+	delete mGameController;
+	mSelectedAgent = NULL;
+	delete mGame;
+	delete mRemoteControl;
+	delete mVision;
+	delete mBody;
+	delete mLEDs;
+
+	PBImage::shutdown();
+
+	delete mFileService;
+	delete mImageService;
+	delete mColorCalibrationService;
+	delete mBodyDataService;
+	delete mVisionDataService;
+	delete mControlService;
+	Config::GetInstance()->shutdown();
+	Debugger::GetInstance()->shutdown();
+	DebugDrawer::GetInstance()->shutdown();
+
+	return 0;
+}

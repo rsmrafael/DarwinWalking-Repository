@@ -1,0 +1,44 @@
+/*
+ * servo_dynamixel.h
+ *
+ *  Created on: 16.08.2010
+ *      Author: Stefan
+ */
+
+#ifndef SERVO_DYNAMIXEL_H_
+#define SERVO_DYNAMIXEL_H_
+
+#ifdef DYNAMIXEL
+
+#define SERVO_MIN_VALUE					0
+#define SERVO_CENTER_VALUE				512
+#define SERVO_MAX_VALUE					1023
+#define SERVO_MIN_ANGLE					-150.0 // degree
+#define SERVO_MAX_ANGLE					150.0 // degree
+
+void Servo_Init_DYN(void);
+unsigned char Servo_SendPosition(unsigned char id, float pos);
+void Servo_SendPositions(void);
+void Servo_SetForwardingMode(unsigned char state);
+
+float Servo_ReadPos(unsigned char id);
+void Servo_SetPassive(unsigned char id);
+void Servo_SetPositionsTorque(unsigned char torque);
+void Servo_SendTGain(unsigned char id, char pGain, char iGain, char dGain);
+unsigned char Servo_IsResponding(unsigned char id);
+void Servo_SetID(unsigned char oldid, unsigned char newid);
+unsigned char Servo_ReadLoad(unsigned char id);
+void Servo_ReadPID(unsigned char id, unsigned char* p, unsigned char* i, unsigned char* d);
+
+void Servo_SendExPortD(unsigned char id, char exPortD);
+void Servo_SetOverload(unsigned char id, unsigned char overload);
+void Servo_SetBoundaries(unsigned char id, unsigned char lower, unsigned char upper);
+void Servo_ReadBounds(unsigned char id, unsigned char* bound_l, unsigned char* bound_u);
+unsigned char Servo_ReadOverload(unsigned char id);
+
+int Servo_Angle2Value(float angle);
+float Servo_Value2Angle(int value);
+
+#endif
+
+#endif /* SERVO_DYNAMIXEL_H_ */

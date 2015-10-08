@@ -1,0 +1,37 @@
+/*
+ * GoalSide.h
+ *
+ *  Created on: 25.03.2014
+ *      Author: Oliver Krebs
+ */
+
+#ifndef GOALSIDE_H_
+#define GOALSIDE_H_
+
+class GoalSide
+{
+public:
+	enum GoalSideChance {
+		NOT_SET,
+		UNKNOWN,
+		MY_GOAL,
+		OP_GOAL
+	};
+
+	GoalSide();
+	virtual ~GoalSide();
+
+	void setMinInterval( double min);
+	void resetChances();
+	void setChancesInPercent(double my, double op);
+	GoalSideChance getChance() const;
+	double getPercent() const;
+
+private:
+	GoalSideChance mChance;
+	double mPercent;
+	double mMinInterval;
+};
+
+
+#endif /* GOALSIDE_H_ */

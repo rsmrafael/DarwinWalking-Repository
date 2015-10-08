@@ -1,0 +1,110 @@
+/*
+ * FieldRunner.cpp
+ *
+ *  Created on: 22.07.2014
+ *      Author: da-v1n
+ */
+
+#include "FieldRunner.h"
+#include "../../Config.h"
+
+FieldRunner::FieldRunner(Game *game, MitecomCommunicator *communicator)
+:	AbstractBehavior( game, communicator){
+
+}
+
+FieldRunner::~FieldRunner() {
+	// TODO Auto-generated destructor stub
+}
+void FieldRunner::configChanged()
+{
+
+}
+void FieldRunner::executeBehavior()
+{
+	switch(mCurrentState) {
+	case SEARCH_BALL:
+		mCurrentState = processSearchBall();
+		break;
+	case MOVE_TO_BALL:
+		mCurrentState = processMoveToBall();
+		break;
+	case POSITION_NEAR_BALL:
+		mCurrentState = processPositionNearBall();
+		break;
+	case CIRCLE_TO_GOAL:
+		mCurrentState = processCircleToGoal();
+		break;
+	case SEARCH_NEXT_POLE:
+		mCurrentState = processSearchNextPole();
+		break;
+	case PREPARE_KICK:
+		mCurrentState = processPrepareKick();
+		break;
+	case KICK_BALL:
+		mCurrentState = processKickBall();
+		break;
+	case CHECK_KICK:
+		mCurrentState = processCheckKick();
+		break;
+	case CIRCLE_HALF:
+		mCurrentState = processMoveHalf();
+		break;
+	case SCAN_FIELD:
+		mCurrentState = processScanField();
+		break;
+	case DELAY_LOOP:
+		mCurrentState = processDelayLoop();
+		break;
+	default:
+		Debugger::INFO("Striker", "Unknown state, change to searchBall");
+		mCurrentState = SEARCH_BALL;
+		break;
+	}
+}
+
+void FieldRunner::gameStateHasChanged(Game::GameState state)
+{
+	if( state == IGame::READY) {
+		Debugger::INFO("FieldRunner", "GameState ready: Scan ");
+		mCurrentState = SCANFIELD;
+		updateState();
+	} else if( state == IGame::SET
+			|| state == IGame::PLAYING) {
+		if( mCurrentState == SCANFIELD) {
+			Debugger::INFO("FieldRunner", "GameState set/play: Search ball");
+			mCurrentState = MOVE_TO_FIELDLINE;
+			updateState();
+		}
+	}
+	AbstractBehavior::gameStateHasChanged( state);
+}
+string FieldRunner::getStateName(int state){
+	switch(state){
+	case SCANFIELD: return "SCANFIELD";
+	case MOVE_TO_FIELDLINE: return "MOVE_TO_FIELDLINE";
+	case TURN_HALF: return "TURN_HALF";
+	case DELAY_LOOP: return "DELAY_LOOP";
+	default: return AbstractBehavior::getStateName(state);
+	}
+}
+void FieldRunner::entryScanfield(){
+
+}
+int FieldRunner::processScanfield(){
+	return 0;
+}
+
+void FieldRunner::entryMoveFieldline(){
+
+}
+int FieldRunner::processMoveFieldline(){
+	return 0;
+}
+
+void FieldRunner::entryTurnHalf(){
+
+}
+int FieldRunner::processTurnHalf(){
+	return 0;
+}

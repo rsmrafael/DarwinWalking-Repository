@@ -1,0 +1,19 @@
+/*
+ * FieldRunner.cpp
+ *
+ *  Created on: 22.07.2014
+ *      Author: da-v1n
+ */
+
+#include "FieldRunner.h"
+
+FieldRunner::FieldRunner(Game *game, MitecomCommunicator *communicator)
+:	AbstractBehavior( game, communicator){
+	// TODO Auto-generated constructor stub
+
+}
+
+FieldRunner::~FieldRunner() {
+	// TODO Auto-generated destructor stub
+}
+

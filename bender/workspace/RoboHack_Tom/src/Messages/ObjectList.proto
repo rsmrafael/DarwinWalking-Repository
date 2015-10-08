@@ -1,0 +1,11 @@
+package protobuf;
+
+option java_package = "de.ostfalia.robocup.message";
+option java_outer_classname = "MsgObjectList";
+option optimize_for = LITE_RUNTIME;
+
+import "Object.proto";
+
+message ObjectList {
+	repeated Object object = 1;
+}

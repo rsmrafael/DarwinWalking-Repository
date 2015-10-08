@@ -1,0 +1,59 @@
+/*
+ * Body.h
+ *
+ *  Created on: 17.06.2009
+ *      Author: Stefan
+ */
+
+#ifndef BODY_H_
+#define BODY_H_
+
+using namespace std;
+
+#include <string>
+#include "ICommunicator.h"
+#include "PanTiltUnit.h"
+
+class Body {
+public:
+	enum BodyType { Regular = 0x00, Simulator = 0x01 };
+
+	Body(ICommunicator *comm, bool debugEnabled = true);
+	Body(string device, BodyType type, bool noComms);
+	~Body();
+
+	void setWalkerCommand(int8_t x, int8_t y, int8_t r, bool turningAim = false);
+
+	void Stop();
+	void CancelKick();
+	void KickLeft();
+	void KickRight();
+	void KickBall(const vect3d_t& ball);
+	void KickToTarget(const vect3d_t& ball, const vect3d_t& target);
+	void KickAdvanced(const vect3d_t& ball, const vect3d_t& target, uint8_t kicktype);
+	void GoaliMoveRight();
+	void GoaliMoveLeft();
+	void MoveHi();
+	void YeahGoal();
+	void PlayMotion( enum ICommunicator::Motion motion);
+
+	PanTiltUnit* PanTilt();
+	bool isParalysed() const;
+	void setParalysis(bool value);
+
+	double GetBatteryVoltage();
+	void GetIMUData(int* pitch, int* roll);
+
+	const struct ICommunicator::statusMessage_t* GetStatusMessage();
+private:
+	//lint -e(1704)
+    Body(const Body& cSource);
+    Body& operator=(const Body& cSource);
+
+	PanTiltUnit* mPanTilt;
+	ICommunicator* mComm;
+	bool mParalysis;
+	bool mDebugEnabled;
+};
+
+#endif /* BODY_H_ */

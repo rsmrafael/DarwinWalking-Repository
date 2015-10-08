@@ -1,0 +1,15 @@
+package protobuf;
+
+option java_package = "de.ostfalia.robocup.message";
+option java_outer_classname = "MsgHistogramServiceCommand";
+option optimize_for = LITE_RUNTIME;
+
+message HistogramServiceCommand {
+	enum ServiceAction {
+		SAVE_OPPONENT = 0;
+		SAVE_OWN = 1;
+		DELETE_ALL = 2;
+	}
+	
+	required ServiceAction desiredAction = 1;
+}

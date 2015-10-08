@@ -1,0 +1,50 @@
+/*
+ * VisionAnalyzer.h
+ *
+ *  Created on: Sep 3, 2012
+ *      Author: jan
+ */
+
+#ifndef VisionAnalyzer_H_
+#define VisionAnalyzer_H_
+
+#include "../../ModuleManager/Module.h"
+#include "../../Representations/ObjectList.h"
+#include "../../Representations/Object.h"
+#include <string>
+#include <vector>
+
+BEGIN_DECLARE_MODULE(VisionAnalyzer)
+	REQUIRE(ObjectList, Annotations)
+	REQUIRE(Object, Ball)
+	REQUIRE(ObjectList, GoalPoles)
+	REQUIRE(ObjectList, CyanRobots)
+	REQUIRE(ObjectList, MagentaRobots)
+END_DECLARE_MODULE(VisionAnalyzer)
+
+class VisionAnalyzer: public VisionAnalyzerBase {
+public:
+	typedef struct {
+		Object::ObjectType type;
+		string name;
+		size_t count;
+		size_t found;
+		size_t falsePositive;
+		size_t falseNegative;
+		vector<Object> objects;
+	} visionAnalyzeData_t;
+
+	VisionAnalyzer(bool createCsv = true);
+	virtual ~VisionAnalyzer();
+
+	virtual bool execute();
+
+private:
+	size_t mTotalImages;
+
+	vector<visionAnalyzeData_t> mVisionObjects;
+
+	bool mCreateCsv;
+};
+
+#endif /* VisionAnalyzer_H_ */

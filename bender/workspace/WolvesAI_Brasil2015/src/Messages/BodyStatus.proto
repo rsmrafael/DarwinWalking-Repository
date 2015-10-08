@@ -1,0 +1,15 @@
+package protobuf;
+
+option java_package = "de.ostfalia.robocup.message";
+option java_outer_classname = "MsgBodyStatus";
+option optimize_for = LITE_RUNTIME;
+
+import "ServoStatus.proto";
+
+message BodyStatus {
+	optional double pan  = 1;
+	optional double tilt = 2;
+	required double voltage = 3;
+	repeated ServoStatus servos = 4;
+
+}

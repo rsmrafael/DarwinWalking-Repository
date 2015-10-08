@@ -1,0 +1,19 @@
+/*
+ * BehaviorDummy.cpp
+ *
+ *  Created on: 20.10.2014
+ *      Author: bombadil
+ */
+
+#include "BehaviorDummy.h"
+
+BehaviorDummy::BehaviorDummy(){
+
+}
+BehaviorDummy::~BehaviorDummy(){
+
+}
+bool BehaviorDummy::execute(){
+	Debugger::INFO("BehaviorDummy", "Dummdumm");
+	return true;
+}

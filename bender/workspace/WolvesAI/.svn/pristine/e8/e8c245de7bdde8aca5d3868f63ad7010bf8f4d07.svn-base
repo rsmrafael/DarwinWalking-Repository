@@ -1,0 +1,13 @@
+REM Usage: winftp.bat destinationIP destinationFolder FileToTransfer
+@ECHO OFF
+echo open %1 > ftps.cmd
+echo root>> ftps.cmd
+echo uClinux>> ftps.cmd
+echo bi>> ftps.cmd
+echo cd %2>> ftps.cmd
+echo put %3 >> ftps.cmd
+echo quote site chmod 750 WolvesKI2>> ftps.cmd
+echo quit>> ftps.cmd
+C:\WINDOWS\system32\ftp.exe -v -s:ftps.cmd
+del ftps.cmd
+echo  DONE 

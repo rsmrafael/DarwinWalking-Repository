@@ -1,0 +1,44 @@
+/*
+ * FieldRunner.cpp
+ *
+ *  Created on: 22.07.2014
+ *      Author: da-v1n
+ */
+
+#include "FieldRunner.h"
+#include "../../Config.h"
+
+FieldRunner::FieldRunner(Game *game, MitecomCommunicator *communicator)
+:	AbstractBehavior( game, communicator){
+
+}
+
+FieldRunner::~FieldRunner() {
+	// TODO Auto-generated destructor stub
+}
+
+void FieldRunner::gameStateHasChanged(Game::GameState state)
+{
+	if( state == IGame::READY) {
+		Debugger::INFO("FieldRunner", "GameState ready: Scan ");
+		mCurrentState = SCANFIELD;
+		updateState();
+	} else if( state == IGame::SET
+			|| state == IGame::PLAYING) {
+		if( mCurrentState == SCANFIELD) {
+			Debugger::INFO("FieldRunner", "GameState set/play: Search ball");
+			mCurrentState = MOVE_TO_FIELDLINE;
+			updateState();
+		}
+	}
+	AbstractBehavior::gameStateHasChanged( state);
+}
+string FieldRunner::getStateName(int state){
+	switch(state){
+	case SCANFIELD: return "SCANFIELD";
+	case MOVE_TO_FIELDLINE: return "MOVE_TO_FIELDLINE";
+	case TURN_HALF: return "TURN_HALF";
+	case DELAY_LOOP: return "DELAY_LOOP";
+	default: return AbstractBehavior::getStateName(state);
+	}
+}

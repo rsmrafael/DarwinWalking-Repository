@@ -1,0 +1,94 @@
+/*
+ * BodyAction.h
+ *
+ *  Created on: 26.11.2012
+ *      Author: Stefan Krupop
+ */
+
+#ifndef BODYACTION_H_
+#define BODYACTION_H_
+
+#include "../Body/ICommunicator.h"
+#include "../Blackboard/Printable.h"
+#include "../Blackboard/Serializer.h"
+
+class BodyAction {
+public:
+	BodyAction();
+	virtual ~BodyAction();
+
+	void setWalkerCommand(int16_t x, int16_t y, int16_t r);
+	void setWalkerCommand(int16_t x, int16_t y, int16_t r, bool turningAim);
+
+	void Stop();
+	void KickLeft();
+	void KickRight();
+	void KickBall(const vect3d_t& ball);
+	void KickToTarget(const vect3d_t& ball, const vect3d_t& target);
+	void KickAdvanced(const vect3d_t& ball, const vect3d_t& target, uint8_t kicktype);
+	void CancelKick();
+	void GoaliMoveRight();
+	void GoaliMoveLeft();
+	void CircleRight();
+	void CircleLeft();
+	void PlayMotion( enum ICommunicator::Motion motion);
+
+	void setPanTilt(int PanDeg, int TiltDeg);
+	void PanTiltTracking(bool disablePan);
+	void PanTiltTracking(double errorX, double errorY, bool disablePan);
+
+	int getPan() const { return mPan; }
+	int getTilt() const { return mTilt; }
+	uint8_t getPanTiltChangeID() const { return mPanTiltChangeID; }
+	bool getPanTiltSetDirect() const { return mPanTiltSetDirect; }
+	bool getPanTiltWithError() const { return mWithError; }
+	double getPanTiltErrorX() const { return mErrorX; }
+	double getPanTiltErrorY() const { return mErrorY; }
+	bool getDisablePanError() const { return mDisablePanError; }
+
+	uint8_t getMovementChangeID() const { return mMovementChangeID; }
+	bool getIsWalkerCommand() const { return mWalkerCommand; }
+	int8_t getWalkerX() const { return mWalkerX; }
+	int8_t getWalkerY() const { return mWalkerY; }
+	int8_t getWalkerR() const { return mWalkerR; }
+	bool getWalkerTurningAim() const { return mWalkerTurningAim; }
+	ICommunicator::Motion getMotion() const { return mMotion; }
+	vect3d_t getPositionBall() const {return mBall; }
+	vect3d_t getPositionTarget() const {return mTarget; }
+	uint8_t getKicktype() const {return mKicktype; }
+
+private:
+	int8_t mWalkerX;
+	int8_t mWalkerY;
+	int8_t mWalkerR;
+	bool mWalkerTurningAim;
+
+	ICommunicator::Motion mMotion;
+
+	int mPan;
+	int mTilt;
+
+	double mErrorX;
+	double mErrorY;
+	bool mDisablePanError;
+	bool mWithError;
+
+	bool mWalkerCommand;
+	bool mPanTiltSetDirect;
+
+	uint8_t mPanTiltChangeID;
+	uint8_t mMovementChangeID;
+
+	vect3d_t mBall;
+	vect3d_t mTarget;
+	uint8_t mKicktype;
+};
+
+template<> class Serializer<BodyAction> {
+	public:
+		static void serialize(const BodyAction& representation, std::ostream& stream);
+		static void deserialize(std::istream& stream, BodyAction& representation);
+};
+
+
+#endif /* BODYACTION_H_ */

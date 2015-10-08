@@ -1,0 +1,117 @@
+/*
+ * GoalSidePrediction.cpp
+ *
+ *  Created on: 25.03.2014
+ *      Author: Oliver Krebs
+ */
+
+#include "GoalSidePrediction.h"
+#include "../../Config.h"
+
+const double COLOR_VARIANCE_MAX = 384.0; //384 = 3*128
+
+GoalSidePrediction::GoalSidePrediction()
+:	mColorMinInterval( 0.1),
+ 	mMyGoalBackgroundY( 0),
+ 	mMyGoalBackgroundU( 0),
+ 	mMyGoalBackgroundV( 0),
+ 	mOpGoalBackgroundY( 0),
+ 	mOpGoalBackgroundU( 0),
+ 	mOpGoalBackgroundV( 0)
+{
+	mLastFirstHalf = true;
+	Config::GetInstance()->registerConfigChangeHandler(this);
+	this->configChanged();
+}
+
+GoalSidePrediction::~GoalSidePrediction()
+{
+	Config::GetInstance()->removeConfigChangeHandler(this);
+}
+
+bool GoalSidePrediction::execute()
+{
+	if( !getGoalPoles().getObjects().empty())
+	{
+		int y = getBackgroundY().calculateMode();
+		int u = getBackgroundU().calculateMode();
+		int v = getBackgroundV().calculateMode();
+
+		//DRAW_TEXT("Background", 10, 20, DebugDrawer::LIGHT_YELLOW, "Y: %d, U: %d, V: %d", y, u, v);
+		Debugger::DEBUG("GoalSidePrediction", "Y: %d, U: %d, V: %d", y, u, v);
+
+		if( getGameStatus().gameState == IGame::READY) {
+			bool firstHalf = getGameStatus().isFirstHalf;
+			if( firstHalf != mLastFirstHalf) {
+				mLastFirstHalf = firstHalf;
+				Debugger::INFO("GoalSidePrediction", "Change goal sides!");
+				mMyGoalBackgroundY = mOpGoalBackgroundY;
+				mMyGoalBackgroundU = mOpGoalBackgroundU;
+				mMyGoalBackgroundV = mOpGoalBackgroundV;
+				Debugger::DEBUG("GoalSidePrediction", "My: %d %d %d",
+						mMyGoalBackgroundY, mMyGoalBackgroundU, mMyGoalBackgroundV);
+				mOpGoalBackgroundY = mMyGoalBackgroundY;
+				mOpGoalBackgroundU = mMyGoalBackgroundU;
+				mOpGoalBackgroundV = mMyGoalBackgroundV;
+				Debugger::DEBUG("GoalSidePrediction", "Op %d %d %d",
+						mOpGoalBackgroundY, mOpGoalBackgroundU, mOpGoalBackgroundV);
+			}
+			int pan = getBodyStatus().getPan();
+			if( pan > -90 && pan < +90) {
+				mOpGoalBackgroundY = (3*mOpGoalBackgroundY + y) / 4;
+				mOpGoalBackgroundU = (3*mOpGoalBackgroundU + u) / 4;
+				mOpGoalBackgroundV = (3*mOpGoalBackgroundV + v) / 4;
+				Debugger::INFO("GoalSidePrediction", "OpGoal updated!");
+				Debugger::DEBUG("GoalSidePrediction", "OpGoal: %d %d %d",
+						mOpGoalBackgroundY, mOpGoalBackgroundU, mOpGoalBackgroundV);
+			} else {
+				mMyGoalBackgroundY = (3*mMyGoalBackgroundY + y) / 4;
+				mMyGoalBackgroundU = (3*mMyGoalBackgroundU + u) / 4;
+				mMyGoalBackgroundV = (3*mMyGoalBackgroundV + v) / 4;
+				Debugger::INFO("GoalSidePrediction", "MyGoal updated!");
+				Debugger::DEBUG("GoalSidePrediction", "MyGoal: %d %d %d",
+						mMyGoalBackgroundY, mMyGoalBackgroundU, mMyGoalBackgroundV);
+			}
+			return true;
+		}
+
+		double varMy = (double)(abs(mMyGoalBackgroundY - y)
+				+ abs(mMyGoalBackgroundU - u)
+				+ abs(mMyGoalBackgroundV - v));
+		double varOp = (double)(abs(mOpGoalBackgroundY - y)
+				+ abs(mOpGoalBackgroundU - u)
+				+ abs(mOpGoalBackgroundV - v));
+
+		double chanceMy = 0.0;
+		if( varMy < COLOR_VARIANCE_MAX) {
+			chanceMy = (COLOR_VARIANCE_MAX - varMy) / COLOR_VARIANCE_MAX;
+		}
+
+		double chanceOp = 0.0;
+		if( varOp < COLOR_VARIANCE_MAX) {
+			chanceOp = (COLOR_VARIANCE_MAX - varOp) / COLOR_VARIANCE_MAX;
+		}
+
+		Debugger::DEBUG("GoalSidePrediction", "My: %.2f (%.0f), Op: %.2f (%.0f)", chanceMy, varMy, chanceOp, varOp);
+
+		getGoalSide().setChancesInPercent(chanceMy, chanceOp);
+	} else {
+		getGoalSide().resetChances();
+	}
+
+	return true;
+}
+
+void GoalSidePrediction::configChanged()
+{
+	mColorMinInterval = Config::GetDouble("Support", "ColorMinInterval", 0.1);
+	mMyGoalBackgroundY = Config::GetInt("Support", "GoalSide_myY", 0);
+	mMyGoalBackgroundU = Config::GetInt("Support", "GoalSide_myU", 0);
+	mMyGoalBackgroundV = Config::GetInt("Support", "GoalSide_myV", 0);
+	mOpGoalBackgroundY = Config::GetInt("Support", "GoalSide_opY", 200);
+	mOpGoalBackgroundU = Config::GetInt("Support", "GoalSide_opU", 200);
+	mOpGoalBackgroundV = Config::GetInt("Support", "GoalSide_opV", 200);
+	getGoalSide().setMinInterval( mColorMinInterval);
+}
+
+

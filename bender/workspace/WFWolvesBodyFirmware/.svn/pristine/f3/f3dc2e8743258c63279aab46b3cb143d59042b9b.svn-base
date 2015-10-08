@@ -1,0 +1,274 @@
+/*
+ * servo_dynamixel.c
+ *
+ *  Created on: 16.08.2010
+ *      Author: Stefan
+ */
+
+#ifdef DYNAMIXEL
+
+#include "servo.h"
+#include "include/Board.h"
+#include "uart/uart.h"
+#include "ui/ui.h"
+#include "tc/tc.h"
+#include "dbgu/dbgu.h"
+#include <math.h>
+#include <stdlib.h>
+
+#define RS485_DIR		AT91C_PIO_PB6
+
+#define INST_WRITE		0x03
+#define INST_SYNC_WRITE	0x83
+#define DX_BROADCAST	0xFE
+
+#define RX28_GOAL_POSITION_L	0x1E
+
+#define FRAME_START		0x00
+#define FRAME_ID		0x02
+#define FRAME_LEN		0x03
+#define FRAME_INST		0x04 // Instruction packet is in req
+#define FRAME_ERROR		0x04 // Error byte is in response
+#define FRAME_PARM		0x05
+
+#define SERVO_RATIO_VALUE2ANGLE			0.293 // 300 / 1024
+#define SERVO_RATIO_ANGLE2VALUE			3.413 // 1024 / 300
+
+CharReceivedCallback mOldDBGUCallback = 0;
+CharReceivedCallback mOldUart1Callback = 0;
+TxReadyCallback mOldDBGUTXBufCallback = 0;
+
+volatile unsigned char mRXComplete, mRXBuffer[256];
+static unsigned char mRXBufferPos = 0;
+
+#define TX_BUFFER_SIZE	128
+volatile unsigned char Servo_TXBuffer[TX_BUFFER_SIZE];
+volatile unsigned char Servo_TXBufferWritePos = 0;
+volatile unsigned char Servo_TXBufferReadPos = 0;
+
+void Servo_ResponseCallback(char rxd);
+
+void Servo_Init_DYN(void) {
+#ifndef DEBUG_X86
+	AT91C_BASE_PIOB->PIO_PER |= RS485_DIR; // Allow PIO to control RS485 direction
+	AT91C_BASE_PIOB->PIO_OER |= RS485_DIR; // Enable output
+	AT91C_BASE_PIOB->PIO_CODR = RS485_DIR; // Start with receive mode (low)
+#endif
+
+	uart1_AssignCharReceivedCallback(Servo_ResponseCallback);
+}
+
+void Servo_SendData(unsigned char* data, int length) {
+	Servo_SpinLock();
+	uart1_hintStartOfTransfer();
+
+#ifndef DEBUG_X86
+	AT91C_BASE_PIOB->PIO_SODR = RS485_DIR; // Send mode (high)
+#endif
+	for (int i = 0; i < length; i++) {
+		uart1_putc(data[i]);
+	}
+	uart1_waitforsent();
+#ifndef DEBUG_X86
+	AT91C_BASE_PIOB->PIO_CODR = RS485_DIR; // Receive mode (low)
+#endif
+
+	uart1_hintEndOfTransfer();
+	Servo_SpinUnLock();
+}
+
+unsigned char Servo_WriteData16(unsigned char id, unsigned char address, int data) {
+    unsigned char packet[] = {0xff, 0xff, id, 3 + 2, INST_WRITE, address, data & 0xFF, (data & 0xFF00) >> 8, 0};
+
+    unsigned char checksum = 0;
+    for (int i = 2; i < sizeof(packet); i++) {
+    	checksum += packet[i];
+    }
+    packet[sizeof(packet) - 1] = ~checksum;
+
+    for (unsigned char try = 0; try < 2; try++) {
+    	unsigned long ticks_end = TC_GetSystemTicks() + 25 + (try == 0 ? 25 : 0);
+
+    	mRXComplete = 0;
+    	mRXBufferPos = 0;
+    	Servo_SendData((unsigned char*)&packet, sizeof(packet));
+
+    	if (id == DX_BROADCAST) {
+    		return 1;
+    	}
+
+    	while (TC_GetSystemTicks() <= ticks_end) {
+    		while (TC_GetSystemTicks() <= ticks_end && !mRXComplete) {
+    		}
+    		if (!mRXComplete) {
+    			break;
+    		}
+    		if (mRXBuffer[FRAME_ID] == id) {
+    			return 1;
+    		}
+    		ticks_end = TC_GetSystemTicks() + 25;
+    		mRXComplete = 0;
+    	}
+    }
+    return 0;
+}
+
+unsigned char Servo_SyncWrite(unsigned char startAddr, unsigned char eachLength, unsigned char number, unsigned char* params) {
+	unsigned char packet_size = 7 + (number * eachLength) + 1;
+    unsigned char* packet = malloc(packet_size);
+
+    packet[0] = 0xff;
+    packet[1] = 0xff;
+    packet[2] = DX_BROADCAST;
+    packet[3] = (eachLength * number) + 2 + 2;
+    packet[4] = INST_SYNC_WRITE;
+    packet[5] = startAddr;
+    packet[6] = eachLength - 1;
+    for(int i = 0; i < (number * eachLength); ++i) {
+        packet[7 + i] = params[i];
+    }
+
+    unsigned char checksum = 0;
+    for (int i = 2; i < packet_size - 1; ++i) {
+    	checksum += packet[i];
+    }
+    packet[packet_size - 1] = ~checksum;
+
+    Servo_SendData(packet, packet_size);
+    free(packet);
+    return 1;
+}
+
+unsigned char Servo_SendPosition(unsigned char id, float pos) {
+	return Servo_WriteData16(id, 0x1E, Servo_Angle2Value(pos));
+}
+
+void Servo_SendPositions(void) {
+	unsigned char data[SERVO_COUNT_MAX * 3];
+
+	for(int i = 0; i < SERVO_COUNT_MAX; i++) {
+		int tmp = Servo_Angle2Value(Servo_GetPosition(i));
+		data[i * 3 + 0] = i; // ID
+		data[i * 3 + 1] = tmp & 0xff;
+		data[i * 3 + 2] = (tmp >> 8) & 0xff;
+	}
+	Servo_SyncWrite(RX28_GOAL_POSITION_L, 3, SERVO_COUNT_MAX, (unsigned char*)&data);
+}
+
+float Servo_ReadPos(unsigned char id) {
+	//TODO: Implement
+	return 0;
+}
+
+void Servo_SetPassive(unsigned char id) {
+	//TODO: Implement
+}
+
+void Servo_SetPositionsTorque(unsigned char torque) {
+	//TODO: Implement
+}
+
+void Servo_SendTGain(unsigned char id, char pGain, char iGain, char dGain) {
+	//TODO: Implement
+}
+
+unsigned char Servo_IsResponding(unsigned char id) {
+	//TODO: Implement
+	return 1;
+}
+
+void Servo_SetID(unsigned char oldid, unsigned char newid) {
+	//TODO: Implement
+}
+
+unsigned char Servo_ReadLoad(unsigned char id) {
+	//TODO: Implement
+	return 0;
+}
+
+void Servo_ReadPID(unsigned char id, unsigned char* p, unsigned char* i, unsigned char* d) {
+	//TODO: Implement
+}
+
+void Servo_SendExPortD(unsigned char id, char exPortD) {}
+void Servo_SetOverload(unsigned char id, unsigned char overload) {}
+void Servo_SetBoundaries(unsigned char id, unsigned char lower, unsigned char upper) {}
+void Servo_ReadBounds(unsigned char id, unsigned char* bound_l, unsigned char* bound_u) {}
+unsigned char Servo_ReadOverload(unsigned char id) { return 0; }
+
+void Servo_ResponseCallback(char rxd) {
+	UI_ToggleLED(2);
+
+	mRXBuffer[mRXBufferPos] = rxd;
+	mRXBuffer[0] += rxd;
+
+	if (mRXBufferPos < 2 && rxd != 0xff)
+		mRXBufferPos = 0;
+	else if (mRXBufferPos == 2 && rxd == 0xff)
+		mRXBuffer[0] -= rxd;
+	else
+		mRXBufferPos++;
+
+	if (mRXBufferPos > 4 && mRXBufferPos == mRXBuffer[3] + 4) {
+		if (mRXBuffer[0] == 0xfc) {
+			mRXBuffer[0] = 0xff;
+			mRXComplete = 1;
+			//UI_SetLED(2, 0);
+		}
+
+		mRXBufferPos = 0;
+	}
+}
+
+void Servo_ExtCharRecv(char ch) {
+	UI_ToggleLED(0);
+	Servo_SendData((unsigned char*)&ch, 1);
+}
+
+unsigned char Servo_ExtTXBufferEmpty(void) {
+	// Print next from TX buffer
+	if (Servo_TXBufferReadPos != Servo_TXBufferWritePos) {
+		dbgu_print_char(Servo_TXBuffer[Servo_TXBufferReadPos]);
+		Servo_TXBufferReadPos = (Servo_TXBufferReadPos + 1) % TX_BUFFER_SIZE;
+		return 1; // More characters to send
+	} else {
+		return 0; // No more characters
+	}
+}
+
+void Servo_ServoCharRecv(char ch) {
+	UI_ToggleLED(1);
+	unsigned char empty = (Servo_TXBufferWritePos == Servo_TXBufferReadPos);
+	// Add to TX buffer
+	Servo_TXBuffer[Servo_TXBufferWritePos] = ch;
+	Servo_TXBufferWritePos = (Servo_TXBufferWritePos + 1) % TX_BUFFER_SIZE;
+
+	if ((AT91C_BASE_DBGU->DBGU_CSR & AT91C_US_TXRDY) && (empty)) {
+        unsigned char temp_char = Servo_TXBuffer[Servo_TXBufferReadPos];
+        Servo_TXBufferReadPos = (Servo_TXBufferReadPos + 1) % TX_BUFFER_SIZE;
+        AT91C_BASE_DBGU->DBGU_THR = (temp_char & 0x1FF);
+       	dbgu_enable_TxReadyCallback();
+	}
+}
+
+void Servo_SetForwardingMode(unsigned char state) {
+	if (state == 1) {
+		mOldDBGUCallback = dbgu_AssignCharReceivedCallback(Servo_ExtCharRecv);
+		mOldUart1Callback = uart1_AssignCharReceivedCallback(Servo_ServoCharRecv);
+		mOldDBGUTXBufCallback = dbgu_AssignTxReadyCallback(Servo_ExtTXBufferEmpty);
+	} else {
+		dbgu_AssignCharReceivedCallback(mOldDBGUCallback);
+		uart1_AssignCharReceivedCallback(mOldUart1Callback);
+		dbgu_AssignTxReadyCallback(mOldDBGUTXBufCallback);
+	}
+}
+
+int Servo_Angle2Value(float angle) {
+	return round(-angle * SERVO_RATIO_ANGLE2VALUE) + SERVO_CENTER_VALUE;
+}
+
+float Servo_Value2Angle(int value) {
+	return (-value - SERVO_CENTER_VALUE) * SERVO_RATIO_VALUE2ANGLE;
+}
+
+#endif

@@ -1,0 +1,200 @@
+#include <iostream>
+#include <sstream>
+#include <unistd.h>
+#include <signal.h>
+#include <string>
+#include <cstring>
+#include <algorithm>
+#include <cctype>
+
+#include "Body/Body.h"
+#include "Network/GameControllerServer.h"
+#include "Debugging/Debugger.h"
+#include "Debugging/Services/BlackboardService.h"
+#include "Debugging/Services/FileService.h"
+#include "Debugging/Services/BodyDataService.h"
+#include "LEDs.h"
+#include "Config.h"
+#include "Game.h"
+
+#include "ModuleManager/ModuleManager.h"
+
+#include "Modules/ImageSources/CaptureV4L1.h"
+#include "Modules/ImageSources/CaptureV4L2.h"
+#include "Modules/ImageSources/PBFLoader.h"
+#include "Modules/ImageSources/CaptureOpenCV.h"
+#include "Modules/ImageSources/ConvertOpenCV.h"
+
+#include "Modules/ConfigurationProvider.h"
+#include "Modules/BodyController.h"
+
+#include "Modules/Vision/Scanlines.h"
+#include "Modules/Vision/FieldLineDetection.h"
+#include "Modules/Vision/BallDetection.h"
+#include "Modules/Vision/BallDetectionOpenCV.h"
+#include "Modules/Vision/GoalDetectionOpenCV.h"
+
+#include "Modules/Visualisation/VisionVisualisation.h"
+
+#include "Modules/Behavior/AttackerBehavior.h"
+#include "Modules/Behavior/RemoteBehavior.h"
+
+#define OUR_TEAM_ID			20
+
+using namespace std;
+
+static bool mTerminate;
+
+static void sighandler(int sig) {
+	mTerminate = true;
+}
+
+int main(int argc, char * const argv[]) {
+	signal(SIGINT, &sighandler);
+
+	string PBFPathName = "";
+	signed short repeatCount = 0;
+	//lint -e{850} i is modified in the body of the for loop
+	for (int i = 1; i < argc; i++) {
+		if (strcmp(argv[i], "--pbf") == 0) {
+			if (i + 1 < argc) {
+				PBFPathName = argv[i + 1];
+				i++;
+			} else {
+				printf("Missing PBF filename!\n");
+				return 1;
+			}
+		} else if (strcmp(argv[i], "--autoadvance") == 0) {
+			if (i + 1 < argc) {
+				repeatCount = (signed short) atoi(argv[i + 1]);
+				i++;
+			} else {
+				printf("Missing repeat count!\n");
+				return 1;
+			}
+		} else if (strcmp(argv[i], "--help") == 0) {
+			printf("Known command line options:\n");
+			printf("--help                      Prints this message\n");
+			printf(
+					"--pbf <file>                Load images and color calibration from file or whole directory\n");
+			printf(
+					"--autoadvance <repeatcount> Auto-advances to next PBF after <repeatcount> captures\n");
+			return 0;
+		}
+	}
+
+	// Force Config to initialize
+	Config::GetInstance();
+	// Force Debugger to initialize
+	Debugger::GetInstance();
+
+	Body* mBody;
+	LEDs* mLEDs;
+	GameControllerServer* mGameController;
+	Game* mGame;
+	mGame = new Game();
+
+	Body::BodyType bodyType = Body::Regular;
+#ifdef DEBUG_X86
+	mBody = new Body("/dev/ttyUSB0", bodyType);
+#else
+	mBody = new Body("/dev/ttySS0", bodyType);
+#endif
+
+	// Add services to debugger
+	FileService* fileService = new FileService();
+	Debugger::GetInstance()->addPacketListener(fileService);
+	BlackboardService* blackboardService = new BlackboardService();
+	Debugger::GetInstance()->addPacketListener(blackboardService);
+	RemoteBehavior* remoteBehavior = new RemoteBehavior();
+	BodyDataService* bodyDataService = new BodyDataService(mBody, remoteBehavior);
+	Debugger::GetInstance()->addPacketListener(bodyDataService);
+
+	mGame->setBotAllowedToMove(true);
+	mGame->setGameState(Game::PLAYING);
+
+	mGameController = new GameControllerServer(mGame, OUR_TEAM_ID);
+	mLEDs = new LEDs();
+
+	srand((unsigned int) time(NULL));
+
+	Debugger::GetInstance()->announceOwnIP();
+
+	// Force Module manager to initialize
+	ModuleManager::GetInstance();
+
+	ModuleManager::GetInstance()->registerModule(new ConfigurationProvider());
+	if (PBFPathName != "") {
+		ModuleManager::GetInstance()->registerModule(
+				new PBFLoader(PBFPathName, repeatCount == 0 ? true : false,
+						repeatCount));
+#ifdef USE_OPENCV
+		ModuleManager::GetInstance()->registerModule(new ConvertOpenCV());
+#endif
+	} else {
+#ifdef USE_OPENCV
+		if (Config::GetBoolean("Modules", "useOpenCVCapture", false)) {
+			ModuleManager::GetInstance()->registerModule(new CaptureOpenCV());
+		} else {
+			ModuleManager::GetInstance()->registerModule(new CaptureV4L2("/dev/video0"));
+			ModuleManager::GetInstance()->registerModule(new CaptureV4L1("/dev/video0"));
+			ModuleManager::GetInstance()->registerModule(new ConvertOpenCV());
+		}
+#else
+		ModuleManager::GetInstance()->registerModule(new CaptureV4L2("/dev/video0"));
+		ModuleManager::GetInstance()->registerModule(new CaptureV4L1("/dev/video0"));
+#endif
+	}
+	ModuleManager::GetInstance()->registerModule(new Scanlines());
+	//ModuleManager::GetInstance()->registerModule(new BallDetection());
+	ModuleManager::GetInstance()->registerModule(new BallDetectionOpenCV());
+	ModuleManager::GetInstance()->registerModule(new FieldLineDetection());
+	if (Config::GetBoolean("Modules", "useVisionVisualisation", false)) {
+		ModuleManager::GetInstance()->registerModule(new VisionVisualisation(), true);
+	}
+	//ModuleManager::GetInstance()->registerModule(new AttackerBehavior());
+	ModuleManager::GetInstance()->registerModule(remoteBehavior);
+	ModuleManager::GetInstance()->registerModule(new BodyController(mBody));
+	ModuleManager::GetInstance()->registerModule(new GoalDetectionOpenCV());
+
+	mTerminate = false;
+	while (!mTerminate) {
+		mLEDs->toggle(0);
+		if (mGame->isAllowedToMove()) {
+			mBody->setParalysis(false);
+		} else {
+			Debugger::WARN("WolvesKI2",
+					"Robot is currently not allowed to move!");
+			mBody->setParalysis(true);
+		}
+
+		if (!ModuleManager::GetInstance()->execute()) {
+			mTerminate = true;
+		}
+
+#ifdef DEBUG_X86
+#ifdef WIN32
+		Sleep(66);
+#else
+		usleep(66 * 1000);
+#endif
+#endif
+	}
+
+	Debugger::INFO("WolvesKI2", "Terminating program...");
+	mBody->Stop();
+	mGame->save();
+	delete mGameController;
+	delete mGame;
+	delete mBody;
+	delete mLEDs;
+
+	delete fileService;
+	delete blackboardService;
+	delete bodyDataService;
+	ModuleManager::GetInstance()->shutdown();
+	Config::GetInstance()->shutdown();
+	Debugger::GetInstance()->shutdown();
+
+	return 0;
+}

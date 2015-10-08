@@ -1,0 +1,70 @@
+-hF
+
+// For Jenkins
+//+ffn // force full path names
+//-width(0) // don't insert line breaks (unlimited output width).
+//-hf1 // message height one
+//-"format=%f(%l): %t %n: %m"
+
+// For Eclipse
+//-"format=LINT %t%(: %f:%l %) %n %m"
+//-width(0,0)
+
+-e830 // Disable "Location cited in prior message"
+-e831 // Disable "Reference cited in prior message"
+
+// Suppress messages
+-e534 // Ignoring return value
+-e537 // Repeated include file
+-e1551 // Exception in destructor
+-e1577 // Template specialization in other file
+-e1712 // No default constructor
+
+// Disable warnings about unused functions
+-e1714
+-e1716
+-e714
+-e715
+-e750
+-e755
+-e757
+-e1795
+-e758
+-e768
+-e769
+ 
+-e759
+-e765
+
+-esym(39,google::protobuf::RepeatedPtrField<std::basic_string<char>>::TypeHandler)
+
+-emacro(717,pthread_cleanup_pop)
+
++libh(RoboCupGameControlData.h)
++libh(../Messages/Blackboard.pb.h)
++libh(../Messages/Representations.pb.h)
++libh(../Messages/msg_image.pb.h)
++libh(../../Messages/msg_imageannotation.pb.h)
++libh(../Messages/Point.pb.h)
++libh(../Messages/PointCloud.pb.h)
++libh(../Messages/FieldLines.pb.h)
++libh(../Messages/Histogram.pb.h)
++libh(../Messages/Line.pb.h)
++libh(../Messages/Object.pb.h)
++libh(../Messages/ObjectList.pb.h)
++libh(../Messages/DebugDrawings.pb.h)
++libh(../../Messages/ProtoBufFrame.pb.h)
++libh(../Messages/ServoStatus.pb.h)
++libh(../Messages/BodyStatus.pb.h)
++libh(../Messages/BodyAction.pb.h)
++libh(../Messages/BehaviorStatus.pb.h)
++libh(../Messages/ConfigDescriptions.pb.h)
+
+-efile(451,cstdlib)
+-efile(451,time.h)
+
+-sem(Network::construct,initializer)
+-sem(sighandler,thread_protected)
+
+// Be verbose
+//-voifd

@@ -1,0 +1,3393 @@
+[Session:Tue Jul 20 09:50:14 CEST 2010]
+
+[Session:Tue Jul 20 09:50:41 CEST 2010]
+0 = ACK: 43605
+1 = ACK: 21930
+2 = ACK: 43605
+3 = ACK: 21815
+4 = ACK: 14266
+5 = ACK: 47632
+6 = ACK: 4097
+7 = ACK: 256
+8 = ACK: 1
+9 = ACK: 257
+10 = ACK: 257
+11 = Request: 41
+12 = ACK: 256
+13 = ACK: 118
+14 = ACK: 30208
+15 = ACK: 44
+16 = Request: 157
+17 = ACK: 11264
+18 = ACK: 44
+19 = ACK: 11264
+20 = ACK: 8216
+21 = Request: 79
+22 = ACK: 2103296
+23 = ACK: 8216
+24 = ACK: 2103296
+25 = ACK: 180
+26 = ACK: 46080
+27 = ACK: 82
+28 = Request: 228
+29 = ACK: 20992
+30 = ACK: 82
+31 = ACK: 20992
+32 = ACK: 223
+33 = Request: 129
+34 = ACK: 57088
+35 = ACK: 223
+36 = ACK: 57088
+37 = ACK: 98
+38 = ACK: 25088
+39 = ACK: 8364
+40 = Request: 40
+41 = ACK: 2141184
+42 = ACK: 8364
+43 = ACK: 2141184
+44 = ACK: 40
+45 = Request: 159
+46 = ACK: 10240
+47 = ACK: 40
+48 = ACK: 10240
+49 = ACK: 101
+50 = ACK: 25856
+51 = ACK: 376
+52 = Request: 41
+53 = ACK: 96256
+54 = ACK: 376
+55 = ACK: 96256
+56 = ACK: 41
+57 = Request: 203
+58 = ACK: 10496
+59 = ACK: 41
+60 = ACK: 10496
+61 = ACK: 125
+62 = ACK: 32000
+63 = ACK: 199
+64 = Request: 95
+65 = ACK: 50944
+66 = ACK: 199
+67 = ACK: 50944
+68 = ACK: 104
+69 = ACK: 26624
+70 = ACK: 104
+72 = ACK: 26624
+73 = ACK: 57
+74 = ACK: 14592
+75 = ACK: 164
+76 = Request: 22
+77 = ACK: 41984
+78 = ACK: 164
+79 = ACK: 41984
+80 = ACK: 25
+81 = Request: 122
+82 = ACK: 6400
+83 = ACK: 25
+84 = ACK: 6400
+85 = ACK: 69
+86 = ACK: 17664
+87 = ACK: 121
+88 = Request: 4
+89 = ACK: 30976
+90 = ACK: 121
+91 = ACK: 30976
+92 = ACK: 5
+93 = Request: 126
+94 = ACK: 1280
+95 = ACK: 5
+96 = ACK: 1280
+97 = ACK: 166
+98 = ACK: 42496
+99 = ACK: 126
+100 = Request: 208
+101 = ACK: 32256
+102 = ACK: 126
+103 = ACK: 32256
+104 = ACK: 205
+105 = ACK: 52480
+107 = ACK: 205
+108 = ACK: 52480
+109 = ACK: 8240
+110 = ACK: 2109440
+111 = ACK: 208
+112 = Request: 70
+113 = ACK: 53248
+114 = ACK: 208
+115 = ACK: 53248
+116 = ACK: 70
+117 = ACK: 17920
+118 = ACK: 70
+
+[Session:Tue Jul 20 09:55:37 CEST 2010]
+0 = ACK: 43605
+1 = ACK: 21930
+2 = ACK: 43605
+3 = ACK: 21815
+4 = ACK: 14266
+5 = ACK: 47632
+6 = ACK: 4097
+7 = ACK: 256
+8 = ACK: 1
+9 = ACK: 257
+10 = ACK: 257
+
+[Session:Tue Jul 20 09:56:34 CEST 2010]
+0 = ACK: 43605
+1 = ACK: 21930
+2 = ACK: 43605
+3 = ACK: 21815
+4 = ACK: 14266
+5 = ACK: 47632
+6 = ACK: 4097
+7 = ACK: 256
+8 = ACK: 1
+9 = ACK: 257
+10 = ACK: 257
+11 = Request: 238
+12 = ACK: 256
+13 = ACK: 51
+14 = ACK: 13056
+15 = ACK: 238
+16 = Request: 22
+17 = ACK: 60928
+18 = ACK: 238
+19 = ACK: 60928
+20 = ACK: 23
+21 = ACK: 5888
+22 = ACK: 23
+23 = Request: 238
+24 = ACK: 5888
+25 = ACK: 51
+26 = ACK: 13056
+27 = ACK: 238
+28 = Request: 22
+29 = ACK: 60928
+30 = ACK: 238
+31 = ACK: 60928
+32 = ACK: 23
+33 = ACK: 5888
+34 = ACK: 23
+
+[Session:Tue Jul 20 09:57:28 CEST 2010]
+0 = ACK: 43605
+1 = ACK: 21930
+2 = ACK: 43605
+3 = ACK: 21815
+4 = ACK: 14266
+5 = ACK: 47632
+6 = ACK: 4097
+7 = ACK: 256
+8 = ACK: 1
+9 = ACK: 257
+10 = ACK: 257
+11 = Request: 238
+12 = ACK: 256
+13 = ACK: 51
+14 = ACK: 13056
+15 = ACK: 238
+16 = Request: 22
+17 = ACK: 60928
+18 = ACK: 238
+19 = ACK: 60928
+20 = ACK: 23
+21 = ACK: 5888
+22 = ACK: 23
+
+[Session:Tue Jul 20 10:00:53 CEST 2010]
+
+[Session:Tue Jul 20 10:01:02 CEST 2010]
+0 = ACK: 43605
+1 = ACK: 21930
+2 = ACK: 43605
+3 = ACK: 21815
+4 = ACK: 14266
+5 = ACK: 47632
+6 = ACK: 4097
+7 = ACK: 256
+8 = ACK: 1
+9 = ACK: 257
+10 = ACK: 257
+11 = Request: 41
+12 = ACK: 256
+13 = ACK: 124
+14 = ACK: 31744
+15 = ACK: 42
+16 = Request: 157
+17 = ACK: 10752
+18 = ACK: 42
+19 = ACK: 10752
+20 = ACK: 8221
+21 = ACK: 2104576
+22 = ACK: 8221
+24 = ACK: 2104576
+25 = ACK: 177
+26 = ACK: 45312
+27 = ACK: 82
+28 = Request: 228
+29 = ACK: 20992
+30 = ACK: 20992
+31 = ACK: 223
+32 = Request: 129
+33 = ACK: 57088
+34 = ACK: 223
+35 = ACK: 57088
+36 = ACK: 22528
+37 = ACK: 8364
+38 = Request: 40
+39 = ACK: 2141184
+40 = ACK: 8364
+41 = ACK: 2141184
+42 = ACK: 42
+43 = Request: 159
+44 = ACK: 10752
+45 = ACK: 42
+46 = ACK: 10752
+47 = ACK: 106
+48 = ACK: 27136
+49 = ACK: 376
+50 = Request: 41
+51 = ACK: 96256
+52 = ACK: 376
+53 = ACK: 96256
+54 = ACK: 41
+55 = Request: 203
+56 = ACK: 10496
+57 = ACK: 41
+58 = ACK: 10496
+59 = ACK: 65533
+60 = ACK: 16776448
+61 = ACK: 201
+62 = Request: 95
+63 = ACK: 51456
+64 = ACK: 201
+65 = ACK: 51456
+66 = ACK: 103
+67 = Request: 167
+68 = ACK: 26368
+69 = ACK: 103
+70 = ACK: 26368
+71 = ACK: 73
+72 = ACK: 18688
+73 = ACK: 165
+74 = Request: 22
+75 = ACK: 42240
+76 = ACK: 165
+77 = ACK: 42240
+78 = ACK: 25
+79 = Request: 122
+80 = ACK: 6400
+81 = ACK: 25
+82 = ACK: 6400
+83 = ACK: 46
+84 = ACK: 11776
+85 = ACK: 121
+86 = Request: 4
+87 = ACK: 30976
+88 = ACK: 121
+89 = ACK: 30976
+90 = ACK: 5
+91 = Request: 126
+92 = ACK: 1280
+93 = ACK: 5
+94 = ACK: 1280
+95 = ACK: 162
+96 = ACK: 41472
+97 = ACK: 126
+98 = Request: 208
+99 = ACK: 32256
+100 = ACK: 126
+101 = ACK: 32256
+102 = ACK: 206
+103 = Request: 208
+104 = ACK: 52736
+105 = ACK: 206
+106 = ACK: 52736
+107 = ACK: 65533
+108 = ACK: 16776448
+109 = ACK: 208
+110 = Request: 70
+111 = ACK: 53248
+112 = ACK: 208
+113 = ACK: 53248
+114 = ACK: 70
+115 = ACK: 17920
+117 = ACK: 70
+118 = ACK: 17920
+119 = ACK: 51
+120 = ACK: 13056
+121 = ACK: 238
+122 = Request: 22
+123 = ACK: 60928
+124 = ACK: 238
+125 = ACK: 60928
+126 = ACK: 24
+127 = Request: 216
+128 = ACK: 6144
+129 = ACK: 24
+130 = ACK: 6144
+131 = ACK: 47
+132 = ACK: 12032
+133 = ACK: 216
+134 = Request: 23
+135 = ACK: 55296
+136 = ACK: 216
+137 = ACK: 55296
+138 = ACK: 36
+139 = Request: 14
+140 = ACK: 9216
+141 = ACK: 36
+142 = ACK: 9216
+143 = ACK: 49
+144 = ACK: 12544
+145 = ACK: 14
+146 = Request: 168
+147 = ACK: 3584
+148 = ACK: 14
+149 = ACK: 3584
+150 = ACK: 167
+151 = Request: 9
+152 = ACK: 42752
+153 = ACK: 167
+154 = ACK: 42752
+155 = ACK: 198
+156 = ACK: 50688
+157 = ACK: 9
+158 = Request: 222
+159 = ACK: 2304
+160 = ACK: 9
+161 = ACK: 2304
+162 = ACK: 221
+163 = Request: 47
+164 = ACK: 56576
+165 = ACK: 221
+166 = ACK: 56576
+167 = ACK: 202
+168 = ACK: 51712
+169 = ACK: 47
+170 = Request: 214
+171 = ACK: 12032
+172 = ACK: 47
+173 = ACK: 12032
+174 = ACK: 207
+175 = Request: 240
+176 = ACK: 52992
+177 = ACK: 207
+178 = ACK: 52992
+179 = ACK: 204
+180 = ACK: 52224
+181 = ACK: 240
+182 = Request: 153
+183 = ACK: 61440
+184 = ACK: 240
+185 = ACK: 61440
+186 = ACK: 8482
+187 = ACK: 2171392
+188 = ACK: 8482
+
+[Session:Tue Jul 20 10:22:46 CEST 2010]
+0 = Request: 41
+1 = ACK: 126
+2 = ACK: 32256
+3 = ACK: 43
+4 = Request: 157
+5 = ACK: 11008
+6 = ACK: 43
+7 = ACK: 11008
+8 = ACK: 8226
+9 = Request: 79
+10 = ACK: 2105856
+11 = ACK: 8226
+12 = ACK: 2105856
+13 = ACK: 190
+14 = ACK: 48640
+15 = ACK: 82
+16 = Request: 228
+17 = ACK: 20992
+18 = ACK: 82
+19 = ACK: 20992
+20 = ACK: 224
+21 = Request: 129
+22 = ACK: 57344
+23 = ACK: 224
+24 = ACK: 57344
+25 = ACK: 85
+26 = ACK: 21760
+27 = ACK: 8364
+28 = Request: 40
+29 = ACK: 2141184
+30 = ACK: 8364
+31 = ACK: 2141184
+32 = ACK: 42
+33 = Request: 159
+34 = ACK: 10752
+35 = ACK: 42
+36 = ACK: 10752
+37 = ACK: 108
+38 = ACK: 27648
+39 = ACK: 376
+40 = Request: 41
+41 = ACK: 96256
+42 = ACK: 376
+43 = ACK: 96256
+44 = ACK: 41
+45 = Request: 203
+46 = ACK: 10496
+47 = ACK: 41
+48 = ACK: 10496
+49 = ACK: 8222
+50 = ACK: 2104832
+51 = ACK: 201
+52 = Request: 95
+53 = ACK: 51456
+54 = ACK: 201
+55 = ACK: 51456
+56 = ACK: 103
+57 = Request: 167
+58 = ACK: 26368
+59 = ACK: 103
+60 = ACK: 26368
+61 = ACK: 62
+62 = ACK: 15872
+63 = ACK: 165
+64 = Request: 22
+65 = ACK: 42240
+66 = ACK: 165
+67 = ACK: 42240
+68 = ACK: 25
+69 = Request: 122
+70 = ACK: 6400
+71 = ACK: 25
+72 = ACK: 6400
+73 = ACK: 55
+74 = ACK: 14080
+75 = ACK: 121
+76 = Request: 4
+77 = ACK: 30976
+78 = ACK: 121
+79 = ACK: 30976
+80 = ACK: 4
+81 = ACK: 1024
+83 = ACK: 4
+84 = ACK: 1024
+85 = ACK: 376
+86 = ACK: 96256
+87 = ACK: 126
+88 = Request: 208
+89 = ACK: 32256
+90 = ACK: 126
+91 = ACK: 32256
+92 = ACK: 206
+93 = Request: 208
+94 = ACK: 52736
+95 = ACK: 206
+96 = ACK: 52736
+97 = ACK: 65533
+98 = ACK: 16776448
+99 = ACK: 208
+100 = Request: 70
+101 = ACK: 53248
+102 = ACK: 208
+103 = ACK: 53248
+104 = ACK: 70
+105 = Request: 238
+106 = ACK: 17920
+107 = ACK: 70
+108 = ACK: 17920
+109 = ACK: 51
+110 = ACK: 13056
+111 = ACK: 238
+112 = Request: 22
+113 = ACK: 60928
+114 = ACK: 237
+115 = ACK: 60672
+116 = ACK: 24
+117 = ACK: 6144
+118 = ACK: 24
+120 = ACK: 6144
+121 = ACK: 47
+122 = ACK: 12032
+123 = ACK: 216
+124 = Request: 23
+125 = ACK: 55296
+126 = ACK: 216
+127 = ACK: 55296
+128 = ACK: 36
+129 = Request: 14
+130 = ACK: 9216
+131 = ACK: 36
+132 = ACK: 9216
+133 = ACK: 49
+134 = ACK: 12544
+135 = ACK: 14
+136 = Request: 168
+137 = ACK: 3584
+138 = ACK: 14
+139 = ACK: 3584
+140 = ACK: 167
+141 = Request: 9
+142 = ACK: 42752
+143 = ACK: 167
+144 = ACK: 42752
+145 = ACK: 198
+146 = ACK: 50688
+147 = ACK: 9
+148 = Request: 222
+149 = ACK: 2304
+150 = ACK: 9
+151 = ACK: 2304
+152 = ACK: 221
+153 = Request: 47
+154 = ACK: 56576
+155 = ACK: 221
+156 = ACK: 56576
+157 = ACK: 202
+158 = ACK: 51712
+159 = ACK: 47
+160 = Request: 214
+161 = ACK: 12032
+162 = ACK: 47
+163 = ACK: 12032
+164 = ACK: 206
+165 = Request: 240
+166 = ACK: 52736
+167 = ACK: 206
+168 = ACK: 52736
+169 = ACK: 205
+170 = ACK: 52480
+171 = ACK: 240
+172 = Request: 153
+173 = ACK: 61440
+174 = ACK: 240
+175 = ACK: 61440
+176 = ACK: 8482
+177 = ACK: 2171392
+178 = ACK: 8482
+
+[Session:Tue Jul 20 13:37:08 CEST 2010]
+
+[Session:Tue Jul 20 13:41:38 CEST 2010]
+
+[Session:Tue Jul 20 13:42:31 CEST 2010]
+
+[Session:Tue Jul 20 13:43:12 CEST 2010]
+
+[Session:Tue Jul 20 13:49:43 CEST 2010]
+
+[Session:Tue Jul 20 13:54:17 CEST 2010]
+
+[Session:Tue Jul 20 13:55:14 CEST 2010]
+
+[Session:Tue Jul 20 13:55:46 CEST 2010]
+
+[Session:Tue Jul 20 13:56:29 CEST 2010]
+
+[Session:Tue Jul 20 13:57:07 CEST 2010]
+
+[Session:Tue Jul 20 13:57:59 CEST 2010]
+
+[Session:Tue Jul 20 13:58:36 CEST 2010]
+
+[Session:Tue Jul 20 13:59:42 CEST 2010]
+
+[Session:Tue Jul 20 14:01:19 CEST 2010]
+
+[Session:Tue Jul 20 14:02:55 CEST 2010]
+
+[Session:Tue Jul 20 14:04:55 CEST 2010]
+
+[Session:Tue Jul 20 14:05:44 CEST 2010]
+
+[Session:Tue Jul 20 14:07:18 CEST 2010]
+
+[Session:Tue Jul 20 15:35:53 CEST 2010]
+
+[Session:Tue Jul 20 15:36:21 CEST 2010]
+
+[Session:Tue Jul 20 15:36:47 CEST 2010]
+0 = ACK: 43605
+1 = ACK: 21930
+2 = ACK: 43605
+3 = ACK: 21815
+4 = ACK: 14266
+5 = ACK: 47632
+6 = ACK: 4097
+7 = ACK: 256
+8 = ACK: 1
+9 = ACK: 257
+10 = ACK: 257
+11 = ACK: 256
+12 = ACK: 17990
+13 = ACK: 18175
+14 = ACK: 43605
+15 = ACK: 21930
+16 = ACK: 43605
+17 = ACK: 21815
+18 = ACK: 14266
+19 = ACK: 47632
+20 = ACK: 4097
+21 = ACK: 256
+22 = ACK: 1
+23 = ACK: 257
+24 = ACK: 257
+
+[Session:Tue Jul 20 15:39:08 CEST 2010]
+
+[Session:Tue Jul 20 15:43:30 CEST 2010]
+
+[Session:Tue Jul 20 15:44:51 CEST 2010]
+
+[Session:Tue Jul 20 15:46:48 CEST 2010]
+
+[Session:Tue Jul 20 15:49:52 CEST 2010]
+
+[Session:Tue Jul 20 15:52:24 CEST 2010]
+
+[Session:Wed Jul 21 11:02:08 CEST 2010]
+
+[Session:Wed Jul 21 11:09:35 CEST 2010]
+
+[Session:Wed Jul 21 11:12:30 CEST 2010]
+
+[Session:Wed Jul 21 11:13:56 CEST 2010]
+
+[Session:Wed Jul 21 11:15:25 CEST 2010]
+
+[Session:Wed Jul 21 11:16:04 CEST 2010]
+
+[Session:Wed Jul 21 11:16:38 CEST 2010]
+
+[Session:Wed Jul 21 11:17:27 CEST 2010]
+
+[Session:Wed Jul 21 11:19:15 CEST 2010]
+
+[Session:Wed Jul 21 11:19:38 CEST 2010]
+
+[Session:Wed Jul 21 11:25:45 CEST 2010]
+
+[Session:Wed Jul 21 12:04:15 CEST 2010]
+
+[Session:Wed Jul 21 12:52:56 CEST 2010]
+
+[Session:Wed Jul 21 13:07:00 CEST 2010]
+
+[Session:Wed Jul 21 13:09:35 CEST 2010]
+
+[Session:Wed Jul 21 13:21:19 CEST 2010]
+
+[Session:Wed Jul 21 13:23:10 CEST 2010]
+
+[Session:Wed Jul 21 14:08:54 CEST 2010]
+
+[Session:Wed Jul 21 14:11:16 CEST 2010]
+
+[Session:Wed Jul 21 14:12:27 CEST 2010]
+
+[Session:Wed Jul 21 14:14:30 CEST 2010]
+
+[Session:Wed Jul 21 14:17:11 CEST 2010]
+
+[Session:Wed Jul 21 14:31:42 CEST 2010]
+
+[Session:Wed Jul 21 14:32:54 CEST 2010]
+
+[Session:Wed Jul 21 14:33:12 CEST 2010]
+
+[Session:Wed Jul 21 14:34:04 CEST 2010]
+
+[Session:Wed Jul 21 14:34:26 CEST 2010]
+
+[Session:Wed Jul 21 14:36:49 CEST 2010]
+
+[Session:Wed Jul 21 14:37:04 CEST 2010]
+
+[Session:Wed Jul 21 14:37:40 CEST 2010]
+
+[Session:Wed Jul 21 14:44:18 CEST 2010]
+
+[Session:Wed Jul 21 14:49:05 CEST 2010]
+
+[Session:Wed Jul 21 14:49:58 CEST 2010]
+
+[Session:Wed Jul 21 15:01:08 CEST 2010]
+
+[Session:Wed Jul 21 15:02:47 CEST 2010]
+
+[Session:Wed Jul 21 15:03:31 CEST 2010]
+
+[Session:Wed Jul 21 15:05:23 CEST 2010]
+
+[Session:Wed Jul 21 15:09:24 CEST 2010]
+
+[Session:Wed Jul 21 15:11:33 CEST 2010]
+
+[Session:Wed Jul 21 15:11:42 CEST 2010]
+
+[Session:Wed Jul 21 15:14:03 CEST 2010]
+
+[Session:Wed Jul 21 15:21:48 CEST 2010]
+
+[Session:Wed Jul 21 15:22:06 CEST 2010]
+
+[Session:Wed Jul 21 15:23:45 CEST 2010]
+
+[Session:Wed Jul 21 15:30:40 CEST 2010]
+
+[Session:Wed Jul 21 15:30:51 CEST 2010]
+
+[Session:Wed Jul 21 15:40:38 CEST 2010]
+
+[Session:Wed Jul 21 15:41:28 CEST 2010]
+
+[Session:Wed Jul 21 15:45:38 CEST 2010]
+
+[Session:Wed Jul 21 15:46:20 CEST 2010]
+
+[Session:Wed Jul 21 16:28:58 CEST 2010]
+
+[Session:Wed Jul 21 16:33:39 CEST 2010]
+
+[Session:Thu Jul 22 09:40:33 CEST 2010]
+
+[Session:Thu Jul 22 09:40:57 CEST 2010]
+
+[Session:Thu Jul 22 09:43:49 CEST 2010]
+
+[Session:Thu Jul 22 09:45:30 CEST 2010]
+
+[Session:Thu Jul 22 09:45:56 CEST 2010]
+
+[Session:Thu Jul 22 09:46:34 CEST 2010]
+
+[Session:Thu Jul 22 09:57:21 CEST 2010]
+
+[Session:Thu Jul 22 09:57:32 CEST 2010]
+
+[Session:Thu Jul 22 10:07:48 CEST 2010]
+
+[Session:Thu Jul 22 10:10:28 CEST 2010]
+
+[Session:Thu Jul 22 10:12:01 CEST 2010]
+
+[Session:Thu Jul 22 11:48:00 CEST 2010]
+0 = Request: 240
+1 = ACK: 204
+2 = ACK: 52224
+3 = ACK: 240
+4 = Request: 153
+5 = ACK: 61440
+6 = ACK: 240
+7 = ACK: 61440
+8 = ACK: 8482
+9 = ACK: 2171392
+10 = ACK: 8482
+11 = Request: 47
+12 = ACK: 2171392
+13 = ACK: 202
+14 = ACK: 51712
+15 = ACK: 47
+16 = Request: 214
+17 = ACK: 12032
+18 = ACK: 47
+19 = ACK: 12032
+20 = ACK: 206
+21 = ACK: 52736
+22 = ACK: 206
+23 = Request: 9
+24 = ACK: 52736
+25 = ACK: 198
+26 = ACK: 50688
+27 = ACK: 9
+28 = Request: 222
+29 = ACK: 2304
+30 = ACK: 9
+31 = ACK: 2304
+32 = ACK: 221
+33 = ACK: 56576
+34 = ACK: 221
+35 = Request: 9
+36 = ACK: 56576
+37 = ACK: 198
+38 = ACK: 50688
+39 = ACK: 9
+40 = Request: 222
+41 = ACK: 2304
+42 = ACK: 9
+43 = ACK: 2304
+44 = ACK: 221
+45 = ACK: 56576
+46 = ACK: 221
+47 = Request: 14
+48 = ACK: 56576
+49 = ACK: 49
+50 = ACK: 12544
+51 = ACK: 14
+52 = Request: 168
+53 = ACK: 3584
+54 = ACK: 14
+55 = ACK: 3584
+56 = ACK: 165
+57 = ACK: 42240
+58 = ACK: 165
+59 = Request: 216
+60 = ACK: 42240
+61 = ACK: 47
+62 = ACK: 12032
+63 = ACK: 216
+64 = Request: 23
+65 = ACK: 55296
+66 = ACK: 216
+67 = ACK: 55296
+68 = ACK: 35
+69 = ACK: 8960
+70 = ACK: 36
+71 = Request: 41
+72 = ACK: 9216
+73 = ACK: 127
+74 = ACK: 32512
+75 = ACK: 42
+76 = Request: 157
+77 = ACK: 10752
+78 = ACK: 42
+79 = ACK: 10752
+80 = ACK: 8211
+81 = ACK: 2102016
+82 = ACK: 8211
+
+[Session:Thu Jul 22 14:02:34 CEST 2010]
+
+[Session:Thu Jul 22 14:41:09 CEST 2010]
+
+[Session:Thu Jul 22 14:41:39 CEST 2010]
+
+[Session:Thu Jul 22 14:43:01 CEST 2010]
+
+[Session:Thu Jul 22 14:44:09 CEST 2010]
+
+[Session:Thu Jul 22 14:44:27 CEST 2010]
+
+[Session:Thu Jul 22 14:44:34 CEST 2010]
+0 = ACK: 43605
+1 = ACK: 21930
+2 = ACK: 43605
+3 = ACK: 21815
+4 = ACK: 14266
+5 = ACK: 47632
+6 = ACK: 4097
+7 = ACK: 256
+8 = ACK: 1
+9 = ACK: 257
+10 = ACK: 257
+11 = ACK: 256
+12 = ACK: 43605
+13 = ACK: 21930
+14 = ACK: 43605
+15 = ACK: 21815
+16 = ACK: 14266
+17 = ACK: 47632
+18 = ACK: 4097
+19 = ACK: 256
+20 = ACK: 1
+21 = ACK: 257
+22 = ACK: 257
+
+[Session:Thu Jul 22 14:46:10 CEST 2010]
+
+[Session:Thu Jul 22 14:47:40 CEST 2010]
+
+[Session:Thu Jul 22 14:52:43 CEST 2010]
+
+[Session:Thu Jul 22 14:55:28 CEST 2010]
+
+[Session:Thu Jul 22 14:55:36 CEST 2010]
+
+[Session:Thu Jul 22 14:55:52 CEST 2010]
+
+[Session:Thu Jul 22 14:56:20 CEST 2010]
+
+[Session:Thu Jul 22 14:58:00 CEST 2010]
+
+[Session:Thu Jul 22 14:58:29 CEST 2010]
+
+[Session:Thu Jul 22 15:48:38 CEST 2010]
+
+[Session:Thu Jul 22 15:49:18 CEST 2010]
+0 = ACK: 43605
+1 = ACK: 21930
+2 = ACK: 43605
+3 = ACK: 21815
+4 = ACK: 14266
+5 = ACK: 47632
+6 = ACK: 4097
+7 = ACK: 256
+8 = ACK: 1
+9 = ACK: 257
+10 = ACK: 257
+
+[Session:Thu Jul 22 15:51:25 CEST 2010]
+
+[Session:Thu Jul 22 15:54:19 CEST 2010]
+0 = ACK: 43605
+1 = ACK: 21930
+2 = ACK: 43605
+3 = ACK: 21815
+4 = ACK: 14266
+5 = ACK: 47632
+6 = ACK: 4097
+7 = ACK: 256
+8 = ACK: 1
+9 = ACK: 257
+10 = ACK: 257
+
+[Session:Thu Jul 22 15:58:28 CEST 2010]
+0 = ACK: 43605
+1 = ACK: 21930
+2 = ACK: 43605
+3 = ACK: 21815
+4 = ACK: 14266
+5 = ACK: 47632
+6 = ACK: 4097
+7 = ACK: 256
+8 = ACK: 1
+9 = ACK: 257
+10 = ACK: 257
+
+[Session:Thu Jul 22 15:59:01 CEST 2010]
+0 = ACK: 43605
+1 = ACK: 21930
+2 = ACK: 43605
+3 = ACK: 21815
+4 = ACK: 14266
+5 = ACK: 47632
+6 = ACK: 4097
+7 = ACK: 256
+8 = ACK: 1
+9 = ACK: 257
+10 = ACK: 257
+
+[Session:Thu Jul 22 16:00:13 CEST 2010]
+
+[Session:Thu Jul 22 16:06:40 CEST 2010]
+0 = ACK: 43605
+1 = ACK: 21930
+2 = ACK: 43605
+3 = ACK: 21815
+4 = ACK: 14266
+5 = ACK: 47632
+6 = ACK: 4097
+7 = ACK: 256
+8 = ACK: 1
+9 = ACK: 257
+10 = ACK: 257
+
+[Session:Thu Jul 22 16:10:30 CEST 2010]
+
+[Session:Thu Jul 22 16:13:50 CEST 2010]
+
+[Session:Fri Jul 23 11:30:21 CEST 2010]
+
+[Session:Fri Jul 23 13:07:57 CEST 2010]
+
+[Session:Fri Jul 23 13:34:08 CEST 2010]
+
+[Session:Fri Jul 23 13:42:02 CEST 2010]
+
+[Session:Fri Jul 23 13:42:21 CEST 2010]
+
+[Session:Fri Jul 23 13:46:58 CEST 2010]
+
+[Session:Fri Jul 23 13:48:15 CEST 2010]
+
+[Session:Fri Jul 23 13:48:37 CEST 2010]
+
+[Session:Fri Jul 23 13:55:54 CEST 2010]
+0 = Request: 41
+1 = Request: 79
+2 = Request: 129
+3 = Request: 159
+4 = Request: 203
+5 = Request: 167
+6 = Request: 122
+7 = Request: 126
+8 = Request: 208
+9 = Request: 238
+10 = Request: 216
+11 = Request: 14
+12 = Request: 9
+13 = Request: 47
+14 = Request: 240
+
+[Session:Fri Jul 23 13:56:56 CEST 2010]
+
+[Session:Fri Jul 23 13:57:05 CEST 2010]
+0 = Request: 41
+1 = Request: 79
+2 = Request: 129
+3 = Request: 159
+4 = Request: 203
+5 = Request: 167
+6 = Request: 122
+7 = Request: 126
+
+[Session:Mon Jul 26 09:03:31 CEST 2010]
+
+[Session:Mon Jul 26 09:09:02 CEST 2010]
+0 = ACK: 43605
+1 = ACK: 21930
+2 = ACK: 43605
+3 = ACK: 21815
+4 = ACK: 14266
+5 = ACK: 47632
+6 = ACK: 4097
+7 = ACK: 256
+8 = ACK: 1
+9 = ACK: 257
+10 = ACK: 257
+
+[Session:Mon Jul 26 09:11:35 CEST 2010]
+
+[Session:Mon Jul 26 09:18:22 CEST 2010]
+0 = ACK: 43605
+1 = ACK: 21930
+2 = ACK: 43605
+3 = ACK: 21815
+4 = ACK: 14266
+5 = ACK: 47632
+6 = ACK: 4097
+7 = ACK: 256
+8 = ACK: 1
+9 = ACK: 257
+10 = ACK: 257
+11 = Request: 240
+12 = Request: 153
+
+[Session:Mon Jul 26 09:19:53 CEST 2010]
+0 = Request: 240
+
+[Session:Mon Jul 26 09:21:11 CEST 2010]
+0 = ACK: 1
+1 = ACK: 257
+2 = ACK: 257
+3 = Request: 240
+4 = Request: 153
+5 = Request: 240
+6 = Request: 153
+
+[Session:Mon Jul 26 09:22:41 CEST 2010]
+0 = Request: 240
+1 = Request: 240
+
+[Session:Mon Jul 26 09:24:14 CEST 2010]
+
+[Session:Mon Jul 26 09:24:29 CEST 2010]
+0 = ACK: 43605
+1 = ACK: 21930
+2 = ACK: 43605
+3 = ACK: 21815
+4 = ACK: 14266
+5 = ACK: 47632
+6 = ACK: 4097
+7 = ACK: 256
+8 = ACK: 1
+9 = ACK: 257
+10 = ACK: 257
+11 = Request: 240
+12 = ACK: 256
+13 = ACK: 122
+14 = ACK: 31232
+15 = ACK: 239
+16 = Request: 153
+17 = ACK: 61184
+18 = ACK: 239
+19 = ACK: 61184
+20 = ACK: 8482
+21 = ACK: 2171392
+22 = ACK: 8482
+23 = Request: 240
+24 = ACK: 2171392
+25 = ACK: 205
+26 = ACK: 52480
+27 = ACK: 239
+28 = Request: 153
+29 = ACK: 61184
+30 = ACK: 239
+31 = ACK: 61184
+32 = ACK: 8482
+33 = ACK: 2171392
+34 = ACK: 8482
+35 = Request: 47
+36 = ACK: 2171392
+37 = ACK: 710
+38 = ACK: 181760
+39 = ACK: 47
+40 = Request: 214
+41 = ACK: 12032
+42 = ACK: 47
+43 = ACK: 12032
+44 = ACK: 214
+45 = ACK: 54784
+46 = ACK: 214
+47 = Request: 41
+48 = Request: 79
+49 = Request: 129
+50 = Request: 40
+51 = Request: 159
+52 = Request: 41
+53 = Request: 203
+54 = Request: 95
+55 = Request: 167
+56 = Request: 22
+57 = Request: 122
+58 = Request: 4
+59 = Request: 126
+60 = Request: 208
+61 = Request: 70
+62 = Request: 238
+63 = Request: 216
+64 = Request: 23
+65 = Request: 14
+66 = Request: 9
+67 = Request: 47
+68 = ACK: 54784
+69 = ACK: 205
+70 = ACK: 52480
+71 = ACK: 47
+72 = Request: 214
+73 = ACK: 12032
+74 = ACK: 47
+75 = ACK: 12032
+76 = ACK: 214
+77 = Request: 240
+78 = ACK: 54784
+79 = ACK: 214
+80 = ACK: 54784
+81 = ACK: 205
+82 = ACK: 52480
+83 = ACK: 238
+84 = Request: 153
+85 = ACK: 60928
+86 = ACK: 238
+87 = ACK: 60928
+88 = ACK: 8482
+89 = ACK: 2171392
+90 = ACK: 8482
+
+[Session:Mon Jul 26 09:27:42 CEST 2010]
+
+[Session:Mon Jul 26 09:27:48 CEST 2010]
+0 = Request: 47
+
+[Session:Mon Jul 26 09:33:34 CEST 2010]
+0 = ACK: 57595
+1 = Request: 240
+2 = Request: 153
+
+[Session:Mon Jul 26 09:34:49 CEST 2010]
+0 = ACK: 1
+1 = ACK: 257
+2 = ACK: 257
+3 = ACK: 257
+4 = ACK: 256
+5 = ACK: 255
+6 = ACK: 57595
+7 = ACK: 64426
+8 = ACK: 43605
+9 = ACK: 21930
+10 = ACK: 43605
+11 = ACK: 21815
+12 = ACK: 14266
+13 = ACK: 47632
+14 = ACK: 4097
+15 = Request: 47
+16 = ACK: 256
+17 = Request: 47
+
+[Session:Mon Jul 26 09:43:25 CEST 2010]
+0 = ACK: 1
+1 = ACK: 257
+2 = ACK: 257
+3 = ACK: 257
+4 = ACK: 256
+5 = ACK: 255
+6 = ACK: 57595
+7 = ACK: 64426
+8 = ACK: 43605
+9 = ACK: 21930
+10 = ACK: 43605
+11 = ACK: 21815
+12 = ACK: 14266
+13 = ACK: 47632
+14 = ACK: 4097
+
+[Session:Mon Jul 26 09:46:38 CEST 2010]
+0 = ACK: 1
+1 = ACK: 257
+2 = ACK: 257
+3 = ACK: 257
+4 = ACK: 256
+5 = ACK: 1
+6 = ACK: 511
+7 = ACK: 43605
+8 = ACK: 21930
+9 = ACK: 43605
+10 = ACK: 21815
+11 = ACK: 14266
+12 = ACK: 47632
+13 = ACK: 4097
+14 = Request: 47
+15 = ACK: 256
+16 = ACK: 202
+17 = ACK: 51712
+18 = ACK: 47
+19 = Request: 214
+20 = ACK: 12032
+21 = ACK: 47
+22 = ACK: 12032
+23 = ACK: 206
+24 = ACK: 52736
+25 = ACK: 206
+
+[Session:Tue Jul 27 10:16:22 CEST 2010]
+
+[Session:Tue Jul 27 10:17:25 CEST 2010]
+
+[Session:Tue Jul 27 10:18:29 CEST 2010]
+
+[Session:Tue Jul 27 10:18:55 CEST 2010]
+
+[Session:Tue Jul 27 10:19:28 CEST 2010]
+
+[Session:Tue Jul 27 10:20:40 CEST 2010]
+
+[Session:Tue Jul 27 10:24:14 CEST 2010]
+
+[Session:Tue Jul 27 10:25:18 CEST 2010]
+
+[Session:Tue Jul 27 10:26:35 CEST 2010]
+
+[Session:Tue Jul 27 10:27:12 CEST 2010]
+
+[Session:Tue Jul 27 10:27:54 CEST 2010]
+
+[Session:Tue Jul 27 10:28:27 CEST 2010]
+
+[Session:Tue Jul 27 10:29:51 CEST 2010]
+
+[Session:Tue Jul 27 10:29:57 CEST 2010]
+
+[Session:Tue Jul 27 10:31:43 CEST 2010]
+
+[Session:Tue Jul 27 10:34:35 CEST 2010]
+
+[Session:Tue Jul 27 10:36:42 CEST 2010]
+
+[Session:Tue Jul 27 10:37:50 CEST 2010]
+
+[Session:Tue Jul 27 10:38:41 CEST 2010]
+
+[Session:Tue Jul 27 10:41:03 CEST 2010]
+
+[Session:Tue Jul 27 10:41:16 CEST 2010]
+
+[Session:Tue Jul 27 10:41:52 CEST 2010]
+
+[Session:Tue Jul 27 10:43:04 CEST 2010]
+
+[Session:Tue Jul 27 10:44:09 CEST 2010]
+
+[Session:Tue Jul 27 10:45:08 CEST 2010]
+
+[Session:Tue Jul 27 10:48:10 CEST 2010]
+
+[Session:Tue Jul 27 11:06:58 CEST 2010]
+
+[Session:Tue Jul 27 11:07:07 CEST 2010]
+
+[Session:Tue Jul 27 11:07:47 CEST 2010]
+
+[Session:Tue Jul 27 11:12:35 CEST 2010]
+
+[Session:Tue Jul 27 11:19:18 CEST 2010]
+
+[Session:Tue Jul 27 11:19:54 CEST 2010]
+
+[Session:Tue Jul 27 11:22:58 CEST 2010]
+
+[Session:Tue Jul 27 11:23:49 CEST 2010]
+
+[Session:Tue Jul 27 11:26:03 CEST 2010]
+
+[Session:Tue Jul 27 11:26:23 CEST 2010]
+
+[Session:Tue Jul 27 11:27:53 CEST 2010]
+
+[Session:Tue Jul 27 11:28:43 CEST 2010]
+
+[Session:Tue Jul 27 11:32:08 CEST 2010]
+
+[Session:Tue Jul 27 11:37:06 CEST 2010]
+
+[Session:Tue Jul 27 11:37:26 CEST 2010]
+
+[Session:Tue Jul 27 11:38:16 CEST 2010]
+
+[Session:Tue Jul 27 11:38:37 CEST 2010]
+
+[Session:Tue Jul 27 11:40:57 CEST 2010]
+
+[Session:Tue Jul 27 11:41:19 CEST 2010]
+
+[Session:Tue Jul 27 11:44:55 CEST 2010]
+
+[Session:Tue Jul 27 11:58:51 CEST 2010]
+
+[Session:Tue Jul 27 12:36:35 CEST 2010]
+0 = Request: 240
+1 = ACK: 204
+2 = ACK: 52224
+3 = ACK: 240
+4 = Request: 153
+5 = ACK: 61440
+6 = ACK: 240
+7 = ACK: 61440
+8 = ACK: 8482
+9 = ACK: 2171392
+10 = ACK: 8482
+11 = Request: 47
+12 = ACK: 2171392
+13 = ACK: 202
+14 = ACK: 51712
+15 = ACK: 47
+16 = Request: 214
+17 = ACK: 12032
+18 = ACK: 47
+19 = ACK: 12032
+20 = ACK: 206
+21 = ACK: 52736
+22 = ACK: 206
+
+[Session:Tue Jul 27 12:52:11 CEST 2010]
+
+[Session:Tue Jul 27 12:59:07 CEST 2010]
+
+[Session:Tue Jul 27 13:04:23 CEST 2010]
+
+[Session:Tue Jul 27 13:04:30 CEST 2010]
+
+[Session:Tue Jul 27 13:04:48 CEST 2010]
+
+[Session:Tue Jul 27 13:10:57 CEST 2010]
+
+[Session:Tue Jul 27 13:11:12 CEST 2010]
+0 = ACK: 43605
+1 = ACK: 21930
+2 = ACK: 43605
+3 = ACK: 21815
+4 = ACK: 14266
+5 = ACK: 47632
+6 = ACK: 4097
+7 = ACK: 256
+8 = ACK: 1
+9 = ACK: 257
+10 = ACK: 257
+
+[Session:Tue Jul 27 14:42:18 CEST 2010]
+
+[Session:Tue Jul 27 14:42:27 CEST 2010]
+
+[Session:Tue Jul 27 14:42:44 CEST 2010]
+
+[Session:Tue Jul 27 14:43:24 CEST 2010]
+
+[Session:Tue Jul 27 14:44:11 CEST 2010]
+
+[Session:Tue Jul 27 14:45:17 CEST 2010]
+
+[Session:Tue Jul 27 14:46:10 CEST 2010]
+
+[Session:Tue Jul 27 14:47:04 CEST 2010]
+
+[Session:Tue Jul 27 14:48:03 CEST 2010]
+
+[Session:Tue Jul 27 14:48:34 CEST 2010]
+
+[Session:Tue Jul 27 14:49:09 CEST 2010]
+
+[Session:Tue Jul 27 14:54:27 CEST 2010]
+
+[Session:Tue Jul 27 14:55:49 CEST 2010]
+
+[Session:Tue Jul 27 14:56:42 CEST 2010]
+
+[Session:Tue Jul 27 15:15:41 CEST 2010]
+
+[Session:Tue Jul 27 15:22:23 CEST 2010]
+
+[Session:Tue Jul 27 15:22:40 CEST 2010]
+
+[Session:Tue Jul 27 15:24:23 CEST 2010]
+
+[Session:Tue Jul 27 15:24:30 CEST 2010]
+
+[Session:Tue Jul 27 15:24:43 CEST 2010]
+
+[Session:Tue Jul 27 15:25:51 CEST 2010]
+
+[Session:Tue Jul 27 15:48:00 CEST 2010]
+
+[Session:Tue Jul 27 15:49:09 CEST 2010]
+
+[Session:Tue Jul 27 15:51:03 CEST 2010]
+
+[Session:Tue Jul 27 15:52:45 CEST 2010]
+
+[Session:Tue Jul 27 15:57:37 CEST 2010]
+
+[Session:Tue Jul 27 15:59:52 CEST 2010]
+
+[Session:Tue Jul 27 16:05:07 CEST 2010]
+
+[Session:Tue Jul 27 16:06:24 CEST 2010]
+
+[Session:Tue Jul 27 16:08:26 CEST 2010]
+
+[Session:Wed Jul 28 09:08:14 CEST 2010]
+
+[Session:Wed Jul 28 09:14:52 CEST 2010]
+
+[Session:Wed Jul 28 09:18:36 CEST 2010]
+
+[Session:Wed Jul 28 09:21:16 CEST 2010]
+
+[Session:Wed Jul 28 09:22:29 CEST 2010]
+
+[Session:Wed Jul 28 09:25:12 CEST 2010]
+
+[Session:Wed Jul 28 09:26:17 CEST 2010]
+
+[Session:Wed Jul 28 09:26:57 CEST 2010]
+
+[Session:Wed Jul 28 09:29:24 CEST 2010]
+
+[Session:Wed Jul 28 09:31:57 CEST 2010]
+
+[Session:Wed Jul 28 09:32:03 CEST 2010]
+
+[Session:Wed Jul 28 09:32:41 CEST 2010]
+
+[Session:Wed Jul 28 09:33:26 CEST 2010]
+
+[Session:Wed Jul 28 09:34:37 CEST 2010]
+
+[Session:Wed Jul 28 09:34:42 CEST 2010]
+
+[Session:Wed Jul 28 09:36:28 CEST 2010]
+
+[Session:Wed Jul 28 09:38:24 CEST 2010]
+
+[Session:Wed Jul 28 09:38:40 CEST 2010]
+
+[Session:Wed Jul 28 09:39:11 CEST 2010]
+
+[Session:Wed Jul 28 09:40:16 CEST 2010]
+
+[Session:Wed Jul 28 09:40:21 CEST 2010]
+
+[Session:Wed Jul 28 09:41:07 CEST 2010]
+
+[Session:Wed Jul 28 09:46:18 CEST 2010]
+
+[Session:Mon Aug 02 16:30:44 CEST 2010]
+
+[Session:Mon Aug 02 16:30:52 CEST 2010]
+
+[Session:Mon Aug 02 16:31:11 CEST 2010]
+
+[Session:Mon Aug 02 16:31:45 CEST 2010]
+
+[Session:Mon Aug 02 16:35:43 CEST 2010]
+
+[Session:Mon Aug 02 16:35:56 CEST 2010]
+
+[Session:Mon Aug 02 16:41:12 CEST 2010]
+
+[Session:Wed Aug 04 12:49:49 CEST 2010]
+
+[Session:Wed Aug 04 12:50:09 CEST 2010]
+
+[Session:Wed Aug 04 12:51:57 CEST 2010]
+
+[Session:Wed Aug 04 12:54:44 CEST 2010]
+
+[Session:Wed Aug 04 13:02:31 CEST 2010]
+
+[Session:Wed Aug 04 13:03:19 CEST 2010]
+
+[Session:Wed Aug 04 13:10:03 CEST 2010]
+
+[Session:Wed Aug 04 13:10:25 CEST 2010]
+
+[Session:Wed Aug 04 13:15:00 CEST 2010]
+
+[Session:Wed Aug 04 13:37:38 CEST 2010]
+
+[Session:Wed Aug 04 13:37:47 CEST 2010]
+
+[Session:Fri Aug 06 09:19:23 CEST 2010]
+
+[Session:Fri Aug 06 09:19:37 CEST 2010]
+
+[Session:Fri Aug 06 09:21:50 CEST 2010]
+
+[Session:Fri Aug 06 09:23:15 CEST 2010]
+
+[Session:Tue Aug 10 11:50:35 CEST 2010]
+
+[Session:Tue Aug 10 11:50:41 CEST 2010]
+
+[Session:Tue Aug 10 11:51:04 CEST 2010]
+
+[Session:Tue Aug 10 11:51:31 CEST 2010]
+
+[Session:Tue Aug 10 11:51:40 CEST 2010]
+
+[Session:Tue Aug 10 11:59:56 CEST 2010]
+
+[Session:Tue Aug 10 12:02:04 CEST 2010]
+
+[Session:Tue Aug 10 12:03:09 CEST 2010]
+
+[Session:Tue Aug 10 12:06:41 CEST 2010]
+
+[Session:Tue Aug 10 12:11:38 CEST 2010]
+
+[Session:Tue Aug 10 12:13:56 CEST 2010]
+
+[Session:Tue Aug 10 13:58:23 CEST 2010]
+
+[Session:Tue Aug 10 13:58:41 CEST 2010]
+
+[Session:Wed Aug 11 11:32:07 CEST 2010]
+
+[Session:Wed Aug 11 11:32:25 CEST 2010]
+
+[Session:Wed Aug 11 11:33:46 CEST 2010]
+
+[Session:Wed Aug 11 11:34:23 CEST 2010]
+
+[Session:Fri Aug 13 10:43:31 CEST 2010]
+
+[Session:Fri Aug 13 10:44:18 CEST 2010]
+
+[Session:Fri Aug 13 10:44:34 CEST 2010]
+
+[Session:Mon Aug 16 16:09:42 CEST 2010]
+
+[Session:Mon Aug 16 16:10:05 CEST 2010]
+
+[Session:Mon Aug 16 16:11:26 CEST 2010]
+
+[Session:Tue Aug 17 13:51:33 CEST 2010]
+
+[Session:Tue Aug 17 14:58:55 CEST 2010]
+
+[Session:Wed Aug 18 09:57:14 CEST 2010]
+
+[Session:Wed Aug 18 10:02:08 CEST 2010]
+
+[Session:Wed Aug 18 10:02:41 CEST 2010]
+
+[Session:Wed Aug 18 10:04:34 CEST 2010]
+
+[Session:Wed Aug 18 10:06:09 CEST 2010]
+
+[Session:Wed Aug 18 10:09:59 CEST 2010]
+
+[Session:Wed Aug 18 10:10:28 CEST 2010]
+
+[Session:Wed Aug 18 10:11:38 CEST 2010]
+
+[Session:Wed Aug 18 10:13:58 CEST 2010]
+
+[Session:Wed Aug 18 10:14:23 CEST 2010]
+
+[Session:Wed Aug 18 10:17:50 CEST 2010]
+
+[Session:Wed Aug 18 10:20:20 CEST 2010]
+
+[Session:Wed Aug 18 10:21:42 CEST 2010]
+
+[Session:Wed Aug 18 10:23:17 CEST 2010]
+
+[Session:Wed Aug 18 10:26:10 CEST 2010]
+
+[Session:Wed Aug 18 10:29:35 CEST 2010]
+
+[Session:Wed Aug 18 10:32:30 CEST 2010]
+
+[Session:Wed Aug 18 10:36:30 CEST 2010]
+
+[Session:Wed Aug 18 10:37:01 CEST 2010]
+
+[Session:Wed Aug 18 10:37:07 CEST 2010]
+
+[Session:Wed Aug 18 10:39:25 CEST 2010]
+
+[Session:Wed Aug 18 10:41:54 CEST 2010]
+
+[Session:Wed Aug 18 10:42:08 CEST 2010]
+
+[Session:Wed Aug 18 10:42:28 CEST 2010]
+
+[Session:Wed Aug 18 10:42:50 CEST 2010]
+
+[Session:Wed Aug 18 10:43:22 CEST 2010]
+
+[Session:Wed Aug 18 10:43:31 CEST 2010]
+
+[Session:Wed Aug 18 10:45:42 CEST 2010]
+
+[Session:Wed Aug 18 10:47:25 CEST 2010]
+
+[Session:Wed Aug 18 10:48:00 CEST 2010]
+
+[Session:Wed Aug 18 11:27:54 CEST 2010]
+
+[Session:Wed Aug 18 11:29:15 CEST 2010]
+0 = Request: 47
+
+[Session:Wed Aug 18 11:37:28 CEST 2010]
+
+[Session:Wed Aug 18 11:37:34 CEST 2010]
+
+[Session:Wed Aug 18 11:39:12 CEST 2010]
+
+[Session:Wed Aug 18 11:42:36 CEST 2010]
+
+[Session:Wed Aug 18 11:42:41 CEST 2010]
+0 = ACK: 43605
+1 = ACK: 21930
+2 = ACK: 43605
+3 = ACK: 21815
+4 = ACK: 14266
+5 = ACK: 47632
+6 = ACK: 4097
+7 = ACK: 256
+8 = ACK: 1
+9 = ACK: 257
+10 = ACK: 257
+11 = Request: 47
+
+[Session:Wed Aug 18 11:48:49 CEST 2010]
+
+[Session:Wed Aug 18 11:49:01 CEST 2010]
+
+[Session:Wed Aug 18 11:49:27 CEST 2010]
+
+[Session:Wed Aug 18 11:57:59 CEST 2010]
+
+[Session:Wed Aug 18 11:59:42 CEST 2010]
+
+[Session:Wed Aug 18 12:00:07 CEST 2010]
+
+[Session:Wed Aug 18 12:00:24 CEST 2010]
+
+[Session:Wed Aug 18 12:00:44 CEST 2010]
+
+[Session:Wed Aug 18 12:01:15 CEST 2010]
+
+[Session:Wed Aug 18 12:28:27 CEST 2010]
+
+[Session:Wed Aug 18 12:28:48 CEST 2010]
+
+[Session:Wed Aug 18 12:30:27 CEST 2010]
+
+[Session:Wed Aug 18 12:30:48 CEST 2010]
+0 = ACK: 43605
+1 = ACK: 21930
+2 = ACK: 43605
+3 = ACK: 21815
+4 = ACK: 14266
+5 = ACK: 47632
+6 = ACK: 4097
+7 = ACK: 256
+8 = ACK: 1
+9 = ACK: 257
+10 = ACK: 257
+11 = Request: 47
+12 = ACK: 256
+13 = ACK: 205
+14 = Request: 47
+15 = Request: 9
+
+[Session:Wed Aug 18 12:32:14 CEST 2010]
+
+[Session:Wed Aug 18 12:59:32 CEST 2010]
+
+[Session:Wed Aug 18 12:59:42 CEST 2010]
+
+[Session:Wed Aug 18 12:59:48 CEST 2010]
+
+[Session:Wed Aug 18 13:00:14 CEST 2010]
+
+[Session:Wed Aug 18 13:00:22 CEST 2010]
+
+[Session:Wed Aug 18 13:00:38 CEST 2010]
+
+[Session:Wed Aug 18 13:02:38 CEST 2010]
+
+[Session:Wed Aug 18 13:03:07 CEST 2010]
+
+[Session:Wed Aug 18 13:04:30 CEST 2010]
+
+[Session:Thu Aug 19 12:10:47 CEST 2010]
+
+[Session:Thu Aug 19 12:10:56 CEST 2010]
+
+[Session:Thu Aug 19 12:11:12 CEST 2010]
+
+[Session:Thu Aug 19 12:11:21 CEST 2010]
+
+[Session:Thu Aug 19 12:11:28 CEST 2010]
+
+[Session:Thu Aug 19 12:11:49 CEST 2010]
+
+[Session:Thu Aug 19 12:12:14 CEST 2010]
+
+[Session:Thu Aug 19 12:12:28 CEST 2010]
+
+[Session:Thu Aug 19 12:15:31 CEST 2010]
+
+[Session:Thu Aug 19 12:17:25 CEST 2010]
+
+[Session:Thu Aug 19 12:17:56 CEST 2010]
+
+[Session:Thu Aug 19 12:55:01 CEST 2010]
+
+[Session:Thu Aug 19 13:45:10 CEST 2010]
+
+[Session:Thu Aug 19 13:45:46 CEST 2010]
+
+[Session:Thu Aug 19 13:56:33 CEST 2010]
+
+[Session:Thu Aug 19 13:56:55 CEST 2010]
+
+[Session:Thu Aug 19 14:00:28 CEST 2010]
+
+[Session:Thu Aug 19 14:01:54 CEST 2010]
+
+[Session:Thu Aug 19 14:02:36 CEST 2010]
+
+[Session:Thu Aug 19 14:03:31 CEST 2010]
+
+[Session:Thu Aug 19 14:03:42 CEST 2010]
+
+[Session:Thu Aug 19 14:04:23 CEST 2010]
+
+[Session:Thu Aug 19 14:05:53 CEST 2010]
+
+[Session:Thu Aug 19 14:07:11 CEST 2010]
+
+[Session:Thu Aug 19 14:10:05 CEST 2010]
+
+[Session:Thu Aug 19 14:10:30 CEST 2010]
+
+[Session:Thu Aug 19 14:10:46 CEST 2010]
+
+[Session:Thu Aug 19 14:13:54 CEST 2010]
+
+[Session:Thu Aug 19 14:15:03 CEST 2010]
+
+[Session:Thu Aug 19 14:17:15 CEST 2010]
+
+[Session:Thu Aug 19 14:17:25 CEST 2010]
+
+[Session:Thu Aug 19 14:21:51 CEST 2010]
+
+[Session:Thu Aug 19 14:22:05 CEST 2010]
+
+[Session:Thu Aug 19 14:31:13 CEST 2010]
+
+[Session:Thu Aug 19 14:39:42 CEST 2010]
+
+[Session:Thu Aug 19 14:41:37 CEST 2010]
+
+[Session:Thu Aug 19 14:42:08 CEST 2010]
+
+[Session:Thu Aug 19 14:43:04 CEST 2010]
+
+[Session:Thu Aug 19 14:43:33 CEST 2010]
+
+[Session:Thu Aug 19 14:47:20 CEST 2010]
+
+[Session:Thu Aug 19 14:47:39 CEST 2010]
+
+[Session:Thu Aug 19 14:48:26 CEST 2010]
+
+[Session:Thu Aug 19 14:50:03 CEST 2010]
+
+[Session:Thu Aug 19 14:50:42 CEST 2010]
+
+[Session:Thu Aug 19 14:51:03 CEST 2010]
+
+[Session:Thu Aug 19 14:55:00 CEST 2010]
+
+[Session:Thu Aug 19 14:57:01 CEST 2010]
+
+[Session:Thu Aug 19 14:58:51 CEST 2010]
+
+[Session:Thu Aug 19 14:59:24 CEST 2010]
+0 = Request: 47
+1 = ACK: 204
+2 = Request: 47
+3 = ACK: 52224
+4 = ACK: 204
+5 = Request: 9
+6 = ACK: 52224
+7 = ACK: 199
+8 = Request: 14
+9 = ACK: 50944
+10 = Request: 238
+11 = Request: 22
+12 = ACK: 12544
+13 = ACK: 51
+14 = Request: 79
+15 = Request: 228
+
+[Session:Thu Aug 19 15:10:14 CEST 2010]
+
+[Session:Thu Aug 19 15:10:34 CEST 2010]
+0 = ACK: 43605
+1 = ACK: 21930
+2 = ACK: 43605
+3 = ACK: 21815
+4 = ACK: 14266
+5 = ACK: 47632
+6 = ACK: 4097
+7 = ACK: 256
+8 = ACK: 1
+9 = ACK: 257
+10 = ACK: 257
+11 = Request: 47
+12 = ACK: 256
+13 = ACK: 204
+14 = ACK: 52224
+15 = ACK: 47
+16 = Request: 214
+17 = ACK: 12032
+18 = ACK: 47
+19 = ACK: 12032
+20 = ACK: 213
+21 = ACK: 54528
+22 = ACK: 213
+
+[Session:Mon Aug 23 09:04:37 CEST 2010]
+
+[Session:Mon Aug 23 09:05:04 CEST 2010]
+
+[Session:Mon Aug 23 09:11:03 CEST 2010]
+
+[Session:Mon Aug 23 09:12:25 CEST 2010]
+
+[Session:Mon Aug 23 09:18:35 CEST 2010]
+
+[Session:Mon Aug 23 09:19:25 CEST 2010]
+
+[Session:Mon Aug 23 09:22:04 CEST 2010]
+
+[Session:Mon Aug 23 09:23:52 CEST 2010]
+
+[Session:Mon Aug 23 09:24:02 CEST 2010]
+0 = ACK: 43605
+1 = ACK: 21930
+2 = ACK: 43605
+3 = ACK: 21815
+4 = ACK: 14266
+5 = ACK: 47632
+6 = ACK: 4097
+7 = ACK: 256
+8 = ACK: 1
+9 = ACK: 257
+10 = ACK: 257
+11 = Request: 47
+12 = ACK: 256
+13 = ACK: 204
+14 = ACK: 52224
+15 = ACK: 47
+16 = Request: 214
+17 = ACK: 12032
+18 = ACK: 47
+19 = ACK: 12032
+20 = ACK: 214
+21 = ACK: 54784
+22 = ACK: 214
+
+[Session:Mon Aug 23 09:40:40 CEST 2010]
+0 = ACK: 43605
+1 = ACK: 21930
+2 = ACK: 43605
+3 = ACK: 21815
+4 = ACK: 14266
+5 = ACK: 47632
+6 = ACK: 4097
+7 = ACK: 256
+8 = ACK: 1
+9 = ACK: 257
+10 = ACK: 257
+11 = Request: 47
+12 = ACK: 256
+13 = ACK: 205
+14 = ACK: 52480
+15 = ACK: 47
+16 = Request: 214
+17 = ACK: 12032
+18 = ACK: 47
+19 = ACK: 12032
+20 = ACK: 214
+21 = ACK: 54784
+
+[Session:Mon Aug 23 09:46:35 CEST 2010]
+
+[Session:Mon Aug 23 09:47:58 CEST 2010]
+0 = ACK: 43605
+1 = ACK: 21930
+2 = ACK: 43605
+3 = ACK: 21815
+4 = ACK: 14266
+5 = ACK: 47632
+6 = ACK: 4097
+7 = ACK: 256
+8 = ACK: 1
+9 = ACK: 257
+10 = ACK: 257
+11 = ACK: 256
+
+[Session:Mon Aug 23 09:48:54 CEST 2010]
+
+[Session:Mon Aug 23 09:50:30 CEST 2010]
+
+[Session:Mon Aug 23 09:52:34 CEST 2010]
+
+[Session:Mon Aug 23 09:53:29 CEST 2010]
+
+[Session:Mon Aug 23 09:56:42 CEST 2010]
+
+[Session:Mon Aug 23 10:24:41 CEST 2010]
+
+[Session:Mon Aug 23 10:26:32 CEST 2010]
+
+[Session:Mon Aug 23 11:13:51 CEST 2010]
+
+[Session:Mon Aug 23 11:17:36 CEST 2010]
+
+[Session:Mon Aug 23 11:28:15 CEST 2010]
+
+[Session:Mon Aug 23 11:58:42 CEST 2010]
+
+[Session:Mon Aug 23 12:00:04 CEST 2010]
+
+[Session:Mon Aug 23 12:01:06 CEST 2010]
+
+[Session:Mon Aug 23 12:01:51 CEST 2010]
+
+[Session:Mon Aug 23 12:02:12 CEST 2010]
+
+[Session:Mon Aug 23 12:02:23 CEST 2010]
+
+[Session:Mon Aug 23 12:32:57 CEST 2010]
+
+[Session:Mon Aug 23 15:21:14 CEST 2010]
+
+[Session:Mon Aug 23 15:24:03 CEST 2010]
+
+[Session:Mon Aug 23 15:24:10 CEST 2010]
+
+[Session:Mon Aug 23 15:24:20 CEST 2010]
+
+[Session:Mon Aug 23 16:03:00 CEST 2010]
+
+[Session:Tue Aug 24 10:25:11 CEST 2010]
+
+[Session:Tue Aug 24 10:26:46 CEST 2010]
+
+[Session:Tue Aug 24 10:27:12 CEST 2010]
+
+[Session:Tue Aug 24 10:33:13 CEST 2010]
+
+[Session:Tue Aug 24 10:49:44 CEST 2010]
+
+[Session:Tue Aug 24 12:07:08 CEST 2010]
+
+[Session:Tue Aug 24 12:08:57 CEST 2010]
+
+[Session:Tue Aug 24 12:09:59 CEST 2010]
+
+[Session:Tue Aug 24 12:10:09 CEST 2010]
+
+[Session:Tue Aug 24 12:12:19 CEST 2010]
+
+[Session:Tue Aug 24 12:13:50 CEST 2010]
+
+[Session:Tue Aug 24 12:17:50 CEST 2010]
+
+[Session:Tue Aug 24 12:18:56 CEST 2010]
+
+[Session:Tue Aug 24 12:20:47 CEST 2010]
+
+[Session:Tue Aug 24 12:22:49 CEST 2010]
+
+[Session:Tue Aug 24 12:34:21 CEST 2010]
+
+[Session:Tue Aug 24 12:35:31 CEST 2010]
+
+[Session:Tue Aug 24 12:37:17 CEST 2010]
+
+[Session:Tue Aug 24 12:39:14 CEST 2010]
+
+[Session:Tue Aug 24 12:41:33 CEST 2010]
+
+[Session:Tue Aug 24 12:43:42 CEST 2010]
+
+[Session:Tue Aug 24 12:46:36 CEST 2010]
+
+[Session:Tue Aug 24 12:53:44 CEST 2010]
+
+[Session:Tue Aug 24 12:57:48 CEST 2010]
+
+[Session:Tue Aug 24 13:00:52 CEST 2010]
+
+[Session:Tue Aug 24 13:02:28 CEST 2010]
+
+[Session:Tue Aug 24 13:04:12 CEST 2010]
+
+[Session:Tue Aug 24 13:08:49 CEST 2010]
+
+[Session:Tue Aug 24 13:12:55 CEST 2010]
+
+[Session:Tue Aug 24 13:14:42 CEST 2010]
+
+[Session:Tue Aug 24 13:16:34 CEST 2010]
+
+[Session:Tue Aug 24 13:17:32 CEST 2010]
+
+[Session:Tue Aug 24 13:18:51 CEST 2010]
+
+[Session:Tue Aug 24 13:25:09 CEST 2010]
+
+[Session:Tue Aug 24 14:29:49 CEST 2010]
+
+[Session:Tue Aug 24 15:02:09 CEST 2010]
+
+[Session:Tue Aug 24 15:09:17 CEST 2010]
+
+[Session:Tue Aug 24 15:21:13 CEST 2010]
+
+[Session:Tue Aug 24 15:31:27 CEST 2010]
+
+[Session:Tue Aug 24 15:32:47 CEST 2010]
+
+[Session:Tue Aug 24 15:33:03 CEST 2010]
+
+[Session:Tue Aug 24 15:34:21 CEST 2010]
+
+[Session:Tue Aug 24 15:34:54 CEST 2010]
+
+[Session:Tue Aug 24 15:43:53 CEST 2010]
+
+[Session:Wed Aug 25 09:06:51 CEST 2010]
+
+[Session:Wed Aug 25 09:21:29 CEST 2010]
+
+[Session:Wed Aug 25 09:21:39 CEST 2010]
+
+[Session:Wed Aug 25 09:22:20 CEST 2010]
+
+[Session:Wed Aug 25 09:22:35 CEST 2010]
+
+[Session:Wed Aug 25 09:24:23 CEST 2010]
+
+[Session:Wed Aug 25 09:28:31 CEST 2010]
+
+[Session:Wed Aug 25 09:30:38 CEST 2010]
+
+[Session:Wed Aug 25 09:37:41 CEST 2010]
+
+[Session:Wed Aug 25 11:02:59 CEST 2010]
+
+[Session:Wed Aug 25 11:03:19 CEST 2010]
+
+[Session:Wed Aug 25 11:03:39 CEST 2010]
+
+[Session:Wed Aug 25 11:04:16 CEST 2010]
+
+[Session:Wed Aug 25 11:05:50 CEST 2010]
+
+[Session:Wed Aug 25 11:06:10 CEST 2010]
+
+[Session:Wed Aug 25 11:09:41 CEST 2010]
+
+[Session:Wed Aug 25 12:10:57 CEST 2010]
+
+[Session:Wed Aug 25 12:21:27 CEST 2010]
+
+[Session:Wed Aug 25 12:46:15 CEST 2010]
+
+[Session:Wed Aug 25 12:46:29 CEST 2010]
+
+[Session:Wed Aug 25 12:46:42 CEST 2010]
+
+[Session:Wed Aug 25 12:56:12 CEST 2010]
+
+[Session:Wed Aug 25 13:01:32 CEST 2010]
+
+[Session:Wed Aug 25 13:07:39 CEST 2010]
+
+[Session:Wed Aug 25 13:18:05 CEST 2010]
+
+[Session:Wed Aug 25 13:34:40 CEST 2010]
+
+[Session:Wed Aug 25 13:36:44 CEST 2010]
+
+[Session:Wed Aug 25 13:41:23 CEST 2010]
+
+[Session:Thu Aug 26 11:34:39 CEST 2010]
+
+[Session:Thu Aug 26 11:46:30 CEST 2010]
+
+[Session:Thu Aug 26 11:46:45 CEST 2010]
+
+[Session:Thu Aug 26 11:52:07 CEST 2010]
+
+[Session:Fri Aug 27 12:59:11 CEST 2010]
+
+[Session:Fri Aug 27 13:00:07 CEST 2010]
+
+[Session:Fri Aug 27 13:00:59 CEST 2010]
+
+[Session:Sun Aug 29 10:19:00 CEST 2010]
+
+[Session:Sun Aug 29 10:19:55 CEST 2010]
+
+[Session:Sun Aug 29 11:07:49 CEST 2010]
+
+[Session:Tue Aug 31 09:58:12 CEST 2010]
+
+[Session:Tue Aug 31 10:06:23 CEST 2010]
+
+[Session:Tue Aug 31 10:13:07 CEST 2010]
+
+[Session:Tue Aug 31 10:13:21 CEST 2010]
+
+[Session:Tue Aug 31 13:52:07 CEST 2010]
+
+[Session:Tue Aug 31 13:52:56 CEST 2010]
+
+[Session:Tue Aug 31 13:53:07 CEST 2010]
+
+[Session:Wed Sep 01 11:29:17 CEST 2010]
+
+[Session:Wed Sep 01 11:29:26 CEST 2010]
+
+[Session:Wed Sep 01 11:31:46 CEST 2010]
+
+[Session:Wed Sep 01 11:31:55 CEST 2010]
+
+[Session:Wed Sep 01 11:32:03 CEST 2010]
+
+[Session:Wed Sep 01 11:40:45 CEST 2010]
+
+[Session:Wed Sep 01 11:40:53 CEST 2010]
+
+[Session:Wed Sep 01 11:40:59 CEST 2010]
+
+[Session:Wed Sep 01 11:41:21 CEST 2010]
+
+[Session:Wed Sep 01 11:45:06 CEST 2010]
+
+[Session:Wed Sep 01 11:45:11 CEST 2010]
+
+[Session:Wed Sep 01 11:45:16 CEST 2010]
+
+[Session:Wed Sep 01 11:45:21 CEST 2010]
+
+[Session:Wed Sep 01 12:06:52 CEST 2010]
+
+[Session:Wed Sep 01 12:06:59 CEST 2010]
+
+[Session:Wed Sep 01 12:07:07 CEST 2010]
+
+[Session:Wed Sep 01 12:07:32 CEST 2010]
+
+[Session:Wed Sep 01 13:04:17 CEST 2010]
+
+[Session:Wed Sep 01 13:04:25 CEST 2010]
+
+[Session:Wed Sep 01 13:04:32 CEST 2010]
+
+[Session:Wed Sep 01 13:04:38 CEST 2010]
+
+[Session:Wed Sep 01 13:04:55 CEST 2010]
+
+[Session:Wed Sep 01 13:34:59 CEST 2010]
+
+[Session:Wed Sep 01 13:35:06 CEST 2010]
+
+[Session:Wed Sep 01 13:35:11 CEST 2010]
+
+[Session:Wed Sep 01 13:35:16 CEST 2010]
+
+[Session:Wed Sep 01 13:35:21 CEST 2010]
+
+[Session:Wed Sep 01 13:35:26 CEST 2010]
+
+[Session:Wed Sep 01 13:35:31 CEST 2010]
+
+[Session:Wed Sep 01 13:35:36 CEST 2010]
+
+[Session:Wed Sep 01 13:35:40 CEST 2010]
+
+[Session:Wed Sep 01 13:35:46 CEST 2010]
+
+[Session:Wed Sep 01 13:35:52 CEST 2010]
+
+[Session:Wed Sep 01 13:35:57 CEST 2010]
+
+[Session:Wed Sep 01 13:36:03 CEST 2010]
+
+[Session:Wed Sep 01 13:36:08 CEST 2010]
+
+[Session:Wed Sep 01 13:36:13 CEST 2010]
+
+[Session:Thu Sep 02 09:18:31 CEST 2010]
+
+[Session:Thu Sep 02 09:19:47 CEST 2010]
+
+[Session:Thu Sep 02 09:42:56 CEST 2010]
+
+[Session:Thu Sep 02 09:43:02 CEST 2010]
+
+[Session:Thu Sep 02 09:43:07 CEST 2010]
+
+[Session:Thu Sep 02 09:43:15 CEST 2010]
+
+[Session:Thu Sep 02 09:43:25 CEST 2010]
+
+[Session:Thu Sep 02 09:43:30 CEST 2010]
+
+[Session:Thu Sep 02 09:43:49 CEST 2010]
+
+[Session:Thu Sep 02 09:46:44 CEST 2010]
+
+[Session:Thu Sep 02 09:46:49 CEST 2010]
+
+[Session:Thu Sep 02 09:46:54 CEST 2010]
+
+[Session:Thu Sep 02 09:46:58 CEST 2010]
+
+[Session:Thu Sep 02 09:47:03 CEST 2010]
+
+[Session:Thu Sep 02 09:47:22 CEST 2010]
+
+[Session:Thu Sep 02 09:47:28 CEST 2010]
+
+[Session:Thu Sep 02 09:47:34 CEST 2010]
+
+[Session:Thu Sep 02 09:47:38 CEST 2010]
+
+[Session:Thu Sep 02 09:47:44 CEST 2010]
+
+[Session:Thu Sep 02 09:47:48 CEST 2010]
+
+[Session:Thu Sep 02 09:47:52 CEST 2010]
+
+[Session:Thu Sep 02 09:48:05 CEST 2010]
+
+[Session:Thu Sep 02 10:00:59 CEST 2010]
+
+[Session:Thu Sep 02 13:27:29 CEST 2010]
+
+[Session:Thu Sep 02 13:27:37 CEST 2010]
+
+[Session:Thu Sep 02 13:27:42 CEST 2010]
+
+[Session:Thu Sep 02 13:27:51 CEST 2010]
+
+[Session:Thu Sep 02 13:27:57 CEST 2010]
+
+[Session:Thu Sep 02 13:28:07 CEST 2010]
+
+[Session:Thu Sep 02 13:28:13 CEST 2010]
+
+[Session:Thu Sep 02 13:28:24 CEST 2010]
+
+[Session:Thu Sep 02 13:28:31 CEST 2010]
+
+[Session:Thu Sep 02 13:34:50 CEST 2010]
+
+[Session:Thu Sep 02 13:34:56 CEST 2010]
+
+[Session:Thu Sep 02 13:35:01 CEST 2010]
+
+[Session:Thu Sep 02 13:35:09 CEST 2010]
+
+[Session:Thu Sep 02 13:35:17 CEST 2010]
+
+[Session:Thu Sep 02 14:06:45 CEST 2010]
+
+[Session:Thu Sep 02 14:06:51 CEST 2010]
+
+[Session:Thu Sep 02 14:06:56 CEST 2010]
+
+[Session:Thu Sep 02 14:07:00 CEST 2010]
+
+[Session:Thu Sep 02 14:08:05 CEST 2010]
+
+[Session:Thu Sep 02 14:08:19 CEST 2010]
+
+[Session:Thu Sep 02 14:11:40 CEST 2010]
+
+[Session:Fri Sep 03 09:35:50 CEST 2010]
+
+[Session:Fri Sep 03 09:39:16 CEST 2010]
+
+[Session:Fri Sep 03 09:39:21 CEST 2010]
+
+[Session:Fri Sep 03 09:39:29 CEST 2010]
+
+[Session:Fri Sep 03 09:39:40 CEST 2010]
+
+[Session:Fri Sep 03 09:39:52 CEST 2010]
+
+[Session:Fri Sep 03 09:39:57 CEST 2010]
+
+[Session:Fri Sep 03 09:40:01 CEST 2010]
+
+[Session:Fri Sep 03 09:40:51 CEST 2010]
+
+[Session:Fri Sep 03 09:42:38 CEST 2010]
+
+[Session:Fri Sep 03 09:43:16 CEST 2010]
+
+[Session:Fri Sep 03 09:43:30 CEST 2010]
+
+[Session:Fri Sep 03 09:44:08 CEST 2010]
+
+[Session:Fri Sep 03 09:44:31 CEST 2010]
+
+[Session:Fri Sep 03 09:44:35 CEST 2010]
+
+[Session:Fri Sep 03 09:44:40 CEST 2010]
+
+[Session:Fri Sep 03 09:44:45 CEST 2010]
+
+[Session:Fri Sep 03 09:44:50 CEST 2010]
+
+[Session:Fri Sep 03 09:44:56 CEST 2010]
+
+[Session:Fri Sep 03 09:45:02 CEST 2010]
+
+[Session:Fri Sep 03 09:45:06 CEST 2010]
+
+[Session:Fri Sep 03 09:45:32 CEST 2010]
+
+[Session:Fri Sep 03 10:40:09 CEST 2010]
+
+[Session:Fri Sep 03 10:40:14 CEST 2010]
+
+[Session:Fri Sep 03 10:40:18 CEST 2010]
+
+[Session:Fri Sep 03 10:40:23 CEST 2010]
+
+[Session:Fri Sep 03 10:40:27 CEST 2010]
+
+[Session:Fri Sep 03 10:40:32 CEST 2010]
+
+[Session:Fri Sep 03 10:40:37 CEST 2010]
+
+[Session:Fri Sep 03 10:40:42 CEST 2010]
+
+[Session:Fri Sep 03 10:41:05 CEST 2010]
+
+[Session:Fri Sep 03 10:41:38 CEST 2010]
+
+[Session:Fri Sep 03 10:45:35 CEST 2010]
+
+[Session:Fri Sep 03 11:16:35 CEST 2010]
+
+[Session:Fri Sep 03 11:25:33 CEST 2010]
+
+[Session:Fri Sep 03 13:29:17 CEST 2010]
+
+[Session:Fri Sep 03 14:03:37 CEST 2010]
+
+[Session:Mon Sep 06 09:12:41 CEST 2010]
+
+[Session:Mon Sep 06 09:12:53 CEST 2010]
+
+[Session:Mon Sep 06 10:19:35 CEST 2010]
+
+[Session:Mon Sep 06 10:19:52 CEST 2010]
+
+[Session:Mon Sep 06 10:20:02 CEST 2010]
+
+[Session:Mon Sep 06 10:20:13 CEST 2010]
+
+[Session:Mon Sep 06 10:20:27 CEST 2010]
+
+[Session:Mon Sep 06 10:20:37 CEST 2010]
+
+[Session:Mon Sep 06 10:20:49 CEST 2010]
+
+[Session:Mon Sep 06 10:21:02 CEST 2010]
+
+[Session:Mon Sep 06 16:42:30 CEST 2010]
+
+[Session:Wed Sep 08 09:41:37 CEST 2010]
+
+[Session:Wed Sep 08 10:24:10 CEST 2010]
+
+[Session:Wed Sep 08 10:24:20 CEST 2010]
+
+[Session:Wed Sep 08 10:59:05 CEST 2010]
+
+[Session:Wed Sep 08 12:14:32 CEST 2010]
+
+[Session:Wed Sep 08 12:14:57 CEST 2010]
+
+[Session:Wed Sep 08 13:43:51 CEST 2010]
+
+[Session:Wed Sep 08 13:44:29 CEST 2010]
+
+[Session:Wed Sep 08 13:44:37 CEST 2010]
+
+[Session:Wed Sep 08 13:45:10 CEST 2010]
+
+[Session:Wed Sep 08 13:52:04 CEST 2010]
+
+[Session:Wed Sep 08 14:06:36 CEST 2010]
+
+[Session:Thu Sep 09 11:08:17 CEST 2010]
+
+[Session:Thu Sep 09 11:08:30 CEST 2010]
+
+[Session:Thu Sep 09 11:08:47 CEST 2010]
+
+[Session:Thu Sep 09 11:08:57 CEST 2010]
+
+[Session:Thu Sep 09 14:14:09 CEST 2010]
+
+[Session:Thu Sep 09 14:14:19 CEST 2010]
+
+[Session:Thu Sep 09 14:14:24 CEST 2010]
+
+[Session:Thu Sep 09 14:19:57 CEST 2010]
+
+[Session:Fri Sep 10 10:47:22 CEST 2010]
+
+[Session:Fri Sep 10 10:47:28 CEST 2010]
+
+[Session:Fri Sep 10 10:47:40 CEST 2010]
+
+[Session:Fri Sep 10 10:48:01 CEST 2010]
+
+[Session:Fri Sep 10 10:48:18 CEST 2010]
+
+[Session:Fri Sep 10 10:48:32 CEST 2010]
+
+[Session:Fri Sep 10 10:48:37 CEST 2010]
+
+[Session:Fri Sep 10 10:49:00 CEST 2010]
+
+[Session:Fri Sep 10 10:49:10 CEST 2010]
+
+[Session:Fri Sep 10 11:01:34 CEST 2010]
+
+[Session:Mon Sep 13 13:45:42 CEST 2010]
+
+[Session:Mon Sep 13 14:40:56 CEST 2010]
+
+[Session:Mon Sep 13 14:41:06 CEST 2010]
+
+[Session:Mon Sep 13 15:08:04 CEST 2010]
+
+[Session:Mon Sep 13 15:08:15 CEST 2010]
+
+[Session:Mon Sep 13 15:08:20 CEST 2010]
+
+[Session:Mon Sep 13 15:08:25 CEST 2010]
+
+[Session:Mon Sep 13 15:08:48 CEST 2010]
+
+[Session:Mon Sep 13 15:09:00 CEST 2010]
+
+[Session:Mon Sep 13 15:09:24 CEST 2010]
+
+[Session:Mon Sep 13 15:09:30 CEST 2010]
+
+[Session:Mon Sep 13 15:09:42 CEST 2010]
+
+[Session:Mon Sep 13 15:14:43 CEST 2010]
+
+[Session:Mon Sep 13 15:14:58 CEST 2010]
+
+[Session:Mon Sep 13 15:15:22 CEST 2010]
+
+[Session:Mon Sep 13 15:15:47 CEST 2010]
+
+[Session:Mon Sep 13 15:15:52 CEST 2010]
+
+[Session:Mon Sep 13 15:16:16 CEST 2010]
+
+[Session:Mon Sep 13 15:16:42 CEST 2010]
+
+[Session:Mon Sep 13 15:16:58 CEST 2010]
+
+[Session:Wed Sep 15 09:54:34 CEST 2010]
+
+[Session:Wed Sep 15 09:54:40 CEST 2010]
+
+[Session:Wed Sep 15 09:55:06 CEST 2010]
+
+[Session:Wed Sep 15 09:55:11 CEST 2010]
+
+[Session:Wed Sep 15 09:55:24 CEST 2010]
+
+[Session:Wed Sep 15 09:55:28 CEST 2010]
+
+[Session:Wed Sep 15 09:55:36 CEST 2010]
+
+[Session:Wed Sep 15 09:56:18 CEST 2010]
+
+[Session:Wed Sep 15 09:56:33 CEST 2010]
+
+[Session:Wed Sep 15 09:56:37 CEST 2010]
+
+[Session:Wed Sep 15 09:56:53 CEST 2010]
+
+[Session:Wed Sep 15 09:56:59 CEST 2010]
+
+[Session:Wed Sep 15 09:57:22 CEST 2010]
+
+[Session:Wed Sep 15 09:58:13 CEST 2010]
+
+[Session:Wed Sep 15 11:12:11 CEST 2010]
+
+[Session:Wed Sep 15 11:12:34 CEST 2010]
+
+[Session:Wed Sep 15 11:12:44 CEST 2010]
+
+[Session:Wed Sep 15 11:14:15 CEST 2010]
+
+[Session:Wed Sep 15 11:14:36 CEST 2010]
+
+[Session:Wed Sep 15 12:23:42 CEST 2010]
+
+[Session:Wed Sep 15 12:23:47 CEST 2010]
+
+[Session:Wed Sep 15 12:27:04 CEST 2010]
+
+[Session:Wed Sep 15 12:27:12 CEST 2010]
+
+[Session:Wed Sep 15 12:32:20 CEST 2010]
+
+[Session:Wed Sep 15 12:32:32 CEST 2010]
+
+[Session:Wed Sep 15 12:32:39 CEST 2010]
+
+[Session:Wed Sep 15 12:32:46 CEST 2010]
+
+[Session:Wed Sep 15 12:32:56 CEST 2010]
+
+[Session:Wed Sep 15 12:33:01 CEST 2010]
+
+[Session:Wed Sep 15 12:33:06 CEST 2010]
+
+[Session:Wed Sep 15 12:33:12 CEST 2010]
+
+[Session:Wed Sep 15 12:33:21 CEST 2010]
+
+[Session:Wed Sep 15 12:33:34 CEST 2010]
+
+[Session:Wed Sep 15 12:38:11 CEST 2010]
+
+[Session:Wed Sep 15 12:38:22 CEST 2010]
+
+[Session:Wed Sep 15 12:38:28 CEST 2010]
+
+[Session:Wed Sep 15 12:38:33 CEST 2010]
+
+[Session:Wed Sep 15 12:38:39 CEST 2010]
+
+[Session:Wed Sep 15 12:38:59 CEST 2010]
+
+[Session:Wed Sep 15 12:39:05 CEST 2010]
+
+[Session:Wed Sep 15 12:39:12 CEST 2010]
+
+[Session:Wed Sep 15 12:39:17 CEST 2010]
+
+[Session:Wed Sep 15 12:39:53 CEST 2010]
+
+[Session:Wed Sep 15 12:39:59 CEST 2010]
+
+[Session:Thu Sep 16 09:02:50 CEST 2010]
+
+[Session:Thu Sep 16 09:03:13 CEST 2010]
+
+[Session:Thu Sep 16 09:03:24 CEST 2010]
+
+[Session:Thu Sep 16 09:03:30 CEST 2010]
+
+[Session:Thu Sep 16 09:04:01 CEST 2010]
+
+[Session:Thu Sep 16 09:04:07 CEST 2010]
+
+[Session:Thu Sep 16 09:04:18 CEST 2010]
+
+[Session:Thu Sep 16 09:04:23 CEST 2010]
+
+[Session:Thu Sep 16 09:04:27 CEST 2010]
+
+[Session:Thu Sep 16 09:04:32 CEST 2010]
+
+[Session:Thu Sep 16 09:04:37 CEST 2010]
+
+[Session:Thu Sep 16 09:05:05 CEST 2010]
+
+[Session:Thu Sep 16 09:05:12 CEST 2010]
+
+[Session:Thu Sep 16 09:05:37 CEST 2010]
+
+[Session:Thu Sep 16 09:10:12 CEST 2010]
+
+[Session:Thu Sep 16 09:10:18 CEST 2010]
+
+[Session:Thu Sep 16 09:10:29 CEST 2010]
+
+[Session:Thu Sep 16 09:10:54 CEST 2010]
+
+[Session:Thu Sep 16 09:11:11 CEST 2010]
+
+[Session:Thu Sep 16 09:11:34 CEST 2010]
+
+[Session:Thu Sep 16 09:11:45 CEST 2010]
+
+[Session:Thu Sep 16 09:12:17 CEST 2010]
+
+[Session:Thu Sep 16 09:12:21 CEST 2010]
+
+[Session:Thu Sep 16 09:12:27 CEST 2010]
+
+[Session:Thu Sep 16 09:12:54 CEST 2010]
+
+[Session:Thu Sep 16 09:13:14 CEST 2010]
+
+[Session:Thu Sep 16 09:13:20 CEST 2010]
+
+[Session:Thu Sep 16 09:46:46 CEST 2010]
+
+[Session:Fri Sep 17 09:25:01 CEST 2010]
+
+[Session:Mon Sep 20 09:08:12 CEST 2010]
+
+[Session:Mon Sep 20 09:08:30 CEST 2010]
+
+[Session:Mon Sep 20 09:09:22 CEST 2010]
+
+[Session:Mon Sep 20 09:09:27 CEST 2010]
+
+[Session:Mon Sep 20 09:09:33 CEST 2010]
+
+[Session:Mon Sep 20 09:09:45 CEST 2010]
+
+[Session:Mon Sep 20 09:09:50 CEST 2010]
+
+[Session:Mon Sep 20 09:09:55 CEST 2010]
+
+[Session:Mon Sep 20 09:22:50 CEST 2010]
+
+[Session:Mon Sep 20 09:32:20 CEST 2010]
+
+[Session:Mon Sep 20 09:41:29 CEST 2010]
+
+[Session:Mon Sep 20 09:41:34 CEST 2010]
+
+[Session:Mon Sep 20 09:43:22 CEST 2010]
+
+[Session:Mon Sep 20 09:46:11 CEST 2010]
+
+[Session:Mon Sep 20 09:47:08 CEST 2010]
+
+[Session:Mon Sep 20 10:08:43 CEST 2010]
+
+[Session:Mon Sep 20 10:09:40 CEST 2010]
+
+[Session:Mon Sep 20 10:10:10 CEST 2010]
+
+[Session:Mon Sep 20 10:11:00 CEST 2010]
+
+[Session:Mon Sep 20 10:11:39 CEST 2010]
+
+[Session:Mon Sep 20 10:19:03 CEST 2010]
+
+[Session:Mon Sep 20 10:19:08 CEST 2010]
+
+[Session:Mon Sep 20 10:19:46 CEST 2010]
+
+[Session:Mon Sep 20 10:52:20 CEST 2010]
+
+[Session:Mon Sep 20 10:53:12 CEST 2010]
+
+[Session:Mon Sep 20 10:53:16 CEST 2010]
+
+[Session:Mon Sep 20 10:53:39 CEST 2010]
+
+[Session:Mon Sep 20 10:54:11 CEST 2010]
+
+[Session:Mon Sep 20 11:00:50 CEST 2010]
+
+[Session:Mon Sep 20 11:13:40 CEST 2010]
+
+[Session:Mon Sep 20 11:18:08 CEST 2010]
+
+[Session:Mon Sep 20 11:19:09 CEST 2010]
+
+[Session:Mon Sep 20 11:19:32 CEST 2010]
+
+[Session:Mon Sep 20 11:41:41 CEST 2010]
+
+[Session:Mon Sep 20 11:51:56 CEST 2010]
+
+[Session:Mon Sep 20 11:53:17 CEST 2010]
+
+[Session:Mon Sep 20 11:54:00 CEST 2010]
+
+[Session:Mon Sep 20 11:55:22 CEST 2010]
+
+[Session:Mon Sep 20 11:59:30 CEST 2010]
+
+[Session:Mon Sep 20 12:00:29 CEST 2010]
+
+[Session:Mon Sep 20 12:02:18 CEST 2010]
+
+[Session:Mon Sep 20 12:04:07 CEST 2010]
+
+[Session:Mon Sep 20 12:04:29 CEST 2010]
+
+[Session:Mon Sep 20 12:05:11 CEST 2010]
+
+[Session:Mon Sep 20 12:05:25 CEST 2010]
+
+[Session:Mon Sep 20 12:11:31 CEST 2010]
+
+[Session:Mon Sep 20 12:12:52 CEST 2010]
+
+[Session:Mon Sep 20 12:13:32 CEST 2010]
+
+[Session:Mon Sep 20 12:13:41 CEST 2010]
+
+[Session:Mon Sep 20 12:14:33 CEST 2010]
+
+[Session:Mon Sep 20 12:16:48 CEST 2010]
+
+[Session:Mon Sep 20 12:17:17 CEST 2010]
+
+[Session:Mon Sep 20 12:22:29 CEST 2010]
+
+[Session:Mon Sep 27 10:36:02 CEST 2010]
+
+[Session:Mon Sep 27 10:36:35 CEST 2010]
+
+[Session:Mon Sep 27 10:37:48 CEST 2010]
+
+[Session:Mon Sep 27 10:38:26 CEST 2010]
+
+[Session:Mon Sep 27 10:49:44 CEST 2010]
+
+[Session:Mon Sep 27 11:04:41 CEST 2010]
+
+[Session:Mon Sep 27 11:05:40 CEST 2010]
+
+[Session:Mon Sep 27 11:13:13 CEST 2010]
+
+[Session:Mon Sep 27 11:19:57 CEST 2010]
+
+[Session:Tue Sep 28 09:15:03 CEST 2010]
+
+[Session:Tue Sep 28 09:17:01 CEST 2010]
+
+[Session:Tue Sep 28 09:25:07 CEST 2010]
+
+[Session:Tue Sep 28 09:31:00 CEST 2010]
+
+[Session:Tue Sep 28 09:32:35 CEST 2010]
+
+[Session:Tue Sep 28 09:35:14 CEST 2010]
+
+[Session:Tue Sep 28 10:04:48 CEST 2010]
+
+[Session:Tue Sep 28 10:05:42 CEST 2010]
+
+[Session:Tue Sep 28 10:07:05 CEST 2010]
+
+[Session:Tue Sep 28 10:51:23 CEST 2010]
+
+[Session:Wed Sep 29 10:08:34 CEST 2010]
+
+[Session:Wed Sep 29 10:12:36 CEST 2010]
+
+[Session:Wed Sep 29 10:27:04 CEST 2010]
+
+[Session:Thu Sep 30 15:27:00 CEST 2010]
+
+[Session:Thu Sep 30 15:50:00 CEST 2010]
+
+[Session:Thu Sep 30 15:50:41 CEST 2010]
+
+[Session:Thu Sep 30 15:56:59 CEST 2010]
+
+[Session:Thu Sep 30 16:03:52 CEST 2010]
+
+[Session:Fri Oct 01 11:40:59 CEST 2010]
+
+[Session:Fri Oct 01 13:45:05 CEST 2010]
+
+[Session:Fri Oct 01 13:46:04 CEST 2010]
+
+[Session:Fri Oct 01 13:59:37 CEST 2010]
+
+[Session:Fri Oct 01 15:20:05 CEST 2010]
+
+[Session:Fri Oct 01 15:20:57 CEST 2010]
+
+[Session:Mon Oct 04 09:29:40 CEST 2010]
+
+[Session:Mon Oct 04 09:30:20 CEST 2010]
+
+[Session:Mon Oct 04 09:38:15 CEST 2010]
+
+[Session:Mon Oct 04 09:38:30 CEST 2010]
+
+[Session:Mon Oct 04 10:01:14 CEST 2010]
+
+[Session:Mon Oct 04 10:02:15 CEST 2010]
+
+[Session:Mon Oct 04 10:02:22 CEST 2010]
+
+[Session:Mon Oct 04 10:03:27 CEST 2010]
+
+[Session:Mon Oct 04 10:04:39 CEST 2010]
+
+[Session:Mon Oct 04 10:10:10 CEST 2010]
+
+[Session:Mon Oct 04 10:24:14 CEST 2010]
+
+[Session:Mon Oct 04 10:26:26 CEST 2010]
+
+[Session:Mon Oct 04 10:27:08 CEST 2010]
+
+[Session:Mon Oct 04 10:29:58 CEST 2010]
+
+[Session:Mon Oct 04 10:36:47 CEST 2010]
+
+[Session:Mon Oct 04 10:39:45 CEST 2010]
+
+[Session:Mon Oct 04 13:48:29 CEST 2010]
+
+[Session:Mon Oct 04 13:48:40 CEST 2010]
+
+[Session:Mon Oct 04 14:48:17 CEST 2010]
+
+[Session:Mon Oct 04 14:51:22 CEST 2010]
+
+[Session:Mon Oct 04 15:10:55 CEST 2010]
+
+[Session:Mon Oct 04 15:11:05 CEST 2010]
+
+[Session:Mon Oct 04 15:11:33 CEST 2010]
+
+[Session:Mon Oct 04 15:11:46 CEST 2010]
+
+[Session:Mon Oct 04 15:11:55 CEST 2010]
+
+[Session:Mon Oct 04 15:12:29 CEST 2010]
+
+[Session:Mon Oct 04 15:15:21 CEST 2010]
+
+[Session:Mon Oct 04 15:21:56 CEST 2010]
+
+[Session:Mon Oct 04 15:22:15 CEST 2010]
+
+[Session:Tue Oct 05 11:11:47 CEST 2010]
+
+[Session:Tue Oct 05 11:12:17 CEST 2010]
+
+[Session:Tue Oct 05 14:42:43 CEST 2010]
+
+[Session:Tue Oct 05 14:42:50 CEST 2010]
+
+[Session:Tue Oct 05 14:43:25 CEST 2010]
+
+[Session:Tue Oct 05 14:43:36 CEST 2010]
+
+[Session:Tue Oct 05 14:43:52 CEST 2010]
+
+[Session:Tue Oct 05 14:45:54 CEST 2010]
+
+[Session:Tue Oct 05 14:46:03 CEST 2010]
+
+[Session:Wed Oct 06 09:12:44 CEST 2010]
+
+[Session:Wed Oct 06 09:17:08 CEST 2010]
+
+[Session:Wed Oct 06 10:09:13 CEST 2010]
+
+[Session:Wed Oct 06 10:31:33 CEST 2010]
+
+[Session:Wed Oct 06 10:51:54 CEST 2010]
+
+[Session:Wed Oct 06 10:51:59 CEST 2010]
+
+[Session:Wed Oct 06 11:33:14 CEST 2010]
+
+[Session:Wed Oct 06 11:33:23 CEST 2010]
+
+[Session:Thu Oct 07 14:10:50 CEST 2010]
+
+[Session:Thu Oct 07 14:11:33 CEST 2010]
+
+[Session:Fri Oct 08 12:22:01 CEST 2010]
+
+[Session:Fri Oct 08 12:36:39 CEST 2010]
+
+[Session:Mon Oct 11 09:32:50 CEST 2010]
+
+[Session:Mon Oct 11 09:49:21 CEST 2010]
+
+[Session:Mon Oct 11 11:49:58 CEST 2010]
+
+[Session:Tue Oct 12 10:01:00 CEST 2010]
+
+[Session:Tue Oct 12 10:48:52 CEST 2010]
+
+[Session:Tue Oct 12 14:11:14 CEST 2010]
+
+[Session:Tue Oct 12 14:21:53 CEST 2010]
+
+[Session:Tue Oct 12 16:31:33 CEST 2010]
+
+[Session:Tue Oct 12 16:35:59 CEST 2010]
+
+[Session:Fri Oct 15 12:29:00 CEST 2010]
+
+[Session:Fri Oct 15 13:50:51 CEST 2010]
+
+[Session:Mon Oct 18 09:54:55 CEST 2010]
+
+[Session:Mon Oct 18 10:29:30 CEST 2010]
+
+[Session:Mon Oct 18 11:28:44 CEST 2010]
+
+[Session:Mon Oct 18 11:29:26 CEST 2010]
+
+[Session:Wed Oct 20 09:25:09 CEST 2010]
+
+[Session:Wed Oct 20 10:47:40 CEST 2010]
+
+[Session:Wed Oct 20 11:02:49 CEST 2010]
+
+[Session:Wed Oct 20 11:17:50 CEST 2010]
+
+[Session:Wed Oct 20 11:19:20 CEST 2010]
+
+[Session:Wed Oct 20 11:21:36 CEST 2010]
+
+[Session:Wed Oct 20 14:55:57 CEST 2010]
+
+[Session:Wed Oct 20 14:59:30 CEST 2010]
+
+[Session:Wed Oct 20 15:23:36 CEST 2010]
+
+[Session:Wed Oct 20 15:31:43 CEST 2010]
+
+[Session:Wed Oct 20 15:39:46 CEST 2010]
+
+[Session:Wed Oct 20 15:45:53 CEST 2010]
+
+[Session:Wed Oct 20 15:54:57 CEST 2010]
+
+[Session:Fri Oct 22 11:44:17 CEST 2010]
+
+[Session:Fri Oct 22 12:42:55 CEST 2010]
+
+[Session:Fri Oct 22 12:46:19 CEST 2010]
+
+[Session:Fri Oct 22 12:47:17 CEST 2010]
+
+[Session:Fri Oct 22 12:58:41 CEST 2010]
+
+[Session:Fri Oct 22 13:04:04 CEST 2010]
+
+[Session:Fri Oct 22 13:06:47 CEST 2010]
+
+[Session:Fri Oct 22 13:16:21 CEST 2010]
+
+[Session:Fri Oct 22 13:19:36 CEST 2010]
+
+[Session:Fri Oct 22 13:21:11 CEST 2010]
+
+[Session:Fri Oct 22 13:39:09 CEST 2010]
+
+[Session:Fri Oct 22 13:39:26 CEST 2010]
+
+[Session:Mon Oct 25 09:47:04 CEST 2010]
+
+[Session:Mon Oct 25 11:03:43 CEST 2010]
+
+[Session:Mon Oct 25 11:58:05 CEST 2010]
+
+[Session:Mon Oct 25 11:59:23 CEST 2010]
+
+[Session:Mon Oct 25 11:59:42 CEST 2010]
+
+[Session:Mon Oct 25 14:14:42 CEST 2010]
+
+[Session:Mon Oct 25 14:15:01 CEST 2010]
+
+[Session:Mon Oct 25 14:15:17 CEST 2010]
+
+[Session:Mon Oct 25 15:24:55 CEST 2010]
+
+[Session:Tue Oct 26 10:45:39 CEST 2010]
+
+[Session:Tue Oct 26 10:45:54 CEST 2010]
+
+[Session:Tue Oct 26 10:46:01 CEST 2010]
+
+[Session:Tue Oct 26 10:58:27 CEST 2010]
+
+[Session:Wed Oct 27 12:48:30 CEST 2010]
+
+[Session:Wed Oct 27 12:53:32 CEST 2010]
+
+[Session:Mon Feb 14 16:40:32 CET 2011]
+
+[Session:Mon Feb 14 16:44:53 CET 2011]
+
+[Session:Mon Feb 14 16:48:09 CET 2011]
+
+[Session:Mon Feb 14 16:55:18 CET 2011]
+
+[Session:Mon Feb 14 17:12:52 CET 2011]
+
+[Session:Mon Feb 14 17:13:14 CET 2011]
+
+[Session:Mon Feb 14 17:13:53 CET 2011]
+
+[Session:Mon Feb 14 17:14:20 CET 2011]
+
+[Session:Mon Feb 14 17:17:49 CET 2011]
+
+[Session:Mon Feb 14 17:18:21 CET 2011]
+
+[Session:Mon Feb 14 17:20:54 CET 2011]
+
+[Session:Mon Feb 14 17:38:45 CET 2011]
+
+[Session:Mon Feb 14 17:39:13 CET 2011]
+
+[Session:Mon Feb 14 17:39:39 CET 2011]
+
+[Session:Mon Feb 14 17:39:56 CET 2011]
+
+[Session:Mon Feb 14 17:50:17 CET 2011]
+
+[Session:Wed Feb 16 11:12:25 CET 2011]
+
+[Session:Wed Feb 16 11:18:45 CET 2011]
+
+[Session:Wed Feb 16 11:21:32 CET 2011]
+
+[Session:Wed Feb 16 11:25:02 CET 2011]
+
+[Session:Wed Feb 16 11:34:41 CET 2011]
+
+[Session:Wed Feb 16 11:35:51 CET 2011]
+
+[Session:Wed Feb 16 11:36:47 CET 2011]
+
+[Session:Wed Feb 16 11:37:16 CET 2011]
+
+[Session:Wed Feb 16 11:38:22 CET 2011]
+
+[Session:Wed Feb 16 11:39:03 CET 2011]
+
+[Session:Wed Feb 16 12:08:54 CET 2011]
+
+[Session:Wed Feb 16 13:15:08 CET 2011]
+
+[Session:Wed Feb 16 13:16:15 CET 2011]
+
+[Session:Wed Feb 16 13:28:12 CET 2011]
+
+[Session:Wed Feb 16 13:32:03 CET 2011]
+
+[Session:Wed Feb 16 13:39:04 CET 2011]
+
+[Session:Wed Feb 16 15:34:32 CET 2011]
+
+[Session:Wed Feb 16 15:35:03 CET 2011]
+
+[Session:Wed Feb 16 15:38:25 CET 2011]
+
+[Session:Wed Feb 16 15:39:06 CET 2011]
+
+[Session:Wed Feb 16 15:40:43 CET 2011]
+
+[Session:Wed Feb 16 16:27:13 CET 2011]
+
+[Session:Wed Feb 16 16:47:21 CET 2011]
+
+[Session:Wed Feb 16 17:33:47 CET 2011]
+
+[Session:Wed Feb 16 17:35:25 CET 2011]
+
+[Session:Wed Feb 16 17:36:35 CET 2011]
+
+[Session:Fri Feb 18 15:48:29 CET 2011]
+
+[Session:Fri Feb 18 15:50:47 CET 2011]
+
+[Session:Sat Feb 26 13:14:56 CET 2011]
+
+[Session:Sat Feb 26 13:15:20 CET 2011]
+
+[Session:Sat Feb 26 13:15:38 CET 2011]
+
+[Session:Sat Feb 26 13:17:41 CET 2011]
+
+[Session:Sat Feb 26 13:18:02 CET 2011]
+
+[Session:Sat Feb 26 13:19:27 CET 2011]
+
+[Session:Sat Feb 26 14:08:35 CET 2011]
+
+[Session:Sat Feb 26 14:10:16 CET 2011]
+
+[Session:Sat Feb 26 14:47:54 CET 2011]
+
+[Session:Sat Feb 26 14:50:52 CET 2011]
+
+[Session:Sat Feb 26 15:04:25 CET 2011]
+
+[Session:Sat Feb 26 16:15:33 CET 2011]
+
+[Session:Sat Feb 26 16:16:05 CET 2011]
+
+[Session:Sat Feb 26 18:05:26 CET 2011]
+
+[Session:Sat Feb 26 18:33:03 CET 2011]
+
+[Session:Sat Feb 26 18:47:56 CET 2011]
+
+[Session:Sat Feb 26 19:05:50 CET 2011]
+
+[Session:Sat Feb 26 19:28:37 CET 2011]
+
+[Session:Sat Feb 26 19:34:17 CET 2011]
+
+[Session:Sat Feb 26 19:34:45 CET 2011]
+
+[Session:Sat Feb 26 19:39:47 CET 2011]
+
+[Session:Sun Feb 27 11:29:59 CET 2011]
+
+[Session:Sun Feb 27 11:30:33 CET 2011]
+
+[Session:Sun Feb 27 11:30:51 CET 2011]
+
+[Session:Sun Feb 27 11:31:09 CET 2011]
+
+[Session:Sun Feb 27 11:31:43 CET 2011]
+
+[Session:Sun Feb 27 11:38:50 CET 2011]
+
+[Session:Sun Feb 27 11:53:30 CET 2011]
+
+[Session:Sun Feb 27 12:05:06 CET 2011]
+
+[Session:Sun Feb 27 12:05:30 CET 2011]
+
+[Session:Sun Feb 27 12:14:10 CET 2011]
+
+[Session:Sun Feb 27 12:55:51 CET 2011]
+
+[Session:Sun Feb 27 13:42:45 CET 2011]
+
+[Session:Sun Feb 27 13:47:16 CET 2011]
+
+[Session:Sun Feb 27 14:24:53 CET 2011]
+
+[Session:Tue Mar 01 10:16:43 CET 2011]
+
+[Session:Tue Mar 01 10:17:54 CET 2011]
+
+[Session:Tue Mar 01 11:41:14 CET 2011]
+
+[Session:Tue Mar 01 11:43:11 CET 2011]
+
+[Session:Tue Mar 01 13:11:14 CET 2011]
+
+[Session:Tue Mar 01 13:20:29 CET 2011]
+
+[Session:Tue Mar 01 17:56:04 CET 2011]
+
+[Session:Tue Mar 01 19:14:59 CET 2011]
+
+[Session:Tue Mar 01 19:17:31 CET 2011]
+
+[Session:Tue Mar 01 19:18:08 CET 2011]
+
+[Session:Wed Mar 02 16:50:32 CET 2011]
+
+[Session:Wed Mar 02 16:50:45 CET 2011]
+
+[Session:Wed Mar 02 16:55:43 CET 2011]
+0 = ACK: 43605
+1 = ACK: 21930
+2 = ACK: 43605
+3 = ACK: 21815
+4 = ACK: 14266
+5 = ACK: 47632
+6 = ACK: 4097
+7 = ACK: 256
+8 = ACK: 1
+9 = ACK: 257
+10 = ACK: 257
+
+[Session:Wed Mar 02 17:04:54 CET 2011]
+
+[Session:Wed Mar 02 17:11:12 CET 2011]
+
+[Session:Wed Mar 02 17:25:13 CET 2011]
+
+[Session:Wed Mar 02 17:33:09 CET 2011]
+
+[Session:Wed Mar 02 18:01:51 CET 2011]
+
+[Session:Wed Mar 02 18:22:57 CET 2011]
+
+[Session:Wed Mar 02 18:27:20 CET 2011]
+
+[Session:Wed Mar 02 18:29:15 CET 2011]
+
+[Session:Wed Mar 02 18:45:15 CET 2011]
+
+[Session:Wed Mar 02 18:52:50 CET 2011]
+
+[Session:Wed Mar 02 19:02:14 CET 2011]
+
+[Session:Wed Mar 02 19:15:03 CET 2011]
+
+[Session:Wed Mar 02 19:22:54 CET 2011]
+
+[Session:Wed Mar 02 19:27:33 CET 2011]
+
+[Session:Wed Mar 02 19:33:29 CET 2011]
+
+[Session:Wed Mar 02 19:36:21 CET 2011]
+
+[Session:Wed Mar 02 19:39:42 CET 2011]
+
+[Session:Wed Mar 02 21:00:46 CET 2011]
+
+[Session:Wed Mar 02 21:01:03 CET 2011]
+0 = ACK: 43605
+1 = ACK: 21930
+2 = ACK: 43605
+3 = ACK: 21815
+4 = ACK: 14266
+5 = ACK: 47632
+6 = ACK: 4097
+7 = ACK: 256
+8 = ACK: 1
+9 = ACK: 257
+10 = ACK: 257
+
+[Session:Wed Mar 02 21:03:03 CET 2011]
+
+[Session:Wed Mar 02 21:05:45 CET 2011]
+
+[Session:Wed Mar 02 21:27:01 CET 2011]
+
+[Session:Wed Mar 02 21:30:45 CET 2011]
+0 = ACK: 43605
+1 = ACK: 21930
+2 = ACK: 43605
+3 = ACK: 21815
+4 = ACK: 14080
+5 = ACK: 47632
+6 = ACK: 4097
+7 = ACK: 256
+8 = ACK: 1
+9 = ACK: 257
+10 = ACK: 257
+
+[Session:Wed Mar 02 21:35:50 CET 2011]
+
+[Session:Wed Mar 02 21:38:43 CET 2011]
+
+[Session:Thu Mar 03 08:42:34 CET 2011]
+
+[Session:Thu Mar 03 08:44:37 CET 2011]
+
+[Session:Thu Mar 03 08:59:56 CET 2011]
+
+[Session:Thu Mar 03 09:06:50 CET 2011]
+
+[Session:Thu Mar 03 09:17:11 CET 2011]
+
+[Session:Thu Mar 03 10:29:52 CET 2011]
+
+[Session:Thu Mar 03 10:53:58 CET 2011]
+
+[Session:Thu Mar 03 11:57:03 CET 2011]
+
+[Session:Thu Mar 03 11:57:22 CET 2011]
+
+[Session:Thu Mar 03 11:57:50 CET 2011]
+
+[Session:Thu Mar 03 11:58:01 CET 2011]
+
+[Session:Thu Mar 03 14:42:30 CET 2011]
+
+[Session:Thu Mar 03 16:49:27 CET 2011]
+
+[Session:Thu Mar 03 17:32:07 CET 2011]
+
+[Session:Thu Mar 03 17:32:19 CET 2011]
+
+[Session:Fri Mar 04 08:58:08 CET 2011]
+
+[Session:Sat Mar 05 09:01:07 CET 2011]
+
+[Session:Sat Mar 05 09:46:43 CET 2011]
+
+[Session:Sat Mar 05 09:46:56 CET 2011]
+
+[Session:Sat Mar 05 09:54:05 CET 2011]
+
+[Session:Sat Mar 05 09:54:40 CET 2011]
+
+[Session:Sat Mar 05 10:55:02 CET 2011]
+
+[Session:Sat Mar 05 10:57:36 CET 2011]
+
+[Session:Sat Mar 05 10:57:53 CET 2011]
+
+[Session:Sat Mar 05 14:57:52 CET 2011]
+
+[Session:Sat Mar 05 14:58:44 CET 2011]
+
+[Session:Mon Dec 19 15:30:15 CET 2011]
+

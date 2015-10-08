@@ -1,0 +1,116 @@
+/*
+ * GoalSideHistogramPredictor.cpp
+ *
+ *  Created on: 01.07.2014
+ *      Author: cpupower
+ */
+
+#include "GoalSideHistogramPredictor.h"
+#include "../../Config.h"
+
+GoalSideHistogramPredictor::GoalSideHistogramPredictor() {
+	mNeighbors = 5;
+	getGoalSideHistogramPrediction().setMinInterval(0.1);
+	Config::getInstance()->registerConfigChangeHandler(this);
+	this->configChanged();
+}
+
+GoalSideHistogramPredictor::~GoalSideHistogramPredictor() {
+	Config::getInstance()->removeConfigChangeHandler(this);
+}
+
+bool GoalSideHistogramPredictor::execute() {
+	Histogram currentHistogram = getBackgroundYUV();
+	const std::vector<Histogram>& ownSideHistograms =
+			getOwnGoalHistograms().get();
+	const std::vector<Histogram>& oppSideHistograms =
+			getOpponentGoalHistograms().get();
+
+	if (ownSideHistograms.size() + oppSideHistograms.size() < mNeighbors) {
+#ifdef _DEBUG
+		Debugger::INFO("GoalSideHistogramPredictor",
+				"Skip: Not enough training samples");
+#endif
+		getGoalSideHistogramPrediction().setProbability(0.5);
+		return true;
+	}
+
+	std::vector<Histogram> bothSidesHistograms;
+	bothSidesHistograms.reserve(
+			ownSideHistograms.size() + oppSideHistograms.size());
+	bothSidesHistograms.insert(bothSidesHistograms.end(),
+			ownSideHistograms.begin(), ownSideHistograms.end());
+	bothSidesHistograms.insert(bothSidesHistograms.end(),
+			oppSideHistograms.begin(), oppSideHistograms.end());
+	GoalSideHistogramPredictor::IntersectionPriorityQueue intersections;
+	intersections = getSortedHistogramIntersections(currentHistogram,
+			bothSidesHistograms);
+
+	size_t nearestOwnSideCount = 0;
+	for (size_t i = 0; i < mNeighbors; ++i) {
+		GoalSideHistogramPredictor::IntersectionPair bestIntersection =
+				intersections.top();
+		if (bestIntersection.first < ownSideHistograms.size()) {
+			nearestOwnSideCount++;
+		}
+		intersections.pop();
+	}
+
+	double prob = 1.0 - ((double)nearestOwnSideCount / mNeighbors);
+	getGoalSideHistogramPrediction().setProbability(prob);
+
+#ifdef _DEBUG
+	if (prob < 0.5) {
+		Debugger::DEBUG("GoalSideHistogramPredictor",
+				"Classified side as OwnSide (%.3f)", prob);
+	} else {
+		Debugger::DEBUG("GoalSideHistogramPredictor",
+				"Classified side as OppSide (%.3f)", prob);
+	}
+#endif
+
+	return true;
+}
+
+int GoalSideHistogramPredictor::histogramIntersection(Histogram histogramA,
+		Histogram histogramB) const {
+	if (histogramA.getMinBucketLabel() != histogramB.getMinBucketLabel()
+			|| histogramA.getMaxBucketLabel() != histogramB.getMaxBucketLabel()
+			|| histogramA.getBucketStepSize()
+					!= histogramB.getBucketStepSize()) {
+#ifdef _DEBUG
+		Debugger::ERR("GoalSideHistogram",
+				"Cannot calculate histogram intersection! "
+						"The histogram parameters are different!");
+#endif
+		return 0;
+	}
+	std::map<int, int> histMapA = histogramA.getHistData();
+	std::map<int, int> histMapB = histogramA.getHistData();
+
+	int intersection = 0;
+	for (std::map<int, int>::const_iterator itMapA = histMapA.begin();
+			itMapA != histMapA.end(); ++itMapA) {
+		intersection += min((*itMapA).second, histMapB[(*itMapA).first]);
+	}
+	return intersection;
+}
+
+GoalSideHistogramPredictor::IntersectionPriorityQueue GoalSideHistogramPredictor::getSortedHistogramIntersections(
+		Histogram histogram, std::vector<Histogram> histograms) {
+	GoalSideHistogramPredictor::IntersectionPriorityQueue intersections;
+	for (size_t i = 0; i < histograms.size(); ++i) {
+		int intersection = histogramIntersection(histogram, histograms[i]);
+		intersections.push(make_pair(i, intersection));
+	}
+	return intersections;
+}
+
+void GoalSideHistogramPredictor::configChanged()
+{
+	ConfigFile *config = Config::getInstance();
+	double accuracy = config->get<double>("GoalSideHistogram", "Accuracy", 0.5);
+	mNeighbors = config->get<size_t>("GoalSideHistogram", "Neighbors", 5,
+			"Number k of nearest neighbors, use odd value to allow decision by majority");
+	getGoalSideHistogramPrediction().setAccuracy(accuracy);
+}

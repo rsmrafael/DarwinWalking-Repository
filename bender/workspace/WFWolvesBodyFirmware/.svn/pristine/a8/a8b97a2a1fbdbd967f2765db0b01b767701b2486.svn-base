@@ -1,0 +1,335 @@
+/*
+ * rbc.c
+ *
+ *  Created on: 17.03.2011
+ *      Author: Stefan
+ */
+
+#include "rbc.h"
+#include "include/Board.h"
+#include "uart/uart.h"
+#include "ui/ui.h"
+#include "tc/tc.h"
+#include "parser/parser.h"
+#include "dbgu/dbgu.h"
+#include "movements/scenes.h"
+#include <string.h>
+
+#define RBC_HEADER1				0xff
+#define RBC_HEADER2				0xff
+#define RBC_HEADER3				0xaa
+#define RBC_HEADER4				0x55
+#define RBC_HEADER5				0xaa
+#define RBC_HEADER6				0x55
+#define RBC_HEADER7				0x37
+#define RBC_HEADER8				0xba
+
+#define RBC_EXITDIRECT1			0xff
+#define RBC_EXITDIRECT2			0xe0
+#define RBC_EXITDIRECT3			0xfb
+#define RBC_EXITDIRECT4			0x01
+#define RBC_EXITDIRECT5			0x00
+#define RBC_EXITDIRECT6			0x1a
+
+#define RBC_STATE_IDLE			0xfff0
+#define RBC_STATE_HEADER1		0xfff1
+#define RBC_STATE_HEADER2		0xfff2
+#define RBC_STATE_HEADER3		0xfff3
+#define RBC_STATE_HEADER4		0xfff4
+#define RBC_STATE_HEADER5		0xfff5
+#define RBC_STATE_HEADER6		0xfff6
+#define RBC_STATE_HEADER7		0xfff7
+#define RBC_STATE_TYPE			0xfff8
+#define RBC_STATE_PLATFORM		0xfff9
+#define RBC_STATE_SIZE1			0xfffa
+#define RBC_STATE_SIZE2			0xfffb
+#define RBC_STATE_SIZE3			0xfffc
+#define RBC_STATE_SIZE4			0xfffd
+
+#define RBC_STATE_EXITDIRECT1	0xfff1
+#define RBC_STATE_EXITDIRECT2	0xfff2
+#define RBC_STATE_EXITDIRECT3	0xfff3
+#define RBC_STATE_EXITDIRECT4	0xfff4
+#define RBC_STATE_EXITDIRECT5	0xfff5
+
+#define RBC_CMD_READZERO		0x0B
+#define RBC_CMD_WRITEZERO		0x0E
+#define RBC_CMD_DIRECTCONTROL	0x10
+#define RBC_CMD_GETROBOTTYPE	0x11
+#define RBC_CMD_VERSION			0x12
+
+#define RBC_FIRMWARE_MAJOR		0x02
+#define RBC_FIRMWARE_MINOR		0x17
+
+#define RBC_BOTTYPE_HUNO		0x01
+#define RBC_BOTTYPE_DINO		0x02
+#define RBC_BOTTYPE_DOGY		0x03
+
+CharReceivedCallback mRBCOldUart0Callback = 0;
+CharReceivedCallback mRBCOldUart1Callback = 0;
+unsigned short rbc_state = RBC_STATE_IDLE;
+unsigned char rbc_checksum;
+char rbc_temp[3];
+struct parser_message rbc_currentMessage;
+struct parser_message rbc_lastMessage;
+volatile unsigned char rbc_messageProcessed;
+unsigned char rbc_directControlMode;
+unsigned char rbc_useDbguPort;
+
+void RBC_ProcessChar(char ch);
+void RBC_ProcessServoChar(char ch);
+
+void RBC_Main(unsigned char use_dbgu_port) {
+	memset(&rbc_currentMessage, 0, sizeof(rbc_currentMessage));
+	memset(&rbc_lastMessage, 0, sizeof(rbc_lastMessage));
+	rbc_state = RBC_STATE_IDLE;
+	rbc_messageProcessed = 1;
+
+	rbc_directControlMode = 0;
+	rbc_useDbguPort = use_dbgu_port;
+
+	if (!use_dbgu_port) {
+		uart0_SetBaudrate(AT91_BAUD_RATE_SERVO);
+		mRBCOldUart0Callback = uart0_AssignCharReceivedCallback(RBC_ProcessChar);
+	} else {
+		mRBCOldUart0Callback = dbgu_AssignCharReceivedCallback(RBC_ProcessChar);
+	}
+
+	while (1) {
+		if (rbc_messageProcessed == 0) { // Message waiting
+			if (rbc_lastMessage.instruction == RBC_CMD_VERSION) {
+				if (!use_dbgu_port) {
+					dbgu_printf("[RBC] Received version request\r\n");
+				}
+				char data[2];
+				data[0] = RBC_FIRMWARE_MAJOR;
+				data[1] = RBC_FIRMWARE_MINOR;
+				RBC_SendReply(RBC_CMD_VERSION, 2, data);
+			} else if (rbc_lastMessage.instruction == RBC_CMD_DIRECTCONTROL) {
+				if (!use_dbgu_port) {
+					dbgu_printf("[RBC] Switching to direct control mode...\r\n");
+				}
+				mRBCOldUart1Callback = uart1_AssignCharReceivedCallback(RBC_ProcessServoChar);
+				rbc_directControlMode = 1;
+				UI_SetLED(2, 1);
+
+				char data[1];
+				data[0] = 0x01;
+				RBC_SendReply(RBC_CMD_DIRECTCONTROL, 1, data);
+			} else if (rbc_lastMessage.instruction == RBC_CMD_READZERO) {
+				unsigned char size = 16;//Robobuilder kann nur 16 Servos Scenes_GetServoCount();
+
+				if (!use_dbgu_port) {
+					dbgu_printf("[RBC] Sending zero position for %d servos...\r\n", size);
+				}
+
+				char data[size];
+				for (unsigned char i = 0; i < size; i++) {
+					data[i] = Scenes_GetZeroPosition(i);
+				}
+
+				RBC_SendReply(RBC_CMD_READZERO, size, data);
+			} else if (rbc_lastMessage.instruction == RBC_CMD_GETROBOTTYPE) {
+				if (!use_dbgu_port) {
+					dbgu_printf("[RBC] Received robot type request\r\n");
+				}
+				char data[2];
+				data[0] = 0x0; // Unknown meaning
+				data[1] = RBC_BOTTYPE_HUNO;
+				RBC_SendReply(RBC_CMD_GETROBOTTYPE, 2, data);
+			} else {
+				if (!use_dbgu_port) {
+					dbgu_printf("[RBC] Unknown instruction: %d (data length: %d)\r\n", rbc_lastMessage.instruction, rbc_lastMessage.length);
+				}
+			}
+
+			rbc_messageProcessed = 1; // Message processed
+		}
+	};
+
+	if (!use_dbgu_port) {
+		uart0_SetBaudrate(AT91_BAUD_RATE_EXT);
+		uart0_AssignCharReceivedCallback(mRBCOldUart0Callback);
+	} else {
+		dbgu_AssignCharReceivedCallback(mRBCOldUart0Callback);
+	}
+}
+
+void RBC_SendReply(unsigned char cmd, unsigned int length, char* data) {
+	unsigned char checksum = 0;
+
+	if (!rbc_useDbguPort) {
+		uart0_putc(0xFF);
+		uart0_putc(0xFF);
+		uart0_putc(0xAA);
+		uart0_putc(0x55);
+		uart0_putc(0xAA);
+		uart0_putc(0x55);
+		uart0_putc(0x37);
+		uart0_putc(0xBA);
+		uart0_putc(cmd);
+		uart0_putc(0x01);
+		uart0_putc((length >> 24) & 0xff);
+		uart0_putc((length >> 16) & 0xff);
+		uart0_putc((length >> 8) & 0xff);
+		uart0_putc(length & 0xff);
+		for (unsigned int i = 0; i < length; i++) {
+			uart0_putc(data[i]);
+			checksum = checksum ^ data[i];
+		}
+		uart0_putc(checksum);
+	} else {
+		dbgu_print_char(0xFF);
+		dbgu_print_char(0xFF);
+		dbgu_print_char(0xAA);
+		dbgu_print_char(0x55);
+		dbgu_print_char(0xAA);
+		dbgu_print_char(0x55);
+		dbgu_print_char(0x37);
+		dbgu_print_char(0xBA);
+		dbgu_print_char(cmd);
+		dbgu_print_char(0x01);
+		dbgu_print_char((length >> 24) & 0xff);
+		dbgu_print_char((length >> 16) & 0xff);
+		dbgu_print_char((length >> 8) & 0xff);
+		dbgu_print_char(length & 0xff);
+		for (unsigned int i = 0; i < length; i++) {
+			dbgu_print_char(data[i]);
+			checksum = checksum ^ data[i];
+		}
+		dbgu_print_char(checksum);
+	}
+}
+
+void RBC_ProcessChar(char ch) {
+	if (rbc_directControlMode == 1) {
+		uart1_putc(ch);
+		UI_ToggleLED(1);
+
+		if (ch == RBC_EXITDIRECT1) {
+			rbc_state = RBC_STATE_EXITDIRECT1;
+		} else if (rbc_state == RBC_STATE_EXITDIRECT1) {
+			if (ch == RBC_EXITDIRECT2) {
+				rbc_state = RBC_STATE_EXITDIRECT2;
+			} else {
+				rbc_state = RBC_STATE_IDLE;
+			}
+		} else if (rbc_state == RBC_STATE_EXITDIRECT2) {
+			if (ch == RBC_EXITDIRECT3) {
+				rbc_state = RBC_STATE_EXITDIRECT3;
+			} else {
+				rbc_state = RBC_STATE_IDLE;
+			}
+		} else if (rbc_state == RBC_STATE_EXITDIRECT3) {
+			if (ch == RBC_EXITDIRECT4) {
+				rbc_state = RBC_STATE_EXITDIRECT4;
+			} else {
+				rbc_state = RBC_STATE_IDLE;
+			}
+		} else if (rbc_state == RBC_STATE_EXITDIRECT4) {
+			if (ch == RBC_EXITDIRECT5) {
+				rbc_state = RBC_STATE_EXITDIRECT5;
+			} else {
+				rbc_state = RBC_STATE_IDLE;
+			}
+		} else if (rbc_state == RBC_STATE_EXITDIRECT5) {
+			if (ch == RBC_EXITDIRECT6) {
+				//dbgu_printf("[RBC] Leaving direct control mode...\r\n");
+				uart1_AssignCharReceivedCallback(mRBCOldUart1Callback);
+				rbc_directControlMode = 0;
+				UI_SetLED(2, 0);
+
+				rbc_state = RBC_STATE_IDLE;
+			}
+		}
+	} else {
+		if (rbc_state == RBC_STATE_IDLE) {
+			if (ch == RBC_HEADER1) {
+				rbc_state = RBC_STATE_HEADER1;
+				rbc_checksum = 0;
+				memset(&rbc_currentMessage, 0, sizeof(rbc_currentMessage));
+			}
+		} else if (rbc_state == RBC_STATE_HEADER1) {
+			if (ch == RBC_HEADER2) {
+				rbc_state = RBC_STATE_HEADER2;
+			} else {
+				rbc_state = RBC_STATE_IDLE;
+			}
+		} else if (rbc_state == RBC_STATE_HEADER2) {
+			if (ch == RBC_HEADER3) {
+				rbc_state = RBC_STATE_HEADER3;
+			} else {
+				rbc_state = RBC_STATE_IDLE;
+			}
+		} else if (rbc_state == RBC_STATE_HEADER3) {
+			if (ch == RBC_HEADER4) {
+				rbc_state = RBC_STATE_HEADER4;
+			} else {
+				rbc_state = RBC_STATE_IDLE;
+			}
+		} else if (rbc_state == RBC_STATE_HEADER4) {
+			if (ch == RBC_HEADER5) {
+				rbc_state = RBC_STATE_HEADER5;
+			} else {
+				rbc_state = RBC_STATE_IDLE;
+			}
+		} else if (rbc_state == RBC_STATE_HEADER5) {
+			if (ch == RBC_HEADER6) {
+				rbc_state = RBC_STATE_HEADER6;
+			} else {
+				rbc_state = RBC_STATE_IDLE;
+			}
+		} else if (rbc_state == RBC_STATE_HEADER6) {
+			if (ch == RBC_HEADER7) {
+				rbc_state = RBC_STATE_HEADER7;
+			} else {
+				rbc_state = RBC_STATE_IDLE;
+			}
+		} else if (rbc_state == RBC_STATE_HEADER7) {
+			if (ch == RBC_HEADER8) {
+				rbc_state = RBC_STATE_TYPE;
+			} else {
+				rbc_state = RBC_STATE_IDLE;
+			}
+		} else if (rbc_state == RBC_STATE_TYPE) {
+			rbc_currentMessage.instruction = ch;
+			rbc_state = RBC_STATE_PLATFORM;
+		} else if (rbc_state == RBC_STATE_PLATFORM) {
+			rbc_state = RBC_STATE_SIZE1;
+		} else if (rbc_state == RBC_STATE_SIZE1) {
+			rbc_temp[0] = ch;
+			rbc_state = RBC_STATE_SIZE2;
+		} else if (rbc_state == RBC_STATE_SIZE2) {
+			rbc_temp[1] = ch;
+			rbc_state = RBC_STATE_SIZE3;
+		} else if (rbc_state == RBC_STATE_SIZE3) {
+			rbc_temp[2] = ch;
+			rbc_state = RBC_STATE_SIZE4;
+		} else if (rbc_state == RBC_STATE_SIZE4) {
+			rbc_currentMessage.length = (rbc_temp[0] << 24) | (rbc_temp[1] << 16) | (rbc_temp[2] << 8) | ch;
+			rbc_state = 0;
+		} else if (rbc_state < rbc_currentMessage.length) {
+			rbc_currentMessage.data[rbc_state] = ch;
+			rbc_state++;
+			rbc_checksum = rbc_checksum ^ ch;
+		} else if (rbc_state == rbc_currentMessage.length) {
+			if (rbc_checksum == ch) {
+				if (rbc_messageProcessed == 1) { // If last message was processed
+					memcpy(&rbc_lastMessage, &rbc_currentMessage, sizeof(rbc_lastMessage)); // Copy buffer
+					rbc_messageProcessed = 0;
+				}
+			}
+			rbc_state = RBC_STATE_IDLE;
+		}
+	}
+}
+
+void RBC_ProcessServoChar(char ch) {
+	if (rbc_directControlMode == 1) {
+		if (rbc_useDbguPort) {
+			dbgu_print_char(ch);
+		} else {
+			uart0_putc(ch);
+		}
+	}
+}

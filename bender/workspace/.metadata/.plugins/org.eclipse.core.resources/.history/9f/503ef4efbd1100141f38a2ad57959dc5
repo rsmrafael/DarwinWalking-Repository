@@ -1,0 +1,27 @@
+/*
+ * FieldRunner.cpp
+ *
+ *  Created on: 22.07.2014
+ *      Author: da-v1n
+ */
+
+#include "FieldRunner.h"
+#include "../../Config.h"
+
+FieldRunner::FieldRunner(Game *game, MitecomCommunicator *communicator)
+:	AbstractBehavior( game, communicator){
+
+}
+
+FieldRunner::~FieldRunner() {
+	// TODO Auto-generated destructor stub
+}
+
+string FieldRunner::getStateName(int state){
+	switch(state){
+	case SEARCH_FOR_BACKFIELDLINE: return "SEARCH_FOR_BACKFIELDLINE";
+	case MOVE_TO_FIELDLINE: return "MOVE_TO_FIELDLINE";
+	case DELAY_LOOP: return "DELAY_LOOP";
+	default: return AbstractBehavior::getStateName(state);
+	}
+}

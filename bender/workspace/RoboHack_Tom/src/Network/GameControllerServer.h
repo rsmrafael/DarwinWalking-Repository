@@ -1,0 +1,42 @@
+/*
+ * GameControllerServer.h
+ *
+ *  Created on: 27.06.2009
+ *      Author: Stefan
+ */
+
+#ifndef GAMECONTROLLERSERVER_H_
+#define GAMECONTROLLERSERVER_H_
+
+#include <iostream>
+#include "../Thread.h"
+#include "../Game.h"
+#include "Network.h"
+#include "RoboCupGameControlData.h"
+
+class GameControllerServer : public Thread {
+public:
+	GameControllerServer(Game* game);
+	virtual ~GameControllerServer();
+
+private:
+	//lint -e(1704)
+	GameControllerServer(const GameControllerServer& cSource);
+	GameControllerServer& operator=(const GameControllerServer& cSource);
+
+	void execute(void* arg);
+	void HandlePacket(char* data);
+	void SendKeepAlive(void);
+
+	Network* mNetwork;
+	uint8_t mTeamID;
+	Game* mGame;
+    uint8_t mPreviousGameState;
+    uint8_t mPreviousPenaltyState[MAX_NUM_PLAYERS];
+    uint8_t mPreviousTeamColor;
+    uint64_t mLastMsgReceived;
+    uint64_t mKickOffUnparalyzeTime;
+    bool mWaitingForKickOffDelay;
+};
+
+#endif /* GAMECONTROLLERSERVER_H_ */

@@ -1,0 +1,63 @@
+/*
+ * RegistrationInterface.h
+ *
+ *  Created on: 28.08.2012
+ *      Author: Stefan Krupop
+ */
+
+#ifndef REGISTRATIONINTERFACE_H_
+#define REGISTRATIONINTERFACE_H_
+
+#include "../Blackboard/Representation.h"
+#include "../Blackboard/DataHolder.h"
+#include "ModuleManager.h"
+#include <map>
+
+using namespace std;
+
+class RegistrationInterface {
+public:
+	virtual ~RegistrationInterface() {}
+	virtual Representation& registerAtBlackBoard() = 0;
+};
+
+// type for a named map of representations
+typedef map<string, RegistrationInterface*> RepresentationMap;
+
+template<class T>
+class TypedRegistrationInterface : public RegistrationInterface {
+private:
+	const string getName() const {
+		return name;
+	}
+	string name;
+
+// HACK: should not be public, but inline access from StaticProvidingRegistrator
+// needs
+public:
+	//HACK: remove it, here schouldn't be any object data
+	T* data;
+
+	TypedRegistrationInterface(const string& name) : name(name), data(NULL) {}
+
+	inline T& getData() const {
+		//assert(data != NULL);
+		return *data;
+	}
+
+	virtual Representation& registerAtBlackBoard() {
+		DataHolder<T>& rep = get();
+		data = &(*rep);
+		return rep;
+	}
+
+	virtual DataHolder<T>& get() {
+		return ModuleManager::GetInstance()->template getRepresentation<DataHolder<T> >(getName());
+	}
+
+	virtual const DataHolder<T>& get() const {
+		return ModuleManager::GetInstance()->template getRepresentation<DataHolder<T> >(getName());
+	}
+};
+
+#endif /* REGISTRATIONINTERFACE_H_ */

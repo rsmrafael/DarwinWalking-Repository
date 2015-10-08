@@ -1,0 +1,12 @@
+package protobuf;
+
+option java_package = "de.ostfalia.robocup.message";
+option java_outer_classname = "MsgServoStatus";
+option optimize_for = LITE_RUNTIME;
+
+message ServoStatus {
+	required int32 id  = 1;
+	optional double positionError = 2;
+	optional double temperatur = 3;
+	optional double voltage = 4;
+}

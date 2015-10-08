@@ -1,0 +1,37 @@
+/*
+ * SimulationCommunicator.h
+ *
+ *  Created on: 20.10.2010
+ *      Author: Adam
+ */
+
+#pragma once
+
+#include <string>
+#include "AbstractCommunicator.h"
+#include "../Network/Network.h"
+
+class SimulationCommunicator : public AbstractCommunicator {
+public:
+    static SimulationCommunicator* GetInstance();
+
+	const struct statusMessage_t* GetStatusMessage();
+	void SendData(uint8_t type, uint8_t instruction, uint8_t controller, size_t commandLen, uint8_t* commandContent);
+	uint8_t* ReadImage(uint16_t* width, uint16_t* height);
+
+protected:
+	SimulationCommunicator();
+	~SimulationCommunicator();
+
+private:
+	//lint -e(1704)
+    SimulationCommunicator(const SimulationCommunicator& cSource);
+    SimulationCommunicator& operator=(const SimulationCommunicator& cSource);
+
+    int readAll(char *buf, size_t bytes, size_t packetLen);
+
+    static SimulationCommunicator* mInstance;
+
+	Network *mSimulationServerConnection;
+};
+

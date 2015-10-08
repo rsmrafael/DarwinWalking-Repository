@@ -1,0 +1,70 @@
+/*
+ * VisionVisualisation.cpp
+ *
+ *  Created on: Sep 3, 2012
+ *      Author: jan
+ */
+
+#include "VisionVisualisation.h"
+
+#ifdef USE_OPENCV
+#include <opencv2/opencv.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#endif
+
+VisionVisualisation::VisionVisualisation() {
+
+#ifdef USE_OPENCV
+
+	cv::Mat dummy(288,320,CV_8U);
+
+	cv::namedWindow("original", CV_WINDOW_NORMAL);
+	cv::moveWindow("original", 100, 0);
+	cv::namedWindow("Y-Channel", CV_WINDOW_NORMAL);
+	cv::moveWindow("Y-Channel", 450, 0);
+	cv::namedWindow("Cb-Channel", CV_WINDOW_NORMAL);
+	cv::moveWindow("Cb-Channel", 800, 0);
+	cv::namedWindow("Cr-Channel", CV_WINDOW_NORMAL);
+	cv::moveWindow("Cr-Channel", 100, 350);
+	cv::namedWindow("augmented", CV_WINDOW_NORMAL);
+	cv::moveWindow("augmented", 450, 350);
+
+
+	cv::imshow("original", dummy);
+	cv::imshow("Y-Channel", dummy);
+	cv::imshow("Cb-Channel", dummy);
+	cv::imshow("Cr-Channel", dummy);
+	cv::imshow("augmented", dummy);
+
+
+#endif
+
+}
+
+VisionVisualisation::~VisionVisualisation() {
+
+}
+
+void VisionVisualisation::execute() {
+
+#ifdef USE_OPENCV
+
+	cv::imshow("original", getOpenCVImage().getImage());
+	cv::imshow("Y-Channel", getOpenCVImage().getChannelY());
+	cv::imshow("Cb-Channel", getOpenCVImage().getChannelCB());
+	cv::imshow("Cr-Channel", getOpenCVImage().getChannelCR());
+
+	cv::Mat augmented = cv::Mat(getOpenCVImage().getImage());
+
+	if (getBall().lastImageSeen){
+		cv::circle(augmented,
+					 cv::Point(getBall().lastImageX, getBall().lastImageY), 10,
+							cv::Scalar(255, 0, 0), 2, 2, 0);
+	}
+
+
+	cv::imshow("augmented", augmented);
+
+#endif
+
+}

@@ -1,0 +1,6 @@
+set(JPEG_INCLUDE_DIR "C:/MinGW/include" CACHE PATH "")
+set(JPEG_LIBRARY "C:/MinGW/lib/libjpeg.a" CACHE PATH "")
+set(PROTOBUF_INCLUDE_DIR "C:/MinGW/include" CACHE PATH "")
+set(PROTOBUF_LIBRARY "C:/MinGW/lib/libprotobuf.dll.a" CACHE PATH "")
+set(PROTOBUF_LITE_LIBRARY "C:/MinGW/lib/libprotobuf-lite.dll.a" CACHE PATH "")
+set(PROTOBUF_PROTOC_LIBRARY "C:/MinGW/lib/libprotoc.dll.a" CACHE PATH "")

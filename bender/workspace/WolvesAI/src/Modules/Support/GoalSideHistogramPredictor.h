@@ -1,0 +1,103 @@
+/*
+ * GoalSideHistogramPredictor.h
+ *
+ *  Created on: 01.07.2014
+ *      Author: cpupower
+ */
+
+#ifndef GOALSIDEHISTOGRAMPREDICTOR_H_
+#define GOALSIDEHISTOGRAMPREDICTOR_H_
+
+#include <vector>
+#include <queue>
+#include "../../ModuleManager/Module.h"
+#include "../../Representations/Histogram.h"
+#include "../../Representations/STLVector.h"
+#include "../../Representations/GoalSide.h"
+#include "../../ConfigChangeListener.h"
+
+BEGIN_DECLARE_MODULE(GoalSideHistogramPredictor)
+	REQUIRE(Histogram,BackgroundYUV)
+	REQUIRE(STLVector<Histogram>,OpponentGoalHistograms)
+	REQUIRE(STLVector<Histogram>,OwnGoalHistograms)
+	PROVIDE(GoalSide,GoalSideHistogramPrediction)
+END_DECLARE_MODULE(GoalSideHistogramPredictor)
+
+class HistogramIntersectionCompare;
+
+/**
+ * GoalSideHistogramPredictor
+ */
+class GoalSideHistogramPredictor:
+	public GoalSideHistogramPredictorBase,
+	public ConfigChangeListener {
+public:
+	GoalSideHistogramPredictor();
+	virtual ~GoalSideHistogramPredictor();
+
+	/**
+	 * Type for histogram indices.
+	 */
+	typedef size_t Index;
+	/**
+	 * Type for histogram intersection values
+	 */
+	typedef int IntersectionValue;
+	/**
+	 * Type for pairs of a histogram index and a intersection value for that histogram.
+	 */
+	typedef std::pair<Index, IntersectionValue> IntersectionPair;
+	/**
+	 * Type for a priority queue of histogram intersection pairs (index, intersection_value),
+	 * sorted descending by intersection_value.
+	 */
+	typedef std::priority_queue<GoalSideHistogramPredictor::IntersectionPair,
+			std::vector<GoalSideHistogramPredictor::IntersectionPair>,
+			HistogramIntersectionCompare> IntersectionPriorityQueue;
+
+	/**
+	 * execute
+	 * @see Module::execute
+	 */
+	virtual bool execute();
+
+	/**
+	 * config has changed
+	 * @see ConfigChangeListener::configChanged
+	 */
+	virtual void configChanged();
+
+private:
+	/**
+	 * Calculates the histogram intersection between the two histograms
+	 * histogramA and histogramB. The histogram intersection is defined
+	 * as the sum of all min(A_i, B_i) for all bucket names i.
+	 */
+	int histogramIntersection(Histogram histogramA, Histogram histogramB) const;
+	/**
+	 * Calculates the intersections between the histogram and the given vector
+	 * of histograms and returns a priority queue of pairs
+	 * (histogram_index, intersection_value), sorted descending by intersection_value.
+	 */
+	IntersectionPriorityQueue getSortedHistogramIntersections(
+			Histogram histogram, std::vector<Histogram> histograms);
+
+	size_t mNeighbors;
+};
+
+/**
+ * Comparator class for comparing the intersection pairs (index, intersection_value)
+ * of two histograms by comparing them by their intersection_value (descending sort).
+ */
+class HistogramIntersectionCompare {
+public:
+	/**
+	 * operator() compares two histogram intersection pairs
+	 */
+	bool operator()(const GoalSideHistogramPredictor::IntersectionPair& l,
+			const GoalSideHistogramPredictor::IntersectionPair& r) const {
+		return l.second >= r.second;
+	}
+};
+
+#endif /* GOALSIDEHISTOGRAMPREDICTOR_H_ */

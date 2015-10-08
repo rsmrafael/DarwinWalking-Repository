@@ -1,0 +1,11 @@
+package protobuf;
+
+option java_package = "de.ostfalia.robocup.message";
+option java_outer_classname = "MsgPointCloud";
+option optimize_for = LITE_RUNTIME;
+
+import "Point.proto";
+
+message PointCloud {
+	repeated Point point = 1;
+}

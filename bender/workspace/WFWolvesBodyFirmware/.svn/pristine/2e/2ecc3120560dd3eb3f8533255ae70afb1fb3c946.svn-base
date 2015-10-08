@@ -1,0 +1,46 @@
+/*
+ * imu.c
+ *
+ *  Created on: 23.03.2011
+ *      Author: Stefan
+ */
+
+#include "imu.h"
+#include "imu/imu.h"
+#include "include/Board.h"
+#include "ui/ui.h"
+#include "tc/tc.h"
+#include "dbgu/dbgu.h"
+#include <string.h>
+
+#define MAIN_LOOP_DURATION		8 // ms
+
+void IMUTest_Main(void) {
+	while (1) {
+		unsigned long loopStartTime = TC_GetSystemTicks();
+
+		UI_ToggleLED(1);
+		IMU_Update();
+
+		// Send IMU data via DBGU
+		float accel_x = IMU_GetFBAccel();
+		float accel_y = IMU_GetRLAccel();
+		float accel_z = 0; //IMU_GetAccelZ();
+		float roll = 0; //IMU_GetRollRaw();
+		float pitch = 0; //IMU_GetPitchRaw();
+		float gyro_x = IMU_GetFBGyro();
+		float gyro_y = IMU_GetRLGyro();
+		float roll_filt = 0; //IMU_GetRoll();
+		float pitch_filt = 0; //IMU_GetPitch();
+		dbgu_printf("%3.5f;%3.5f;%3.5f;%3.5f;%3.5f;%3.5f;%3.5f;%3.5f;%3.5f\r\n", accel_x, accel_y, accel_z, roll, pitch, gyro_x, gyro_y, roll_filt, pitch_filt);
+
+		if (dbgu_char_available()) {
+			if (dbgu_get_char() == 3) { // Ctrl + C
+				return;
+			}
+		}
+
+		// Waste remaining loop time
+		while (TC_GetMsSinceTick(loopStartTime) < MAIN_LOOP_DURATION);
+	};
+}

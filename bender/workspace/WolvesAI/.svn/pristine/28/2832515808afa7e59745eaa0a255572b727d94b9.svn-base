@@ -1,0 +1,446 @@
+#ifdef USE_HOUGH
+
+#include <windows.h>	//	WITHOUT THE DECLARATION OF THIS LIBRARY, NOTHING WORKS;
+#include <GL/glut.h>	//	HEADER FILE FOR THE GLUT LIBRARY;
+#include <stdio.h>		//	HEADER FILE FOR STANDARD FILE I/O;
+#include <stdlib.h>		//	HEADER FILE FOR MALLOC/FREE;
+#include <math.h>		// 	HEADER FILE FOR MATH FUNCTIONS;
+#include <time.h>
+#include <conio.h>
+
+//=================================================================================================
+//#define NUM_PTOS 20			//	NUMBERS OF POINTS;
+#define ESCAPE 27			//	ASCII CODE FOR THE 'ESC' KEY;
+
+//=================================================================================================
+
+typedef struct POINT_struct {	//	POINT STRUCTURE;
+	double x, y;	//	COORDINATES;
+	uint16_t tag;	//	SEGMENT STAMP;
+}Point2D;
+
+//=================================================================================================
+
+int win;	//	MAIN WINDOW ID;
+int swin1,swin2,swin3;	//	ANOTHER GLUT SUB-WINDOWS IDs;
+
+int width=256;
+int height=256;
+
+/*
+double fator,delta;
+int nseg;
+
+Point2D pontos[NUM_PTOS];	//	POINTS ARRAY;
+Point2D *seg;	//	POINTER of TYPE 'POINT_struct';
+
+short acumuladoras[256][256];
+*/
+
+//=================================================================================================
+//=================================================================================================
+//	GROUPING OF POINTS BY SEGMENT
+
+Point2D *hough(int NUM_PTOS, short acumuladoras[width][height], Point2D *pontos, double delta, double fator) {
+	int i,j,k,ti,tj;
+	double angle,rho;
+	short min,max,tol;
+	uint16_t flag, c;
+	Point2D *seg;
+
+	//	STARTING ACCUMULATORS CELLS;
+	for (i=0; i<256; i++)
+		for (j=0; j<256; j++)
+			acumuladoras[i][j]=0;
+
+	//	FILLING ACCUMULATORS CELLS;
+	for (i=0; i<NUM_PTOS; i++) {
+		for (angle=-M_PI,j=0; j<width; j++) {
+			rho = pontos[i].x * cos(angle) + pontos[i].y * sin(angle);
+			k = (int) rho * fator + (height/2);
+			acumuladoras[j][k] += 1;
+			angle += delta;
+			//printf("angle += delta ---> delta = %lf\n", delta);
+		}
+	}
+
+
+/*
+	for (i=0;i<NUM_PTOS;++i) {
+		printf("\n\n");
+		for (j=0;j<NUM_PTOS;++j){
+			printf("%5d ", acumuladoras[i][j]);
+		}
+	}
+*/
+
+	//	GROUPING
+	int nseg = 1;
+	flag=1;
+	while (flag) {
+		//	(1) IDENTIFYING THE PAR WITH THE LARGEST NUMBER OF INTERSECTIONS;
+		for (max=-1, i=0; i<width; i++)
+			for (j=0; j<height; j++) {
+				if (acumuladoras[i][j] > max) {
+					max = acumuladoras[i][j];
+					ti = i;
+					tj = j;
+				}
+			}
+		//	(2) GROUP POINTS BELONGING TO PAR (rho,angle);
+		//  TOLERANCE (tol) DEPENDS ON DISCRETIZATION rho
+
+		rho = (tj - ((double) height/2))/fator;
+		angle = -M_PI + ti*delta;
+		tol = (int) 1/fator +1;
+		for (c=i=0; i< NUM_PTOS; i++) {
+			if (pontos[i].tag == 0 && fabs(rho-(pontos[i].x * cos(angle) + pontos[i].y * sin(angle))) < tol) {
+				pontos[i].tag = nseg;
+				c = 1;
+			}
+		}
+
+		if (c) {
+			nseg++;
+		}
+
+		//	(3)	CLEAR ACCUMULATOR CELL
+		acumuladoras[ti][tj] = 0;
+
+		// (4)	CHECK FOR FURTHER POINTS WITHOUT CLASSIFICATION;
+		for (flag=0, i=0; i< NUM_PTOS; i++) {
+			if (pontos[i].tag == 0) {flag=1; continue;}
+		}
+	}//while
+
+	//=============================================================================================
+	//=============================================================================================
+	//	DETERMINE THE EXTREME POINTS OF EACH SEGMENT;
+	//printf("nseg = %d\n", nseg);
+	seg = (Point2D *)malloc(sizeof(Point2D)*2*nseg);
+	for (i=1; i<(nseg+1); i++) {
+		max=-1;
+		min=width+1;
+		for (j=0; j<NUM_PTOS;j++) {
+			if (pontos[j].tag == i) {
+				if (pontos[j].x < min) {
+					seg[2*(i-1)].x = pontos[j].x;
+					seg[2*(i-1)].y = pontos[j].y;
+					min = pontos[j].x;
+				}
+				if (pontos[j].x > max) {
+					seg[2*(i-1)+1].x = pontos[j].x;
+					seg[2*(i-1)+1].y = pontos[j].y;
+					max = pontos[j].x;
+				}
+			}
+		}
+	}
+
+
+	int aux = 0;
+	for(;aux<NUM_PTOS;++aux)
+		printf("seg[%d].x = %lf\nseg[%d].y = %lf\n--\n",aux, seg[aux].x, aux, seg[aux].y);
+
+return seg;
+}//hough;
+
+//=================================================================================================
+//=================================================================================================
+
+void init(int NUM_PTOS) {
+	// code is not used and causes problems, therefore commented out
+	/*
+	int i, j;
+	double angle, rho, min, max, delta, fator;
+
+	Point2D pontos[NUM_PTOS];
+
+
+	//	DEFINIR A COR EM PRETO (0,0,0) COMO COR DE CLEAR;
+	glClearColor (0.0, 0.0, 0.0, 0.0);
+
+
+	//clock_t semente;
+	//semente = clock();
+	//srand((unsigned) semente);  // inicializando o gerador
+
+	//	GENERATING 10 SAMPLES IN EACH SEGMENT;
+	int half_num_ptos = NUM_PTOS / 2;
+	for (i=0; i<half_num_ptos; i++) {
+		pontos[i].x = (int) 150 - 50*i*2/NUM_PTOS;
+		pontos[i].y = (int) 8 + 232*i*2/NUM_PTOS;
+		pontos[i].tag = 0;
+
+		pontos[half_num_ptos+i].x = (int) 8+220 * i*2/NUM_PTOS;
+		pontos[half_num_ptos+i].y = (int) 8+220 * i*2/NUM_PTOS;
+		pontos[half_num_ptos+i].tag = 0;
+	}
+
+	//	DETERMINING STEP IN ANGULOS INTERVAL;
+	delta = M_PI*2/width;
+
+	// ESTIMATE THE SCALING FACTOR FOR VALUES 'rho'
+
+	for (min=1E6, max = -1E6, i=0; i< NUM_PTOS; i++) {
+		for (angle=-M_PI,j=0; j<width; j++) {
+			rho = pontos[i].x * cos(angle) + pontos[i].y * sin(angle);
+
+			if (rho < min) min = rho;
+				else if (rho > max) max = rho;
+
+			angle += delta;
+		}
+	}
+
+	if (max > -min) fator = max;
+		else fator = -min;
+
+	fator = height/(2*fator);
+	*/
+
+	// not used and memory leak, so commented out
+	//short acumuladoras[width][height];
+	//Point2D *teste_seg = hough(NUM_PTOS, acumuladoras, pontos, delta, fator);
+
+	/*
+	printf( "\n"
+			"====================================================\n"
+			"====================================================\n"
+			"====================================================\n");
+	int aux = 0;
+	for(;aux<NUM_PTOS;++aux)
+		printf("seg[%d].x = %lf\nseg[%d].y = %lf\n--\n",aux, teste_seg[aux].x, aux, teste_seg[aux].y);*/
+}
+
+//=================================================================================================
+//=================================================================================================
+//=================================================================================================
+//=================================================================================================
+
+/*
+
+void main_display(void) {
+	glutSetWindow(swin1);
+    glClearColor(0.0, 0.0, 0.0, 0.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glutSetWindow(swin2);
+    glClearColor(0.4, 0.4, 0.4, 0.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glutSetWindow(swin3);
+    glClearColor(0.0, 0.0, 0.0, 0.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+//=================================================================================================
+
+void display_swin1() {
+	int i;
+
+	//	VISUALIZAR AS AMOSTRAS
+	glutSetWindow(swin1);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	//	DESENHAR OS PONTOS
+	glPointSize(5.0);
+	glBegin(GL_POINTS);
+	glColor3f(1.0,1.0,1.0);
+
+	for (i=0; i< NUM_PTOS; i++)
+		glVertex2s(pontos[i].x, pontos[i].y);
+
+	glEnd();
+
+	//	FORCAR A EXECUCAO DOS COMANDOS ENVIADOS A OPENGL
+	glFlush();
+}
+
+//=================================================================================================
+
+void display_swin2() {
+	double angle, rho;
+	int i,k;
+
+	//	VISUALIZAR O ESPACO DE HOUGH DAS AMOSTRAS
+	glutSetWindow(swin2);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	for (i=0; i< NUM_PTOS; i++) {
+		glColor3f(1.0,(1.0*i)/NUM_PTOS,(1.0*i)/NUM_PTOS);
+		glBegin(GL_LINE_STRIP);
+
+		for (angle=-M_PI,k=0; k<width; k++) {
+			rho = pontos[i].x * cos(angle) + pontos[i].y * sin(angle);
+			glVertex2i(k,rho*fator+(height/2));
+			angle += delta;
+		}
+		glEnd();
+	}
+
+	//	FORCAR A EXECUCAO DOS COMANDOS ENVIADOS A OPENGL
+	glFlush();
+}
+
+//=================================================================================================
+
+void display_swin3() {
+	int i;
+
+	//	VISUALIZAR OS PONTOS E O NUMERO MINIMO DE SEGMENTOS QUE OS LIGAM
+	glutSetWindow(swin3);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	//	DESENHAR OS PONTOS
+	glPointSize(5.0);
+	glColor3f(1.0,1.0,1.0);
+	glBegin(GL_POINTS);
+
+
+	for (i=0; i< NUM_PTOS; i++)
+		glVertex2s(pontos[i].x, pontos[i].y);
+
+	glEnd();
+
+	//	DESENHAR OS SEGMENTOS
+	glBegin(GL_LINES);
+	glColor3f(1.0,0.0,0.0);
+
+	for (i=0; i< nseg; i=i+2) {
+		glVertex2s(seg[i].x, seg[i].y);
+		glVertex2s(seg[i+1].x, seg[i+1].y);
+	}
+
+
+
+	printf("\n\n\n << nseg = %d >> \n\n\n",nseg);
+	for (i=0; i< nseg; i=i+2) {
+		printf("seg[%d].x = %d \t seg[%d].y = %d\n", i, seg[i].x, i, seg[i].y);
+		printf("seg[%d].x = %d \t seg[%d].y = %d\n\n", i+1, seg[i+1].x, i+1, seg[i+1].y);
+	}
+
+
+	glEnd();
+
+	//	FORCAR A EXECUCAO DOS COMANDOS ENVIADOS A OPENGL;
+	glFlush();
+}
+
+//=================================================================================================
+
+void main_reshape(int w, int h) {
+
+	glViewport(0,0,(GLsizei)w,(GLsizei)h);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluOrtho2D(0.0, (GLfloat) w, 0.0, (GLfloat) h);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	//	REDEFINIR A POSICAO E AS DIMENSOES DA SUB-JANELA 1
+	glutSetWindow(swin1);
+	glutPositionWindow(0, 0);
+	glutReshapeWindow(width, height);
+
+	//	REDEFINIR A POSICAO E AS DIMENSOES DA SUB-JANELA 2
+	glutSetWindow(swin2);
+	glutPositionWindow(width,0 );
+	glutReshapeWindow(width, height);
+
+	//	REDEFINIR A POSICAO E AS DIMENSOES DA SUB-JANELA 3
+	glutSetWindow(swin3);
+	glutPositionWindow(width*2,0);
+	glutReshapeWindow(width, height);
+}
+
+//=================================================================================================
+
+void reshape_swin1(int w, int h) {
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluOrtho2D(0.0, (GLfloat) width, 0.0, (GLfloat) height);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+}
+
+//=================================================================================================
+
+void reshape_swin2(int w, int h) {
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluOrtho2D(0.0, (GLfloat) width, 0.0, (GLfloat) height);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+}
+
+//=================================================================================================
+
+void reshape_swin3(int w, int h) {
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluOrtho2D(0.0, (GLfloat) width, 0.0, (GLfloat) height);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+}
+
+//=================================================================================================
+
+void keyboard(uint8_t key, int x, int y) {
+	switch (key) {
+		case 27:	exit(0);
+		return;
+	}
+}
+*/
+
+//=================================================================================================
+//=================================================================================================
+//=================================================================================================
+//=================================================================================================
+
+int main(int argc, char **argv) {
+
+/*
+	glutInit(&argc, argv);
+	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB );
+	glutInitWindowSize((int)3*width, (int)height);
+	glutInitWindowPosition(0,0);
+
+	win = glutCreateWindow("WF-Wolves - Project - houghTransform");
+
+	glutReshapeFunc(main_reshape);
+    glutDisplayFunc(main_display);
+    glutKeyboardFunc(keyboard);
+
+    swin1 = glutCreateSubWindow(win,(int)width,0,(int)width,(int)height);
+
+    glutReshapeFunc(reshape_swin1);
+    glutDisplayFunc(display_swin1);
+    glutKeyboardFunc(keyboard);
+
+    swin2 = glutCreateSubWindow(win,(int)width,0,(int)width,(int)height);
+
+    glutReshapeFunc(reshape_swin2);
+    glutDisplayFunc(display_swin2);
+    glutKeyboardFunc(keyboard);
+
+    swin3 = glutCreateSubWindow(win,(int)width*2,0,(int)width,(int)height);
+
+    glutReshapeFunc(reshape_swin3);
+    glutDisplayFunc(display_swin3);
+    glutKeyboardFunc(keyboard);
+*/
+
+    int NUM_PTOS = 20;
+    init(NUM_PTOS);
+
+    //glutMainLoop();
+
+    return 0;
+}
+
+#endif

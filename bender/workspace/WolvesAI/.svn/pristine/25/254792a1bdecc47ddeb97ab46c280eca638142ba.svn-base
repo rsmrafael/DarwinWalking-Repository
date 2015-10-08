@@ -1,0 +1,300 @@
+/*
+ * Object.cpp
+ *
+ *  Created on: Sep 1, 2012
+ *      Author: jan
+ */
+
+#include "Object.h"
+#include "../Messages/Representations.pb.h"
+#include "../Messages/OstreamOutputStream.h"
+#include "../Messages/IstreamInputStream.h"
+//#include "../SettingData.h"
+#include "../External/SettingConfig.h"
+
+Object::Object()
+:	lastImageTopLeftX(0),
+	lastImageTopLeftY(0),
+	lastImageX(0),
+	lastImageY(0),
+	lastImageWidth(0),
+	lastImageHeight(0),
+	lastImageSeen(false),
+	matched(false),
+	type(UNKNOWN),
+	lastSeenCounter(0),
+	originalHeight(0),
+	originalWidth(0)
+//lastVector(Vector(0.0, 0.0)),
+{
+}
+
+Object::Object(BoundingBox boundingBox, ObjectType objType)
+:	lastImageTopLeftX(boundingBox.topLeft.getX()),
+	lastImageTopLeftY(boundingBox.topLeft.getY()),
+	lastImageX(lastImageTopLeftX + boundingBox.width / 2),
+	lastImageY(lastImageTopLeftY + boundingBox.height / 2),
+	lastImageWidth(boundingBox.width),
+	lastImageHeight(boundingBox.height),
+	lastImageSeen(false),
+	matched(false),
+	type(objType),
+	lastSeenCounter(0),
+	originalHeight(0),
+	originalWidth(0)
+//lastVector(Vector(0.0, 0.0))
+{
+	updateType();
+}
+
+Object::Object(const Object* object)
+:	lastImageTopLeftX(object->lastImageTopLeftX),
+	lastImageTopLeftY(object->lastImageTopLeftY),
+	lastImageX(object->lastImageX),
+	lastImageY(object->lastImageY),
+	lastImageWidth(object->lastImageWidth),
+	lastImageHeight(object->lastImageHeight),
+	lastImageSeen(object->lastImageSeen),
+	matched(object->matched),
+	type(object->type),
+	lastSeenCounter(object->lastSeenCounter),
+	originalHeight(object->originalHeight),
+	originalWidth(object->originalWidth)
+//lastVector(object->lastVector)
+{
+
+}
+
+Object::Object(int x, int y, int width, int heigth)
+:	lastImageTopLeftX(x),
+	lastImageTopLeftY(y),
+	lastImageX(lastImageTopLeftX + width / 2),
+	lastImageY(lastImageTopLeftY + heigth / 2),
+	lastImageWidth(width),
+	lastImageHeight(heigth),
+	lastImageSeen(true),
+	matched(false),
+	type(UNKNOWN),
+	lastSeenCounter(0),
+	originalHeight(0),
+	originalWidth(0)
+//lastVector(Vector(0.0, 0.0))
+{
+}
+
+Object::Object(int x, int y, int x1, int y1, ObjectType objType) {
+	int width, heigth;
+
+	if (x < x1) {
+		lastImageTopLeftX = x;
+		width = x1 - x;
+	} else {
+		lastImageTopLeftX = x1;
+		width = x - x1;
+	}
+
+	if (y < y1) {
+		lastImageTopLeftY = y;
+		heigth = y1 - y;
+	} else {
+		lastImageTopLeftY = y1;
+		heigth = y - y1;
+	}
+
+	lastImageX = lastImageTopLeftX + width / 2;
+	lastImageY = lastImageTopLeftY + heigth / 2;
+	lastImageHeight = heigth;
+	lastImageWidth = width;
+	lastImageSeen = true;
+	type = objType;
+	//lastVector = Vector(0.0, 0.0);
+	matched = false;
+	lastSeenCounter = 0;
+	originalHeight = 0;
+	originalWidth = 0;
+	updateType();
+}
+
+Object::~Object() {
+}
+
+std::string Object::toString() const {
+	switch( type) {
+	case GOAL_POLE_YELLOW:
+		return "GoalPole";
+	case BALL:
+		return "Ball";
+	case GOAL_YELLOW_CROSSBAR:
+		return "GoalCrossbar";
+	case ROBOT:
+		return "Robot";
+	case ROBOT_CYAN:
+		return "CyanRobot";
+	case ROBOT_MAGENTA:
+		return "MagentaRobot";
+	case OBSTACLE:
+		return "Obstacle";
+	case FIELD_LINE:
+		return "FieldLine";
+	case LINE:
+		return "Line";
+	case LINE_POINT:
+		return "LinePoint";
+	//case GOAL:
+		//return "Goal";
+		break;
+	case UNKNOWN:
+	default:
+		return "Unknown";
+	}
+}
+
+void Object::updateType() {
+	SettingConfig *config = SettingConfig::getInstance();
+	switch( type) {
+	case GOAL_POLE_YELLOW:
+		originalHeight = config->get<int>("Goal", "CrossbarHeight", 1100);
+		originalWidth  = config->get<int>("Goal", "PoleDiameter", 100);
+		break;
+	case BALL:
+		originalHeight = config->get<int>("Ball", "Diameter", 130);
+		originalWidth  = config->get<int>("Ball", "Diameter", 130);
+		break;
+	case GOAL_YELLOW_CROSSBAR:
+		originalHeight = config->get<int>("Goal", "CrossbarDiameter", 100);
+		originalWidth  = config->get<int>("Goal", "Width", 1800);
+		break;
+	case ROBOT:
+	case ROBOT_CYAN:
+	case ROBOT_MAGENTA:
+		originalHeight = config->get<int>("Robot", "HeightMedian", 500);
+		originalWidth  = config->get<int>("Robot", "WidthMedian", 200);
+		break;
+	case OBSTACLE:
+		originalHeight = config->get<int>("Obstacle", "HeightMedian", 1000);
+		originalWidth  = config->get<int>("Obstacle", "WidthMedian", 300);
+		break;
+	case FIELD_LINE:
+	case LINE:
+	case LINE_POINT:
+		originalHeight = config->get<int>("Line", "Width", 50);
+		originalWidth  = config->get<int>("Line", "Width", 50);
+		break;
+	case UNKNOWN:
+	default:
+		originalHeight = 0;
+		originalWidth = 0;
+		break;
+	}
+}
+
+void Object::setOriginalSize(int width, int height) {
+	originalWidth = width;
+	originalHeight = height;
+}
+
+void Object::updateObject(int x, int y, int width, int height) {
+	lastImageTopLeftX = x;
+	lastImageTopLeftY = y;
+	lastImageX = lastImageTopLeftX + width / 2;
+	lastImageY = lastImageTopLeftY + height / 2;
+	lastImageHeight = height;
+	lastImageWidth = width;
+	lastImageSeen = true;
+}
+
+void Object::notSeen() {
+	lastImageSeen = false;
+}
+
+/*bool Object::sortDistance(const Object& obj1, const Object& obj2)
+{
+  return obj1.lastVector.getLength() < obj2.lastVector.getLength();
+}*/
+
+void Object::mergeBoundingBox(const BoundingBox &box)
+{
+	int x1, y1, x2, y2;
+	if( box.topLeft.getX() < lastImageTopLeftX) {
+		x1 = box.topLeft.getX();
+	} else {
+		x1 = lastImageTopLeftX;
+	}
+
+	if( box.topLeft.getY() < lastImageTopLeftY) {
+		y1 = box.topLeft.getY();
+	} else {
+		y1 = lastImageTopLeftY;
+	}
+
+	if( (box.topLeft.getX() + box.width) > (lastImageTopLeftX + lastImageWidth)) {
+		x2 = (box.topLeft.getX() + box.width);
+	} else {
+		x2 = (lastImageTopLeftX + lastImageWidth);
+	}
+
+	if( (box.topLeft.getY() + box.height) > (lastImageTopLeftY + lastImageHeight)) {
+		y2 = (box.topLeft.getY() + box.height);
+	} else {
+		y2 = (lastImageTopLeftY + lastImageHeight);
+	}
+
+	bool lastSeen = lastImageSeen;
+	updateObject( x1, y1, (x2 - x1), (y2 - y1));
+	lastImageSeen = lastSeen;
+}
+
+const BoundingBox Object::getBoundingBox() const {
+	return BoundingBox( Point(lastImageTopLeftX,
+			lastImageTopLeftY), lastImageWidth, lastImageHeight);
+}
+
+bool Object::doBoundingBoxesOverlap(Object object) const {
+	bool noOverlap = lastImageTopLeftX
+			> object.lastImageTopLeftX + object.lastImageWidth
+			|| object.lastImageTopLeftX > lastImageTopLeftX + lastImageWidth
+			|| lastImageTopLeftY
+					> object.lastImageTopLeftY + object.lastImageHeight
+			|| object.lastImageTopLeftY > lastImageTopLeftY + lastImageHeight;
+
+	return !noOverlap;
+}
+
+void Object::writeProtoBuf(protobuf::Object* object) const {
+	object->set_x(lastImageX);
+	object->set_y(lastImageY);
+
+	object->set_topleftx(lastImageTopLeftX);
+	object->set_toplefty(lastImageTopLeftY);
+	object->set_heigth(lastImageHeight);
+	object->set_width(lastImageWidth);
+
+	object->set_seen(lastImageSeen);
+	object->set_type((protobuf::ObjectType) type);
+
+	/*protobuf::Vector2D* vec = object->mutable_vector();
+
+	lastVector.writeProtoBuf(vec);*/
+}
+
+void Serializer<Object>::serialize(const Object& representation,
+		ostream& stream) {
+	protobuf::Object object;
+
+	representation.writeProtoBuf(&object);
+
+	OstreamOutputStream buf(&stream);
+	object.SerializeToZeroCopyStream(&buf);
+}
+
+void Serializer<Object>::deserialize(istream& stream, Object& representation) {
+	protobuf::Object object;
+
+	IstreamInputStream buf(&stream);
+	object.ParseFromZeroCopyStream(&buf);
+
+	int x = object.x();
+	int y = object.y();
+
+	representation.updateObject(x, y, 1, 1);
+}

@@ -1,0 +1,111 @@
+/*
+ * LocalModeling.cpp
+ *
+ *  Created on: 20.02.2013
+ *      Author: Jan Carstensen
+ */
+
+#include "LocalModeling.h"
+#define _USE_MATH_DEFINES
+#include <math.h>
+
+LocalModeling::LocalModeling() {
+}
+
+LocalModeling::~LocalModeling() {
+}
+
+bool LocalModeling::execute() {
+
+	//Get Object and Camera Data
+
+	getLocalModel().clearList();
+
+//	Odometrie odom = getOdometrie();
+	Object ball = getBall();
+	ObjectList goalPoles = getGoalPoles();
+//	RobotConfiguration botConf = getRobotConfiguration();
+	//BodyStatus bodyStatus = getBodyStatus();
+//	CameraSettings camSet = getCameraSettings();
+
+	//Calculate Optical Axis
+
+	//double panAngle = (double) (bodyStatus.getPan()) / 180.0 * M_PI;
+	//double tiltAngle = (double) (bodyStatus.getTilt()) / 180.0 * M_PI;
+
+	//Projekt Objects
+
+	ObjectList objects = ObjectList();
+
+	const vector<Object> goalList = goalPoles.getObjectLists();
+
+	for (vector<Object>::const_iterator it = goalList.begin();
+			it != goalList.end(); ++it) {
+
+		Vector vec = calculateVector(*it);
+
+		Object pole = Object(*it);
+		pole.lastVector = vec;
+
+		objects.addObject(pole);
+
+		//Match Objects
+		// - Match in image
+		// - Match on Field
+
+		//Update Objetcs
+	}
+
+	//Ball
+
+	Vector b = calculateVector(ball);
+
+	Object nBall = Object(ball);
+	nBall.lastVector = b;
+
+	objects.addObject(nBall);
+
+	//Match Objects
+	// - Match in image
+	// - Match on Field
+
+	//Update Objetcs
+
+	getLocalModel().addObjects(objects);
+
+	return true;
+}
+
+Vector LocalModeling::calculateVector(Object ob) const {
+
+	RobotConfiguration botConf = getRobotConfiguration();
+	BodyStatus bodyStatus = getBodyStatus();
+	CameraSettings camSet = getCameraSettings();
+
+	double degreePerPixelH = botConf.CameraOpeningHorizontal
+			/ (double) (camSet.width);
+	double degreePerPixelV = botConf.CameraOpeningVertical
+			/ (double) (camSet.height);
+
+	double panAngle = ((double) (bodyStatus.getPan()) / 180.0) * M_PI;
+	double tiltAngle = ((double) (bodyStatus.getTilt()) / 180.0) * M_PI;
+
+	double angle = (ob.lastImageX - (botConf.principlePointX * degreePerPixelH))
+					+ panAngle;
+
+
+
+
+	double verticalAngle = (double) (ob.lastImageTopLeftY + ob.lastImageHeigth)
+			* degreePerPixelV + tiltAngle;
+
+	double disatnceFromAngle = sin(verticalAngle) * botConf.CameraHeigth;
+
+	//Diestanz Ÿber die Breite
+
+	//Filter Ÿber beide Distanzen
+
+	double length  = disatnceFromAngle;
+
+	return Vector(angle, length);
+}

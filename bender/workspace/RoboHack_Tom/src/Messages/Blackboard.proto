@@ -1,0 +1,15 @@
+package protobuf;
+
+option java_package = "de.ostfalia.robocup.message";
+option java_outer_classname = "MsgBlackboard";
+option optimize_for = LITE_RUNTIME;
+
+message Blackboard {
+	message Representation {
+		required string name = 1;
+		required string type = 2;
+		optional bytes data = 3;
+	}
+
+	repeated Representation representations = 1;
+}

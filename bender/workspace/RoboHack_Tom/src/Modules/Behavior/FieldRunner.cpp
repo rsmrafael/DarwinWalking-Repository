@@ -1,0 +1,162 @@
+/*
+ * FieldRunner.cpp
+ *
+ *  Created on: 22.07.2014
+ *      Author: da-v1n
+ */
+
+#include "FieldRunner.h"
+#include "../../Config.h"
+
+FieldRunner::FieldRunner(Game *game, MitecomCommunicator *communicator)
+:	AbstractBehavior( game, communicator)
+{
+	mThisRole = ROLE_FIELD_RUNNER;
+	mCurrentState = MOVE_TO_FIELDLINE;
+	mMoveTiltAngle = 55;
+	mTurnFieldBorderX = 320;
+	mTurnFieldBorderMinY = 10;
+	mTurnTime = 3000;
+	mTimeout = 0;
+	mCheckTurnPan = 90;
+	mCheckTurnTilt = 50;
+	mCheckFieldBorderX = 620;
+	mCheckFieldBorderMaxY = 10;
+	mTurningXMovement = 0;
+	mMoveForwardX = 100;
+	mMoveForwardY = 0;
+	Config::GetInstance()->registerConfigChangeHandler(this);
+	this->configChanged();
+}
+
+FieldRunner::~FieldRunner()
+{
+	Config::GetInstance()->removeConfigChangeHandler(this);
+}
+
+void FieldRunner::configChanged()
+{
+	mMoveTiltAngle = Config::GetInt("FieldRunner", "moveTiltAngle", 50);
+	mTurnFieldBorderMinY = Config::GetInt("FieldRunner", "turnFieldBorderMinY", 10);
+	mTurnTime = Config::GetInt("FieldRunner", "turnTime", 2000);
+	mCheckFieldBorderX = Config::GetInt("FieldRunner", "checkFieldBorderX", 620);
+	mCheckFieldBorderMaxY = Config::GetInt("FieldRunner", "checkFieldBorderMaxY", 10);
+	mTurningXMovement 	= Config::GetValue<int16_t>("AI", "turningXMovement", 0);
+	mMoveForwardX 	= Config::GetValue<int16_t>("FieldRunner", "moveForwardX", 100);
+	mMoveForwardY 	= Config::GetValue<int16_t>("FieldRunner", "moveForwardY", 0);
+}
+
+void FieldRunner::executeBehavior()
+{
+	//Debugger::DEBUG("FieldRunner", "Execute");
+	switch(mCurrentState) {
+	case MOVE_TO_FIELDLINE:
+		mCurrentState = processMoveFieldline();
+		break;
+	case TURN_HALF:
+		mCurrentState = processTurnHalf();
+		break;
+	case CHECK_TURN:
+		mCurrentState = processCheckTurn();
+		break;
+	default:
+		Debugger::INFO("FieldRunner", "Unknown state, change to moveToFieldLine");
+		mCurrentState = MOVE_TO_FIELDLINE;
+		break;
+	}
+}
+
+void FieldRunner::updateState()
+{
+	if (mCurrentState != mLastState) {
+		switch( mCurrentState) {
+		case MOVE_TO_FIELDLINE:
+			entryMoveFieldline();
+			break;
+		case TURN_HALF:
+			entryTurnHalf();
+			break;
+		case CHECK_TURN:
+			entryCheckTurn();
+			break;
+		default:
+			mMyInfo.data[ROBOT_CURRENT_ACTION] = ACTION_WAITING;
+			//Debugger::announce("Waiting");
+			break;
+		}
+		Debugger::INFO("FieldRunner", "Changed state %d to %d", mLastState, mCurrentState);
+		mLastState = mCurrentState;
+	}
+}
+
+void FieldRunner::gameStateHasChanged(Game::GameState state)
+{
+	AbstractBehavior::gameStateHasChanged( state);
+}
+
+string FieldRunner::getStateName(int state) {
+	switch(state){
+	case MOVE_TO_FIELDLINE: return "MOVE_TO_FIELDLINE";
+	case TURN_HALF: return "TURN_HALF";
+	case CHECK_TURN: return "CHECK_TURN";
+	default: return AbstractBehavior::getStateName(state);
+	}
+}
+
+void FieldRunner::entryMoveFieldline() {
+	Debugger::DEBUG("FieldRunner", "Move field line");
+	getHeadAction().searchObject(Object::FIELD_LINE, true);
+	mTimeout = getCurrentTime() + 3000;
+}
+
+int FieldRunner::processMoveFieldline(){
+	getHeadAction().setPanTilt(0, mMoveTiltAngle);
+	if( getFieldLines().getY(mTurnFieldBorderX) > mTurnFieldBorderMinY) {
+		if( getCurrentTime() > mTimeout) {
+			getBodyAction().stop();
+			return TURN_HALF;
+		}
+	}
+	getBodyAction().setWalkerCommand(mMoveForwardX,mMoveForwardY,0);
+	return MOVE_TO_FIELDLINE;
+}
+
+void FieldRunner::entryTurnHalf(){
+	Debugger::DEBUG("FieldRunner", "Turn half");
+	getHeadAction().searchObject(Object::FIELD_LINE, true);
+	mTimeout = getCurrentTime() + mTurnTime;
+}
+
+int FieldRunner::processTurnHalf() {
+	//getHeadAction().setPanTilt(45,45);
+	getHeadAction().setPanTilt(mCheckTurnPan, mCheckTurnTilt);
+	if( getCurrentTime() < mTimeout) {
+		getBodyAction().setWalkerCommand(mTurningXMovement, 0, -80);
+		return TURN_HALF;
+	} else {
+		getBodyAction().stop();
+		return CHECK_TURN;
+	}
+}
+
+void FieldRunner::entryCheckTurn()
+{
+	Debugger::DEBUG("FieldRunner", "Check turn");
+	getHeadAction().searchObject(Object::FIELD_LINE, true);
+	mTimeout = getCurrentTime() + mTurnTime;
+}
+
+int FieldRunner::processCheckTurn()
+{
+	getHeadAction().setPanTilt(mCheckTurnPan, mCheckTurnTilt);
+	if( getCurrentTime() > mTimeout) {
+		return MOVE_TO_FIELDLINE;
+	}
+	if( getFieldLines().getY(mCheckFieldBorderX) > mCheckFieldBorderMaxY) {
+		getBodyAction().setWalkerCommand(mTurningXMovement, 0, -80);
+		return CHECK_TURN;
+	} else {
+		getBodyAction().stop();
+		return MOVE_TO_FIELDLINE;
+	}
+}

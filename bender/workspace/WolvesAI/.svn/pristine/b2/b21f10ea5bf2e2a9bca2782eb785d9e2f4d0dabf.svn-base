@@ -1,0 +1,126 @@
+/*
+ * Config.h
+ *
+ *  Created on: 01.07.2009
+ *      Author: Stefan
+ */
+
+#ifndef CONFIG_H_
+#define CONFIG_H_
+
+#include <string>
+#include <sstream>
+#include <list>
+#include "ConfigChangeListener.h"
+#include "Representations/ConfigDescriptions.h"
+#include "External/ini_manage.h"
+
+#define WRITE_DEFAULTS_ON_ACCESS
+
+using namespace std;
+
+#ifndef JENKINS
+	#define CONFIG_FILE_ACCESS
+#endif
+
+#ifdef WIN32
+  #define CONFIG_FILE		"/mnt/sdcard/config.ini"
+#else
+  #define CONFIG_FILE		"/mnt/sdcard/config.ini"
+#endif
+
+class Config {
+public:
+    static Config* GetInstance();
+    void saveConfig() const;
+    void shutdown() const;
+    string getConfigAsString() const;
+
+    void registerConfigChangeHandler(ConfigChangeListener* handler);
+    void removeConfigChangeHandler(ConfigChangeListener* handler);
+    void setDisableChangeListeners(bool state);
+    void moduleManagerReady();
+
+    static bool GetBoolean(string Section, string Setting, bool Default);
+    static bool GetBoolean(string Section, string Setting, bool Default, string Description);
+    static bool SetBoolean(string Section, string Setting, bool Value);
+    static string GetString(string Section, string Setting, string Default);
+    static string GetString(string Section, string Setting, string Default, string Description);
+    static bool SetString(string Section, string Setting, string Value);
+    static int GetInt(string Section, string Setting, int Default);
+    static int GetInt(string Section, string Setting, int Default, string Description);
+    static bool SetInt(string Section, string Setting, int Value);
+    static double GetDouble(string Section, string Setting, double Default);
+    static double GetDouble(string Section, string Setting, double Default, string Description);
+    static bool SetDouble(string Section, string Setting, double Value);
+
+    template <typename T>
+    static T GetValue(string Section, string Setting, T Default) {
+    #ifdef CONFIG_FILE_ACCESS
+    	string buffer = get_value(Section.c_str(), Setting.c_str());
+
+    	if (buffer != "") {
+    		T value;
+    	    istringstream iss;
+    	    iss.str(buffer);
+    	    iss >> value;
+    	    return value;
+    	} else {
+    #ifdef WRITE_DEFAULTS_ON_ACCESS
+    		ostringstream oss;
+			oss << Default;
+    		SetString(Section, Setting, oss.str());
+    #endif
+    		return Default;
+    	}
+    #else
+    	return Default;
+    #endif
+    }
+
+    template <typename T>
+	static T GetValue(string Section, string Setting, T Default, string Description) {
+    	addDescription(Section, Setting, Description);
+    	return GetValue<T>(Section, Setting, Default);
+	}
+
+    template <typename T>
+    static bool SetValue(string Section, string Setting, T Value) {
+    #ifdef CONFIG_FILE_ACCESS
+        ostringstream strout;
+        strout << Value;
+
+        string val = strout.str();
+
+    	bool ret = set_value(Section.c_str(), Setting.c_str(), val.c_str());
+    	GetInstance()->notifyChangeHandlers();
+    	return ret;
+    #else
+    	return false;
+    #endif
+    }
+
+protected:
+	Config();
+	~Config();
+
+private:
+	//lint -e(1704)
+	Config(const Config& cSource);
+	Config& operator=(const Config& cSource);
+
+#ifdef CONFIG_FILE_ACCESS
+	void notifyChangeHandlers();
+#endif
+	static void addDescription(string Section, string Setting, string Description);
+
+    static Config* mInstance;
+    bool mNoSaveMode;
+
+	list<ConfigChangeListener*>* mListeners;
+	bool mDisableChangeListeners;
+
+	ConfigDescriptions* mDescriptions;
+};
+
+#endif /* CONFIG_H_ */

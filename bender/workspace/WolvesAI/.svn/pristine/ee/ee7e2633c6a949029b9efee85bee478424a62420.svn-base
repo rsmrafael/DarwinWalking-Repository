@@ -1,0 +1,56 @@
+/*
+ * LocalModeling.h
+ *
+ *  Created on: 20.02.2013
+ *      Author: Jan Carstensen
+ */
+
+#ifndef LocalModeling_H_
+#define LocalModeling_H_
+
+#include "../../ModuleManager/Module.h"
+#include "../../Representations/Odometry.h"
+#include "../../Representations/Object.h"
+#include "../../Representations/ObjectList.h"
+#include "../../Representations/RobotConfiguration.h"
+#include "../../Representations/BodyStatus.h"
+#include "../../Representations/CameraSettings.h"
+#include "../../ConfigChangeListener.h"
+
+using namespace std;
+
+BEGIN_DECLARE_MODULE(LocalModeling)
+	REQUIRE(Odometry,Odometry)
+	REQUIRE(Object,Ball)
+	REQUIRE(ObjectList, GoalPoles)
+	REQUIRE(RobotConfiguration,RobotConfiguration)
+	REQUIRE(BodyStatus,BodyStatus)
+	REQUIRE(CameraSettings,CameraSettings)
+	PROVIDE(ObjectList, LocalModel)
+END_DECLARE_MODULE(LocalModeling)
+
+class LocalModeling : public LocalModelingBase, public ConfigChangeListener {
+public:
+	LocalModeling();
+	virtual ~LocalModeling();
+
+	virtual bool execute();
+
+	virtual void configChanged();
+
+private:
+	Vector calculateVector(Object ob) const;
+	ObjectList localModel;
+	double calculateMatchScoring(Object one, Object two) const;
+	double maxMatchDistance;
+	double gain;
+	int maxNotSeen;
+
+	int lastOdomX;
+	int lastOdomY;
+	double lastOdomOrientation;
+
+	double mUpperBodyTilt;
+};
+
+#endif /* LocalModeling_H_ */

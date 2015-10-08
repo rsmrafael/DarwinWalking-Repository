@@ -1,0 +1,108 @@
+/*
+ * GoalFind.cpp
+ *
+ *  Created on: 16.03.2015
+ *      Author: bombadil
+ */
+
+#include "GoalFind.h"
+#include "../../Config.h"
+
+GoalFind::GoalFind():mMaxU_Green( 180),
+mMaxV_Green( 85),mMaxY_Whitegoal(200),mMinGoalPoints(5) {
+	Config::getInstance()->registerConfigChangeHandler(this);
+	this->configChanged();
+
+}
+bool GoalFind::poleCompare(const pair<int, Object>& firstElem, const std::pair<int, Object>& secondElem) {
+	return firstElem.first < secondElem.first;
+}
+
+
+GoalFind::~GoalFind() {
+	// TODO Auto-generated destructor stub
+}
+
+bool GoalFind::execute(){
+	getGoalPoles().clearList();
+	//Debugger::DEBUG("GoalFind","Start Goal Find!");
+	const YUVImage* yuvImage = &getImage();
+	int width = yuvImage->getWidth();
+	int height = yuvImage->getHeight();
+	int goalCounter = 0;
+	vector< pair<int, Object> > objectMap;
+	for(int i=0;i<width;i++){
+		int y=getFieldLines().getY(i);
+		struct YUVImage::YUVData currentColor = yuvImage->getValue(i,y);
+		if (currentColor.U > mMaxU_Green || currentColor.V > mMaxV_Green ){
+			if(currentColor.Y>mMaxY_Whitegoal){
+
+				goalCounter++;
+			}else{
+				if(goalCounter>mMinGoalPoints){
+					Debugger::DEBUG("GoalFind","Line is Interrupt");
+					int i2=0;
+					bool end = false;
+					while(y-i2>0&& !end){
+						struct YUVImage::YUVData currentColorTop = yuvImage->getValue(i,y-i2);
+						if(currentColor.Y<mMaxY_Whitegoal){
+							end = true;
+						}
+						i2++;
+					}
+					int topH = i2;
+					i2 = 0;
+					end = false;
+					while(y+i2<height&& !end){
+						struct YUVImage::YUVData currentColorTop = yuvImage->getValue(i,y+i2);
+						if(currentColor.Y<mMaxY_Whitegoal){
+							end = true;
+						}
+						i2++;
+					}
+					int goalHeight = topH+i2;
+					Object obj(i-goalCounter, y-topH,
+							goalCounter, topH);
+					obj.type = Object::GOAL_POLE_YELLOW;
+					DRAW_BOX("Goal", obj.lastImageX, obj.lastImageHeight,
+							obj.lastImageWidth, obj.lastImageHeight, DebugDrawer::GREEN);
+
+					objectMap.push_back(make_pair(obj.lastImageTopLeftX, obj));
+				}
+				goalCounter=0;
+
+			}
+
+		}
+
+	}
+	// sort objects downward
+	//lint --e{864}
+	//sort( objectMap.begin(), objectMap.end(), poleCompare);
+
+	// use only the outer objects (left and right)
+	vector< pair<int,Object> >::iterator objIt = objectMap.begin();
+	if( objIt != objectMap.end()) {
+		Object obj = objIt->second;
+		getGoalPoles().addObject(obj);
+
+		objIt = objectMap.end();
+		if( --objIt != objectMap.begin()) {
+			obj = objIt->second;
+			getGoalPoles().addObject(obj);
+		}
+	}
+
+
+	return true;
+}
+
+void GoalFind::configChanged() {
+	Debugger::INFO("Scanlines", "config changed");
+
+	ConfigFile *config = Config::getInstance();
+	mMaxU_Green = config->get<int>("Vision", "Field_maxU", 180);//160
+	mMaxV_Green = config->get<int>("Vision", "Field_maxV", 100);//100//90//88//120
+	mMaxY_Whitegoal = config->get<int>("Vision", "Whitegoal_MaxY", 200);//100//90//88//120
+	mMinGoalPoints = config->get<int>("Vision", "MinGoalPoints", 5);//100//90//88//120
+}

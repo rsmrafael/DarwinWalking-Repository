@@ -1,0 +1,19 @@
+/*
+ * FieldRunner.h
+ *
+ *  Created on: 22.07.2014
+ *      Author: da-v1n
+ */
+
+#ifndef FIELDRUNNER_H_
+#define FIELDRUNNER_H_
+
+#include "AbstractBehavior.h"
+
+class FieldRunner {
+public:
+	FieldRunner();
+	virtual ~FieldRunner();
+};
+
+#endif /* FIELDRUNNER_H_ */

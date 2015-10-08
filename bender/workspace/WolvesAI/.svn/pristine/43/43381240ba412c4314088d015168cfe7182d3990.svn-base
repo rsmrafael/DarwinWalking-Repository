@@ -1,0 +1,53 @@
+/*
+ * Position.cpp
+ *
+ *  Created on: 26.06.2014
+ *      Author: Oliver Krebs
+ */
+
+#include "Position.h"
+
+Position::Position()
+:	mAbsoluteX( 0),
+ 	mAbsoluteY( 0),
+ 	mAccuracy( 0.5)
+{
+
+}
+
+Position::~Position()
+{
+
+}
+
+void Position::setPosition(uint32_t absoluteX, uint32_t absoluteY)
+{
+	mAbsoluteX = absoluteX;
+	mAbsoluteY = absoluteY;
+}
+
+void Position::setAccuracy(double accuracy)
+{
+	if( accuracy > 1.0) {
+		mAccuracy = 1.0;
+	} else if( accuracy < 0.0) {
+		mAccuracy = 0.0;
+	} else {
+		mAccuracy = accuracy;
+	}
+}
+
+uint32_t Position::getAbsoluteX() const
+{
+	return mAbsoluteX;
+}
+
+uint32_t Position::getAbsoluteY() const
+{
+	return mAbsoluteY;
+}
+
+double Position::getAccuracy() const
+{
+	return mAccuracy;
+}

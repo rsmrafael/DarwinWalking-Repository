@@ -1,0 +1,63 @@
+/*
+ * AbstractCommunicator.h
+ *
+ *  Created on: 20.10.2010
+ *      Author: Adam
+ */
+
+#ifndef ABSTRACTCOMMUNICATOR_H_
+#define ABSTRACTCOMMUNICATOR_H_
+
+#ifdef WIN32
+#ifndef TERMIOS_DEFINED
+#define TERMIOS_DEFINED
+struct termios {
+	int dummy;
+};
+#endif
+#else
+#include <termios.h>
+#endif
+#include <string>
+#include "ICommunicator.h"
+
+#define START_BYTE1				0xFF
+#define START_BYTE2				0xFE
+#define START_BYTE3				0xFD
+#define COMMAND					0x10
+#define REQUEST 				0x20
+//#define REPLY					0x40
+
+#define CONTROLLER_MOVEMENT		4
+
+#define INSTRUCTION_MOVEMENT		0x10
+#define INSTRUCTION_PANTILT			0x12
+#define INSTRUCTION_KICKER			0x14
+#define INSTRUCTION_WALKER			0x15
+#define INSTRUCTION_GETSTATUS		0x1b
+#define INSTRUCTION_STATUSMESSAGE	0x20
+
+class AbstractCommunicator : public ICommunicator {
+
+public:
+	AbstractCommunicator();
+	virtual ~AbstractCommunicator();
+
+	virtual void RepeatedMovementCommand(Motion page, bool overwriteRunning, uint16_t repetitions);
+	virtual void StrengthDirectionMovementCommand(Motion page, bool overwriteRunning, uint16_t strength, uint16_t direction);
+	virtual void KickerCommand(vect3d_t ball);
+	virtual void KickerCommand(vect3d_t ball, vect3d_t target);
+	virtual void KickerCommand(vect3d_t ball, vect3d_t target, uint8_t kicktype);
+	virtual void PanTiltCommand(int16_t pan, int16_t tilt);
+	virtual void WalkerCommand(int8_t x, int8_t y, int8_t r, bool turningAim);
+
+	virtual const struct statusMessage_t* GetStatusMessage() = 0;
+
+	virtual void SendData(uint8_t type, uint8_t instruction, uint8_t controller, size_t commandLen, uint8_t* commandContent) = 0;
+
+protected:
+	int16_t mLastPan;
+	int16_t mLastTilt;
+};
+
+#endif /* ABSTRACTCOMMUNICATOR_H_ */

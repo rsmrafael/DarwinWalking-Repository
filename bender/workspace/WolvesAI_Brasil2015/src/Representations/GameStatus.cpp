@@ -1,0 +1,18 @@
+/*
+ * GameStatus.cpp
+ *
+ *  Created on: 27.06.2013
+ *      Author: Stefan Krupop
+ */
+
+#include "GameStatus.h"
+
+GameStatus::GameStatus() {
+	haveKickOff = false;
+	kickOffTime.tv_sec = 0; kickOffTime.tv_usec = 0;
+	gameState = Game::READY;
+	isFirstHalf = true;
+}
+
+GameStatus::~GameStatus() {
+}

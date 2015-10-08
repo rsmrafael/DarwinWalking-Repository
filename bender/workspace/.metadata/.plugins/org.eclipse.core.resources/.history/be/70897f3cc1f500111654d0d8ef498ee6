@@ -1,0 +1,308 @@
+/*
+ * CameraProcessor.cpp
+ *
+ *  Created on: 21.10.2010
+ *      Author: Soeren Michalik - framework: Stefan
+ *			    Adam P.
+ *			    Jan Carstensen
+ */
+
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <string.h>
+#include <getopt.h>
+#include <unistd.h>
+#include <stdbool.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <typeinfo>
+#ifndef WIN32
+#include <sys/mman.h>
+#include <sys/ioctl.h>
+#include <libv4l1-videodev.h>
+#include <linux/types.h>
+#endif
+#include <pthread.h>
+#include "../Debugging/Debugger.h"
+
+#include "CameraProcessor.h"
+#include "Algorithms/TestAlgorithm.h"
+#include "Data/YUVImage.h"
+#include "Algorithms/RunDetection.h"
+#include "Algorithms/SoerenVision.h"
+#include "Data/Line.h"
+#include "Data/YUVColor.h"
+#include "Capture/YUVDataCapture.h"
+#include "Utils/Models/FieldModel.h"
+
+CameraProcessor::CameraProcessor(IVideoSource* capture,
+		ColorCalibration* yuvColors, Body* body) {
+	mCapture = capture;
+	mOriginalCapture = NULL;
+	mPicture = NULL;
+	mPrivateObjects = new list<VisionObject*> ;
+	mObjects = mPrivateObjects;
+
+	mAlgorithms = new list<AbstractAlgorithm*> ;
+
+	mRunDetection = new RunDetection(yuvColors);
+	mAlgorithms->push_back(mRunDetection);
+
+	mYuvImage = new YUVImage();
+
+	mTestAlgorithm = new TestAlgorithm(yuvColors);
+	mAlgorithms->push_back(mTestAlgorithm);
+
+	mSoerenVision = new SoerenVision(yuvColors);
+	mAlgorithms->push_back(mSoerenVision);
+
+	mFielDetection = new FieldDetection(yuvColors, body);
+	mAlgorithms->push_back(mFielDetection);
+
+	mBallDetecor = new BallDetector(yuvColors, body);
+	mAlgorithms->push_back(mBallDetecor);
+
+	mObjectVectorizor = new ObjectVectorizor(body);
+	mAlgorithms->push_back(mObjectVectorizor);
+
+	mScanLine = new ScanLine(yuvColors, body);
+	mAlgorithms->push_back(mScanLine);
+
+	mLineDetection = new LineDetection(yuvColors, body);
+	mAlgorithms->push_back(mLineDetection);
+
+
+	setWindowing(true);
+	setWindowTracking(true);
+	setSearchBallOnly(false);
+	setShowProcessedImage(false);
+}
+
+CameraProcessor::~CameraProcessor() {
+
+	delete mPrivateObjects;
+	delete mYuvImage;
+	delete mCapture;
+	delete mOriginalCapture;
+	delete mRunDetection;
+	delete mTestAlgorithm;
+	delete mSoerenVision;
+	delete mFielDetection;
+	delete mBallDetecor;
+	delete mAlgorithms;
+	delete mObjectVectorizor;
+	delete mScanLine;
+	delete mLineDetection;
+
+}
+
+void CameraProcessor::step1() {
+	if (mCapture != NULL) {
+		//Debugger::DEBUG("CameraProcessor", "Capturing image from %s...", mDevice.c_str());
+		mPicture = mCapture->getImage();
+	}
+}
+
+list<VisionObject*>* CameraProcessor::step2(bool showProcessedImg) {
+	clearObjects();
+	if (mCapture != NULL) {
+		//Debugger::DEBUG("CameraProcessor", "Processing image from %s...", mDevice.c_str());
+		processImage(mPicture, showProcessedImg);
+	}
+	return mObjects;
+}
+
+void CameraProcessor::clearObjects() {
+	if (mObjects != NULL) {
+		list<VisionObject*>::iterator objectsIterator;
+		for (objectsIterator = mObjects->begin(); objectsIterator
+				!= mObjects->end(); ++objectsIterator) {
+			delete *objectsIterator;
+		}
+		mObjects->clear();
+	}
+}
+
+void CameraProcessor::setSearchBallOnly(bool status) {
+}
+
+YUVImage* CameraProcessor::getYUVImage() {
+	return mYuvImage;
+}
+
+unsigned short CameraProcessor::getImageWidth() {
+	return mCapture->getImageWidth();
+}
+
+unsigned short CameraProcessor::getImageHeight() {
+	return mCapture->getImageHeight();
+}
+
+/**
+ * @brief Bearbeitet das übergebene Bild (sucht nach Objekten)
+ * @param image Pointer auf das aktuelle Bild
+ * @param showProcessedImg Sollen im Bild die gefundenen Pixel hervorgehoben werden?
+ * @return list<VisionObject>* Pointer auf Liste aller im Bild gefundenen Objekte
+ */
+void CameraProcessor::processImage(char* image, bool showProcessedImg) {
+
+	if (image == NULL) {
+		Debugger::ERR("CameraProcessor", "Got NULL-Pointer as image!");
+		return;
+	}
+
+	if (showProcessedImg) {
+		Debugger::INFO("CameraProcessor",
+				"Augmented image processing active, pictures will be modified!");
+	}
+
+	setShowProcessedImage(showProcessedImg);
+
+	mYuvImage->updateImage(image, mCapture->getImageWidth(),mCapture->getImageHeight());
+//	mScanLine->processImage(mYuvImage);
+//	mLineDetection->processImage(mYuvImage, mScanLine->mWhitePoints);
+	mFielDetection->processImage(mYuvImage);
+	mSoerenVision->processImage(mYuvImage);
+//
+//	//mRunDetection->processImage(mYuvImage, showProcessedImg,1,5);
+//	//mTestAlgorithm->processImage(mYuvImage, showProcessedImg,5,5);
+//
+	mObjects = mSoerenVision->mObjects;
+
+	FieldModel* fieldModel = mFielDetection->mFieldModel;
+
+#define MIN_GOAL_SPACE 1000
+#define MIN_GOAL_UPPER_TILIT_ANGLE PI
+#define MIN_DSTANCE_TOP_OFFSET 10 	//If the Goal is not above 90° the highest üixel must be at the top of the image...
+
+	int ballObjects = 0;
+	int deletedBallObjects = 0;
+	int goalObjects = 0;
+	int deletedGoalObjects = 0;
+
+	//FIlter Ball and Goal
+	list<VisionObject*>::iterator objectsIterator;
+	for (objectsIterator = mObjects->begin(); objectsIterator
+			!= mObjects->end(); ++objectsIterator) {
+		Point* objectTop = new Point((*objectsIterator)->xPos,
+				(*objectsIterator)->yUpper);
+		if ((*objectsIterator)->objectType == VisionObject::BALL) {
+			if (fieldModel != NULL) {
+				if (!fieldModel->isPointInField(objectTop)) {
+					list<VisionObject*>::iterator obj = objectsIterator--;
+					delete *obj;
+					mObjects->erase(obj);
+					++deletedBallObjects;
+
+				}
+			}
+			++ballObjects;
+		} else if ((*objectsIterator)->objectType == VisionObject::BLUE_GOAL
+				|| (*objectsIterator)->objectType == VisionObject::YELLOW_GOAL
+				|| (*objectsIterator)->objectType
+						== VisionObject::YELLOW_GOAL_POLE
+				|| (*objectsIterator)->objectType
+						== VisionObject::BLUE_GOAL_POLE) {
+			if ((*objectsIterator)->calculateSpace() < MIN_GOAL_SPACE) {
+				list<VisionObject*>::iterator obj = objectsIterator--;
+				delete *obj;
+				mObjects->erase(obj);
+				++deletedGoalObjects;
+			}
+			++goalObjects;
+		}
+
+		delete objectTop;
+	}
+
+	for (objectsIterator = mObjects->begin(); objectsIterator
+			!= mObjects->end(); ++objectsIterator) {
+		if ((*objectsIterator)->objectType == VisionObject::BALL) {
+			//	mBallDetecor->processImage(mYuvImage, (*objectsIterator));
+
+		}
+
+		mObjectVectorizor->processImage(mYuvImage, mObjects);
+
+
+	}
+
+	Debugger::DEBUG("CameraProcessor",
+			"Filtered out: %i of %i Ball's and %i of %i Goal's",
+			deletedBallObjects, ballObjects, deletedGoalObjects, goalObjects);
+
+}
+
+bool CameraProcessor::setResolution(unsigned int newWidth,
+		unsigned int newHeight) {
+	if (mCapture != NULL) {
+		return mCapture->setResolution(newWidth, newHeight);
+	}
+	return false;
+}
+
+void CameraProcessor::setWindowing(bool windowing) {
+	list<AbstractAlgorithm*>::iterator algorithmIterator;
+	for (algorithmIterator = mAlgorithms->begin(); algorithmIterator
+			!= mAlgorithms->end(); ++algorithmIterator) {
+		(*algorithmIterator)->setWindowing(windowing);
+	}
+}
+
+void CameraProcessor::setWindowTracking(bool windowTracking) {
+	list<AbstractAlgorithm*>::iterator algorithmIterator;
+	for (algorithmIterator = mAlgorithms->begin(); algorithmIterator
+			!= mAlgorithms->end(); ++algorithmIterator) {
+		(*algorithmIterator)->setWindowTracking(windowTracking);
+	}
+}
+
+void CameraProcessor::setWindowPosition(int xLeft, int yTop, int xRight,
+		int yBottom) {
+	list<AbstractAlgorithm*>::iterator algorithmIterator;
+	for (algorithmIterator = mAlgorithms->begin(); algorithmIterator
+			!= mAlgorithms->end(); ++algorithmIterator) {
+		(*algorithmIterator)->setWindowPosition(xLeft, yTop, xRight, yBottom);
+	}
+}
+void CameraProcessor::setShowProcessedImage(bool showProcessedImg) {
+	list<AbstractAlgorithm*>::iterator algorithmIterator;
+	for (algorithmIterator = mAlgorithms->begin(); algorithmIterator
+			!= mAlgorithms->end(); ++algorithmIterator) {
+		(*algorithmIterator)->setShowProcessedImage(showProcessedImg);
+	}
+}
+
+IVideoSource* CameraProcessor::getCaptureDriver() {
+	return mCapture;
+}
+
+void CameraProcessor::setCaptureImage(YUVImage* image) {
+	if (mCapture == NULL) {
+		// This CameraProcessor is disabled
+		return;
+	}
+	if (image == NULL) {
+		if (mOriginalCapture != NULL) {
+			delete mCapture;
+			mCapture = mOriginalCapture;
+			mOriginalCapture = NULL;
+		}
+	} else {
+		if (mOriginalCapture == NULL) {
+			mOriginalCapture = mCapture;
+			mCapture = new YUVDataCapture(mOriginalCapture->getImageWidth(),
+					mOriginalCapture->getImageHeight());
+		}
+		//if (typeid(mCapture) == typeid(YUVDataCapture)) {
+		static_cast<YUVDataCapture*> (mCapture)->setImage(image->imageData,
+				image->getWidth(), image->getHeight());
+		//} else {
+		//	Debugger::ERR("CameraProcessor", "mCapture was not of type YUVDataCapture when it should be!");
+		//}
+	}
+}

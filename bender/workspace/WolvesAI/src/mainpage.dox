@@ -1,0 +1,32 @@
+/**
+\mainpage Wolves AI Documentation
+This is the documentation of the AI Project.
+\author    Tobias Bolze
+\section Introduction
+\section Communication
+The Robot Communicates with different things. 
+*
+*First there is the intern communication with 
+the Body Controller, witch is responsibel for the walking, kicking. It controlls the Servoengines mainly.
+*
+* Second there is the Communication over Wireless lan with the referee box, other Robots and the Debugger.
+
+\subsection The Bodycontroller Communication
+The communication with the Bodycontroller is over a Com-Port used to communicate with the Device.
+There could also be the possibility that there is no real Robot and the AI is startet as a Simulator.
+*
+*For this the implementation is more abstract. There is a Interface and a abstract class where multiple Communicators can be added.
+*
+*The main Class in all posibilities is the Body class. It is used by the modules and Services to communicate with the body on a high level.
+*
+*Intern the Body class get a ICommunicator type as param or a type(Regular or Simulator), then it use the classes of it as Communication.
+\image html class_i_communicator.png
+* Here we see the intern diagramm of all Communicators that reference to the ICommunicator.
+*
+*The Abstract Communicator implements the standart method for writing messages and getting messages. It calls then one of the Communicators that is in use.
+*
+* The Communicator then send the command and get the command from the bus or from the simulation.
+*
+* The BodyCommunicator is the most important one because it is the one mainly used (Because for the real robot)
+* In there The Communication Protocoll for the Robot is implemented.
+*/

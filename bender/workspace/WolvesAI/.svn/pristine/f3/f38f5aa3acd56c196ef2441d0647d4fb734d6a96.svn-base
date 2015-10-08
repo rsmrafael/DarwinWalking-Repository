@@ -1,0 +1,58 @@
+/*
+ * VisionAnalyzer.h
+ *
+ *  Created on: Sep 3, 2012
+ *      Author: jan
+ */
+
+#ifndef VisionAnalyzer_H_
+#define VisionAnalyzer_H_
+
+#include "../../ModuleManager/Module.h"
+#include "../../Representations/YUVImage.h"
+#include "../../Representations/ObjectList.h"
+#include "../../Representations/Object.h"
+#include "../../Representations/Histogram.h"
+#include <string>
+#include <vector>
+
+BEGIN_DECLARE_MODULE(VisionAnalyzer)
+	REQUIRE(YUVImage, Image)
+	REQUIRE(ObjectList, Annotations)
+	REQUIRE(Object, Ball)
+	REQUIRE(ObjectList, GoalPoles)
+	REQUIRE(ObjectList, CyanRobots)
+	REQUIRE(ObjectList, MagentaRobots)
+END_DECLARE_MODULE(VisionAnalyzer)
+
+class VisionAnalyzer: public VisionAnalyzerBase {
+public:
+	typedef struct {
+		std::string name;
+		size_t count;
+		size_t found;
+		size_t countSum;
+		size_t foundSum;
+		size_t falsePositive;
+		size_t falseNegative;
+		double correctPercent;
+		vector<Object> objects;
+	} visionAnalyzeData_t;
+
+	VisionAnalyzer(bool createCsv = true);
+	virtual ~VisionAnalyzer();
+
+	virtual bool execute();
+
+private:
+	void createHistogram(string name, const map<int, int> &mapData, int maxVal) const;
+	void createHistogramHex(string name, const map<int, int> &mapData, int maxVal) const;
+
+	size_t mTotalImages;
+
+	std::map<Object::ObjectType, visionAnalyzeData_t*> mVisionObjects;
+
+	bool mCreateCsv;
+};
+
+#endif /* VisionAnalyzer_H_ */

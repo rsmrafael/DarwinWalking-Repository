@@ -1,0 +1,136 @@
+/*
+ * VisionAnalyzer.cpp
+ *
+ *  Created on: Sep 3, 2012
+ *      Author: jan
+ */
+
+#include "VisionAnalyzer.h"
+
+VisionAnalyzer::VisionAnalyzer(bool createCsv)
+{
+	mCreateCsv = createCsv;
+	mTotalImages = 0;
+
+	visionAnalyzeData_t data;
+	data.count = 0;
+	data.found = 0;
+	data.falsePositive = 0;
+	data.falseNegative = 0;
+
+	data.type = Object::BALL;
+	data.name = "ball";
+	mVisionObjects.push_back(data);
+
+	data.type = Object::GOAL_POLE_YELLOW;
+	data.name = "goal pole";
+	mVisionObjects.push_back(data);
+
+	data.type = Object::ROBOT_CYAN;
+	data.name = "cyan robot";
+	mVisionObjects.push_back(data);
+
+	data.type = Object::ROBOT_MAGENTA;
+	data.name = "magenta robot";
+	mVisionObjects.push_back(data);
+
+}
+
+VisionAnalyzer::~VisionAnalyzer()
+{
+	Debugger::INFO("VisionAnalyzer", "Images processed: %u", mTotalImages);
+	if( mCreateCsv) {
+		Debugger::addMetric("img", "Images processed", (double)mTotalImages);
+	}
+
+	vector<visionAnalyzeData_t>::const_iterator it;
+	for( it = mVisionObjects.begin(); it != mVisionObjects.end(); ++it)
+	{
+		double fpRate = 0.0;
+		double fnRate = 0.0;
+
+		if (mTotalImages > 0) {
+			fpRate = 100.0 * (double)it->falsePositive / (double)mTotalImages;
+			fnRate = 100.0 * (double)it->falseNegative / (double)mTotalImages;
+		}
+
+		Debugger::INFO("VisionAnalyzer",
+				"%s: annotated: %u, total found: %u, absFalsePositive: %u (%.2f %%), absFalseNegative: %u (%.2f %%)",
+				it->name.c_str(), it->count, it->found, it->falsePositive, fpRate, it->falseNegative, fnRate);
+
+		if( mCreateCsv) {
+			string name = it->name + "s";
+			Debugger::addMetric("img", name, (double)it->count);
+			Debugger::addMetric("va-abs", "False positive " + name, (double)it->falsePositive);
+			Debugger::addMetric("va-abs", "False negative " + name, (double)it->falseNegative);
+			Debugger::addMetric("va", "False positive " + name + " [%]", fpRate);
+			Debugger::addMetric("va", "False negative " + name + " [%]", fnRate);
+		}
+	}
+}
+
+bool VisionAnalyzer::execute()
+{
+	++mTotalImages;
+
+	vector<visionAnalyzeData_t>::iterator dataIt;
+	for( dataIt = mVisionObjects.begin(); dataIt != mVisionObjects.end(); ++dataIt)
+	{
+		if( dataIt->type == Object::GOAL_POLE_YELLOW) {
+			dataIt->objects = vector<Object>(getGoalPoles().getObjects());
+		} else if( dataIt->type == Object::ROBOT_CYAN) {
+			dataIt->objects = vector<Object>(getCyanRobots().getObjects());
+		} else if( dataIt->type == Object::ROBOT_MAGENTA) {
+			dataIt->objects = vector<Object>(getMagentaRobots().getObjects());
+		} else {
+			dataIt->objects.clear();
+			if( getBall().lastImageSeen) {
+				dataIt->objects.push_back(getBall());
+			}
+		}
+	}
+
+	const vector<Object>& annotations = getAnnotations().getObjects();
+	for (vector<Object>::const_iterator annoIt = annotations.begin();
+			annoIt != annotations.end(); ++annoIt)
+	{
+		bool found = false;
+		for( dataIt = mVisionObjects.begin(); dataIt != mVisionObjects.end() && !found; ++dataIt)
+		{
+			if (annoIt->type == dataIt->type)
+			{
+				++dataIt->count;
+
+				vector<Object>::iterator it;
+				for ( it = dataIt->objects.begin(); it != dataIt->objects.end();
+						++it)
+				{
+					if ((*it).doBoundingBoxesOverlap((*annoIt))) {
+						found = true;
+						++dataIt->found;
+						dataIt->objects.erase(it);
+						break;
+					}
+				}
+
+				if (!found) {
+					++dataIt->falseNegative;
+					Debugger::DEBUG("VisionAnalyzer", "%s falseNegative", dataIt->name.c_str());
+				}
+				break;
+			}
+		}
+
+	}
+
+	for( dataIt = mVisionObjects.begin(); dataIt != mVisionObjects.end(); ++dataIt)
+	{
+		size_t falsePositive = dataIt->objects.size();
+		if( falsePositive > 0) {
+			dataIt->falsePositive += falsePositive;
+			Debugger::DEBUG("VisionAnalyzer", "%s falsePositive: %u", dataIt->name.c_str(), falsePositive);
+		}
+	}
+
+	return true;
+}

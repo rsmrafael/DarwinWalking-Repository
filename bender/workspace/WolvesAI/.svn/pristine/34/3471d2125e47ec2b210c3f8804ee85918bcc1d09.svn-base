@@ -1,0 +1,244 @@
+/*
+ * Body.cpp
+ *
+ *  Created on: 17.06.2009
+ *      Author: Stefan
+ */
+
+#include "Body.h"
+#include "../Debugging/Debugger.h"
+#include "BodyCommunicator.h"
+#include "SimulationCommunicator.h"
+#include "../Utils/Time.h"
+
+Body::Body(ICommunicator *comm, bool debugEnabled) {
+	mParalysis = false;
+	mDebugEnabled = debugEnabled;
+	mKickingTime = 0;
+	mComm = comm;
+	mPanTilt = new PanTiltUnit(mComm);
+
+	Stop();
+	// Wait till initial position reached
+	#ifdef WIN32
+		Sleep(1000);
+	#else
+		usleep(1000 * 1000);
+	#endif
+}
+
+Body::Body(string device, BodyType type, bool noComms) {
+	mParalysis = false;
+	mDebugEnabled = true;
+	mKickingTime = 0;
+
+	if (type == Body::Simulator) {
+		mComm = SimulationCommunicator::GetInstance();
+	} else {
+		mComm = new BodyCommunicator(device, noComms);
+	}
+	mPanTilt = new PanTiltUnit(mComm);
+
+	Stop();
+
+	// Wait till initial position reached
+#ifdef WIN32
+	Sleep(1000);
+#else
+	usleep(1000 * 1000);
+#endif
+}
+
+Body::~Body() {
+	delete mPanTilt;
+	delete mComm;
+}
+
+PanTiltUnit* Body::PanTilt() {
+	return mPanTilt;
+}
+
+bool Body::isParalysed() const {
+	return mParalysis;
+}
+
+void Body::setParalysis(bool value) {
+	if (value && !mParalysis) {
+		Stop();
+	}
+	mParalysis = value;
+}
+
+double Body::GetBatteryVoltage() {
+	const struct ICommunicator::statusMessage_t* status = mComm->GetStatusMessage();
+	if (status != NULL) {
+		return ((double)status->voltage) / 100.0;
+	}
+	return 0.0;
+}
+
+void Body::GetIMUData(int* pitch, int* roll) {
+	const struct ICommunicator::statusMessage_t* status = mComm->GetStatusMessage();
+	if (status != NULL) {
+		*pitch = (int)status->imu.fb_accel;
+		*roll = (int)status->imu.rl_accel;
+	} else {
+		*pitch = 0;
+		*roll = 0;
+	}
+}
+
+const struct ICommunicator::statusMessage_t* Body::GetStatusMessage() {
+	return mComm->GetStatusMessage();
+}
+
+void Body::setWalkerCommand(int8_t x, int8_t y, int8_t r, bool turningAim) {
+	if (mParalysis) {
+		mComm->RepeatedMovementCommand(ICommunicator::Stop, true, 1);
+		return;
+	}
+
+	if (x > 100) {
+		x = 100;
+	} else if (x < -100) {
+		x = -100;
+	}
+	if (y > 100) {
+		y = 100;
+	} else if (y < -100) {
+		y = -100;
+	}
+	if (r > 100) {
+		r = 100;
+	} else if (r < -100) {
+		r = -100;
+	}
+
+/*	if (turningAim) {
+		Debugger::INFO("Body", "Walker command: %d/%d/%d, turningAim on", x, y, r);
+	} else {
+		Debugger::INFO("Body", "Walker command: %d/%d/%d", x, y, r);
+	}
+*/
+    mComm->WalkerCommand(x, y, r, turningAim);
+}
+
+void Body::Stop(void) {
+	if( mDebugEnabled) {
+		Debugger::DEBUG("Body", "Stop");
+	}
+    mComm->RepeatedMovementCommand(ICommunicator::Stop, true, 1);
+}
+
+void Body::CancelKick() {
+	mComm->RepeatedMovementCommand(ICommunicator::CancelKick, true, 1);
+}
+
+void Body::KickLeft() {
+	if (mParalysis) {
+		mComm->RepeatedMovementCommand(ICommunicator::Stop, true, 1);
+		return;
+	}
+
+	if( mDebugEnabled) {
+		Debugger::INFO("Body", "KickLeft");
+	}
+	mComm->StrengthDirectionMovementCommand(ICommunicator::KickLeft, true, 127, 127);
+	mKickingTime = getCurrentTime();
+}
+
+void Body::KickRight() {
+	if (mParalysis) {
+		mComm->RepeatedMovementCommand(ICommunicator::Stop, true, 1);
+		return;
+	}
+
+	if( mDebugEnabled) {
+		Debugger::INFO("Body", "KickRight");
+	}
+    mComm->StrengthDirectionMovementCommand(ICommunicator::KickRight, true, 127, 127);
+    mKickingTime = getCurrentTime();
+}
+
+void Body::KickBall(const vect3d_t& ball) {
+	if (mParalysis) {
+		mComm->RepeatedMovementCommand(ICommunicator::Stop, true, 1);
+		return;
+	}
+
+	if( mDebugEnabled) {
+		Debugger::INFO("Body", "KickBall");
+	}
+    mComm->KickerCommand(ball);
+    mKickingTime = getCurrentTime();
+}
+
+void Body::KickToTarget(const vect3d_t& ball, const vect3d_t& target) {
+	if (mParalysis) {
+		mComm->RepeatedMovementCommand(ICommunicator::Stop, true, 1);
+		return;
+	}
+
+	if( mDebugEnabled) {
+		Debugger::INFO("Body", "KickToTarget");
+	}
+    mComm->KickerCommand(ball, target);
+    mKickingTime = getCurrentTime();
+}
+
+void Body::KickAdvanced(const vect3d_t& ball, const vect3d_t& target, uint8_t kicktype) {
+	if (mParalysis) {
+		mComm->RepeatedMovementCommand(ICommunicator::Stop, true, 1);
+		return;
+	}
+
+	if( mDebugEnabled) {
+		Debugger::INFO("Body", "KickAdvanced");
+	}
+	mComm->KickerCommand(ball, target, kicktype);
+	mKickingTime = getCurrentTime();
+}
+
+void Body::GoaliMoveRight(){
+	if (mParalysis) {
+		mComm->RepeatedMovementCommand(ICommunicator::Stop, true, 1);
+		return;
+	}
+	mComm->RepeatedMovementCommand(ICommunicator::GoaliMoveRight, true, 1);
+}
+
+void Body::GoaliMoveLeft(){
+	if (mParalysis) {
+		mComm->RepeatedMovementCommand(ICommunicator::Stop, true, 1);
+		return;
+	}
+	mComm->RepeatedMovementCommand(ICommunicator::GoaliMoveLeft, true, 1);
+}
+
+void Body::MoveHi(){
+	if (mParalysis) {
+		mComm->RepeatedMovementCommand(ICommunicator::Stop, true, 1);
+		return;
+	}
+	mComm->RepeatedMovementCommand(ICommunicator::MoveHi, true, 1);
+}
+
+void Body::YeahGoal(){
+	if (mParalysis) {
+		mComm->RepeatedMovementCommand(ICommunicator::Stop, true, 1);
+		return;
+	}
+	mComm->RepeatedMovementCommand(ICommunicator::YeahGoal, true, 1);
+}
+
+void Body::PlayMotion( enum ICommunicator::Motion motion) {
+	if (mParalysis) {
+		mComm->RepeatedMovementCommand(ICommunicator::Stop, true, 1);
+		return;
+	}
+	mComm->RepeatedMovementCommand(motion, true, 1);
+}
+
+uint64_t Body::getKickingTime() const {
+	return mKickingTime;
+}

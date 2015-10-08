@@ -1,0 +1,7 @@
+/home/da-v1n/workspace/RoboHack_Tom/src/CMakeFiles/WolvesAI.dir
+/home/da-v1n/workspace/RoboHack_Tom/test/CMakeFiles/WolvesAI-unittests.dir
+/home/da-v1n/workspace/RoboHack_Tom/CMakeFiles/docs.dir
+/home/da-v1n/workspace/RoboHack_Tom/CMakeFiles/documentation.dir
+/home/da-v1n/workspace/RoboHack_Tom/CMakeFiles/doxygen.dir
+/home/da-v1n/workspace/RoboHack_Tom/test/CMakeFiles/lint.dir
+/home/da-v1n/workspace/RoboHack_Tom/test/CMakeFiles/test.dir

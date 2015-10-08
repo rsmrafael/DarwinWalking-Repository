@@ -1,0 +1,79 @@
+/*
+ * BlackboardService.cpp
+ *
+ *  Created on: 12.04.2010
+ *      Author: Stefan
+ */
+
+#include <iostream>
+#include <sstream>
+#include <ios>
+#include <iomanip>
+#include "BlackboardService.h"
+#include "../Debugger.h"
+#include "../../ModuleManager/ModuleManager.h"
+#include "../../Blackboard/Blackboard.h"
+
+#define BLACKBOARD_FILE	"/mnt/sdcard/blackboard.msg"
+
+BlackboardService::BlackboardService() {
+}
+
+BlackboardService::~BlackboardService() {
+}
+
+void BlackboardService::Tokenize(const string& str, vector<string>& tokens, const string& delimiters = " ") {
+    // Skip delimiters at beginning.
+    string::size_type lastPos = str.find_first_not_of(delimiters, (size_t)0);
+    // Find first "non-delimiter".
+    string::size_type pos     = str.find_first_of(delimiters, lastPos);
+
+    while (string::npos != pos || string::npos != lastPos) {
+        // Found a token, add it to the vector.
+        tokens.push_back(str.substr(lastPos, pos - lastPos));
+        // Skip delimiters.  Note the "not_of"
+        lastPos = str.find_first_not_of(delimiters, pos);
+        // Find next "non-delimiter"
+        pos = str.find_first_of(delimiters, lastPos);
+    }
+}
+
+void BlackboardService::newPacket(unsigned char* packet, size_t size) {
+	string request = (char*)(packet);
+	Debugger::DEBUG("BlackboardService", "New BlackboardService packet: %s", request.c_str());
+
+	if (request.substr((size_t)0, (size_t)4) == "GET ") {
+		//string item = request.substr((size_t)4, (size_t)3);
+
+		Blackboard* bb = ModuleManager::GetInstance()->getBlackboardDirect(true);
+		if (bb != NULL) {
+			ostringstream data;
+			bb->serialize(data, false);
+
+			ofstream outputFile(BLACKBOARD_FILE, fstream::out);
+			outputFile << data.str();
+			outputFile.close();
+		}
+
+		ostringstream reply;
+		reply << "FILE " << BLACKBOARD_FILE;
+
+		string replyp = reply.str();
+		Debugger::GetInstance()->sendPacket(getPacketID(), replyp.c_str(), replyp.length());
+	} else if (request.substr((size_t)0, (size_t)4) == "SET ") {
+		//string item = request.substr((size_t)4, (size_t)3);
+
+	} else if (request.substr((size_t)0, (size_t)3) == "LST") {
+		Blackboard* bb = ModuleManager::GetInstance()->getBlackboardDirect(true);
+		if (bb != NULL) {
+			ostringstream reply;
+			bb->serialize(reply, true);
+			string replyp = reply.str();
+			Debugger::GetInstance()->sendPacket(getPacketID(), replyp.c_str(), replyp.length());
+		}
+	}
+}
+
+string BlackboardService::getPacketID() {
+	return "BLK";
+}

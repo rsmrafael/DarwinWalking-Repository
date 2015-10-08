@@ -1,0 +1,36 @@
+package protobuf;
+
+option java_package = "de.ostfalia.robocup.message";
+option java_outer_classname = "MsgBehaviorStatus";
+option optimize_for = LITE_RUNTIME;
+
+message BehaviorStatus {
+
+	enum Role {
+		ROLE_IDLING 	= 0;
+		ROLE_OTHER 		= 1;
+		ROLE_STRIKER 	= 2;
+		ROLE_SUPPORTER 	= 3;
+		ROLE_DEFENDER 	= 4;
+		ROLE_GOALIE 	= 5;
+	}
+	
+	enum Action {
+		ACTION_UNDEFINED 		= 0;
+		ACTION_POSITIONING 		= 1;
+		ACTION_GOING_TO_BALL 	= 2;
+		ACTION_TRYING_TO_SCORE 	= 3;
+		ACTION_WAITING 			= 4;
+	}
+	
+	enum State {
+		STATE_INACTIVE	= 0;
+		STATE_ACTIVE 	= 1;
+		STATE_PENALIZED = 2;
+	}
+		
+	required string status = 1;
+	optional Role role = 2;
+	optional Action action = 3;
+	optional State state = 4;
+}

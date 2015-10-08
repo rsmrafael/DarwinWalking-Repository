@@ -1,0 +1,83 @@
+/*
+ * GoalSide.cpp
+ *
+ *  Created on: 25.03.2014
+ *      Author: Oliver Krebs
+ */
+
+#include "GoalSide.h"
+#include "../Debugging/Debugger.h"
+
+GoalSide::GoalSide()
+:	mChance(NOT_SET),
+ 	mPercent( 0.0),
+ 	mMinInterval( 0.1)
+{
+
+}
+
+GoalSide::~GoalSide()
+{
+
+}
+
+void GoalSide::setMinInterval( double min)
+{
+	if( min >= 0.0) {
+		mMinInterval = min;
+	}
+}
+
+void GoalSide::resetChances()
+{
+	mChance = NOT_SET;
+	mPercent = 0.0;
+}
+
+void GoalSide::setChancesInPercent(double my, double op)
+{
+	if( my < 0.0 || op < 0.0) {
+		resetChances();
+		return;
+	}
+
+	if( my > (op + mMinInterval)) {
+		if (mChance != MY_GOAL) {
+			Debugger::DEBUG("GoalSide", "Now playing towards my goal (%f)", my);
+		}
+		mChance = MY_GOAL;
+		mPercent = my;
+	} else if( op > (my + mMinInterval)) {
+		if (mChance != OP_GOAL) {
+			Debugger::DEBUG("GoalSide", "Now playing towards opponent goal (%f)", op);
+		}
+		mChance = OP_GOAL;
+		mPercent = op;
+	} else {
+		if (mChance != UNKNOWN) {
+			Debugger::DEBUG("GoalSide", "No idea playing towards which goal...");
+		}
+		mChance = UNKNOWN;
+		mPercent = 1.0;
+	}
+}
+
+void GoalSide::setPercent(double chance) {
+	if( chance < 0.0) {
+		resetChances();
+		return;
+	}
+
+	mPercent = chance;
+}
+
+
+GoalSide::GoalSideChance GoalSide::getChance() const
+{
+	return mChance;
+}
+
+double GoalSide::getPercent() const
+{
+	return mPercent;
+}

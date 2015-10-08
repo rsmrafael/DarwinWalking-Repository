@@ -1,0 +1,98 @@
+/**
+ * RemoteBehavior.cpp
+ *
+ *  Created on: 01.12.2012
+ *  Author: Stefan
+ */
+
+#include "RemoteBehavior.h"
+#include "../../Debugging/Debugger.h"
+
+RemoteBehavior::RemoteBehavior() {
+	mActive = false;
+	mBodyCommand = "";
+	mSetPanTilt = false;
+	mSetWalker = false;
+	mWalkerX = 0;
+	mWalkerY = 0;
+	mWalkerR = 0;
+	mWalkerTurningAim = false;
+	mPanPosition = 0;
+	mTiltPosition = 0;
+}
+
+RemoteBehavior::~RemoteBehavior() {
+}
+
+void RemoteBehavior::execute() {
+	if (IsActive()) {
+		if (mBodyCommand != "") {
+			if (mBodyCommand == "stop") {
+				getBodyAction().Stop();
+			} else if (mBodyCommand == "forward") {
+				getBodyAction().setWalkerCommand(100, 0, 0);
+			} else if (mBodyCommand == "turn_left") {
+				getBodyAction().setWalkerCommand(0, 0, 100);
+			} else if (mBodyCommand == "turn_right") {
+				getBodyAction().setWalkerCommand(0, 0, -100);
+			} else if (mBodyCommand == "kick") {
+				getBodyAction().KickLeft();
+			} else if (mBodyCommand == "kick_left") {
+				getBodyAction().KickLeft();
+			} else if (mBodyCommand == "kick_right") {
+				getBodyAction().KickRight();
+			} else if (mBodyCommand == "goalie_left") {
+				getBodyAction().GoaliMoveLeft();
+			} else if (mBodyCommand == "goalie_right") {
+				getBodyAction().GoaliMoveRight();
+			}
+			mBodyCommand = "";
+		} else {
+			if (mSetWalker) {
+				getBodyAction().setWalkerCommand(mWalkerX, mWalkerY, mWalkerR, mWalkerTurningAim);
+				mSetWalker = false;
+			} else if (mSetPanTilt) {
+				getBodyAction().setPanTilt(mPanPosition, mTiltPosition);
+				mSetPanTilt = false;
+			}
+		}
+	}
+}
+
+bool RemoteBehavior::IsActive() const {
+	return mActive;
+}
+
+void RemoteBehavior::SetBodyCommand(string cmd) {
+	mBodyCommand = cmd;
+	Debugger::INFO("RemoteBehavior", "New body command: %s", cmd.c_str());
+}
+
+void RemoteBehavior::SetPanTiltPosition(signed char pan, signed char tilt) {
+	mPanPosition = pan;
+	mTiltPosition = tilt;
+	mSetPanTilt = true;
+	Debugger::INFO("RemoteBehavior", "New pan/tilt position: %d/%d", pan, tilt);
+}
+
+void RemoteBehavior::SetWalkerCommand(signed char x, signed char y, signed char r, bool turningAim) {
+	mWalkerX = x;
+	mWalkerY = y;
+	mWalkerR = r;
+	mWalkerTurningAim = turningAim;
+	mSetWalker = true;
+	if (mWalkerTurningAim) {
+		Debugger::INFO("RemoteBehavior", "New walker command: %d/%d/%d, turning aim on", x, y, r);
+	} else {
+		Debugger::INFO("RemoteBehavior", "New walker command: %d/%d/%d", x, y, r);
+	}
+}
+
+void RemoteBehavior::SetActive(bool state) {
+	mActive = state;
+	if (state) {
+		Debugger::INFO("RemoteBehavior", "Remote control enabled");
+	} else {
+		Debugger::INFO("RemoteBehavior", "Remote control disabled");
+	}
+}

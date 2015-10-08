@@ -1,0 +1,86 @@
+/*
+ * PointCloud.h
+ *
+ *  Created on: 29.08.2012
+ *      Author: Stefan Krupop
+ */
+
+#ifndef POINTCLOUD_H_
+#define POINTCLOUD_H_
+
+#include "../Blackboard/Printable.h"
+#include "Point.h"
+#include <list>
+#include <cstdlib>
+
+using namespace std;
+
+struct BoundingBox {
+	Point topLeft;
+	int width;
+	int height;
+
+	BoundingBox(Point _topLeft, int _width, int _heigth) {
+		this->topLeft = _topLeft;
+		this->width = _width;
+		this->height = _heigth;
+	}
+};
+
+class PointCloud: public Printable {
+public:
+	PointCloud();
+	PointCloud(const PointCloud& pC);
+	virtual ~PointCloud();
+	PointCloud& operator=(const PointCloud& cSource);
+
+	const list<Point>* getCloud() const {
+		return mData;
+	}
+
+	size_t getSize() const{ return mData->size();}
+
+	void clearCloud();
+	void addPoint(Point point);
+	void addPoint(int x, int y);
+	void removeFirst();
+	void removeLast();
+
+	BoundingBox calculateBoundingBox() const;
+	bool doBoundingBoxesOverlap( const BoundingBox &box) const;
+
+	Point getCenterPoint() const;
+	int getMaximumDeviation() const;
+
+	void join(const PointCloud *pc);
+	bool contains(Point p) const;
+
+	virtual void print(ostream& stream) const {
+
+		stream << "Point Cloud: ";
+		for (list<Point>::const_iterator pointIterator = mData->begin();
+				pointIterator != mData->end(); ++pointIterator) {
+			(pointIterator)->print(stream);
+			stream << " , ";
+		}
+	}
+private:
+	list<Point>* mData;
+};
+
+template<>
+class Serializer<PointCloud> {
+public:
+	static void serialize(const PointCloud& representation, ostream& stream);
+	static void deserialize(istream& stream, PointCloud& representation);
+};
+
+typedef struct {
+	PointCloud *cloud;
+	int minX;
+	int maxX;
+	int minY;
+	int maxY;
+} PointCloudObject_t;
+
+#endif /* POINTCLOUD_H_ */

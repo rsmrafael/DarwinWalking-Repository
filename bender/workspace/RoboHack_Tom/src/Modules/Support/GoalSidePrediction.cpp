@@ -1,0 +1,64 @@
+/*
+ * GoalSidePrediction.cpp
+ *
+ *  Created on: 20.06.2014
+ *      Author: Oliver Krebs
+ */
+
+#include "GoalSidePrediction.h"
+#include "../../Config.h"
+
+GoalSidePrediction::GoalSidePrediction()
+{
+	mAccuracy = 0.0;
+	mAccuracySum = 0.0;
+	mProbability = 0.0;
+	mCountPredictions = 0;
+	Config::GetInstance()->registerConfigChangeHandler(this);
+	this->configChanged();
+}
+
+GoalSidePrediction::~GoalSidePrediction()
+{
+	Config::GetInstance()->removeConfigChangeHandler(this);
+}
+
+bool GoalSidePrediction::execute()
+{
+	mAccuracySum = 0.0;
+	mProbability = 0.0;
+	mCountPredictions = 0;
+
+	// add all accuracies
+	//mAccuracySum += getGoalSideBackgroundPrediction().getAccuracy();
+	//mAccuracySum += getGoalSideHistogramPrediction().getAccuracy();
+	//mAccuracySum += getGoalSideGoalieBallPrediction().getAccuracy();
+
+	// calculate probability by adding all predictions
+	//addProbability(getGoalSideBackgroundPrediction());
+	//addProbability(getGoalSideHistogramPrediction());
+	//addProbability(getGoalSideGoalieBallPrediction());
+
+	mAccuracy = mAccuracySum / (double)mCountPredictions;
+
+	getGoalSidePrediction().setProbability(mProbability);
+	getGoalSidePrediction().setAccuracy(mAccuracy);
+
+	//Debugger::DEBUG("GoalSidePrediction", "Prob: %.4f (acc: %.3f)", mProbability, mAccuracy);
+
+	getGoalSideView().updateGoalSide(getHeadAction().getPan(), getGoalSidePrediction());
+	return true;
+}
+
+void GoalSidePrediction::addProbability( const GoalSide &prediction)
+{
+	double acc = prediction.getAccuracy() / mAccuracySum;
+	mProbability += acc * prediction.getProbabilityOpGoal();
+	mCountPredictions++;
+}
+
+void GoalSidePrediction::configChanged()
+{
+	int step = Config::GetInt("GoalSidePreditction", "viewAngleStep", 15);
+	getGoalSideView().setAngleStep(step);
+}

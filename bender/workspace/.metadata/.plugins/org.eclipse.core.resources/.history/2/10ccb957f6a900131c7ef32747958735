@@ -1,0 +1,189 @@
+/*
+ * Behavior.h
+ *
+ *  Created on: 13.02.2014
+ *      Author: Oliver Krebs
+ */
+
+#ifndef BEHAVIOR_H_
+#define BEHAVIOR_H_
+
+#include "../../ModuleManager/Module.h"
+#include "../../Representations/Object.h"
+#include "../../Representations/ObjectList.h"
+#include "../../Representations/RobotConfiguration.h"
+#include "../../Representations/BodyStatus.h"
+#include "../../Representations/YUVImage.h"
+#include "../../Representations/BehaviorStatus.h"
+#include "../../Representations/BodyAction.h"
+#include "../../Representations/GameStatus.h"
+#include "../../Communication/MitecomCommunicator.h"
+#include "../../Network/Network.h"
+#include "../../GameEventListener.h"
+#include "../../Game.h"
+
+#define NO_OBJECT_MAX_COUNT		15
+#define NO_BALL_MAX_COUNT		10//3	// ball not seen more times than that => ball lost
+#define NO_GOAL_MAX_COUNT		10//5
+
+#define BALL_FOUND_THRESHOLD 	2//5		// Number of subsequent ball detections needed
+#define GOAL_FOUND_THRESHOLD 	2//20		// Number of subsequent goal detections needed
+
+#define OBJECT_LOST_THRESHOLD 	10//8 // searchBall: ball not seen more times than that => ball lost
+
+#define FOLLOW_MAX_RL_TURN		200.0	// Body scales these to mm/step
+#define FOLLOW_MAX_FB_STEP		100.0
+#define FOLLOW_MIN_FB_STEP		20.0	// 50.0
+
+#define FIT_MAX_RL_TURN			100.0	// Body scales these to mm/step
+#define FIT_FB_STEP				20.0
+
+#define BALL_NEAR_TILT			-55
+
+#define GOAL_LEFT_ANGLE			-5
+#define GOAL_RIGHT_ANGLE		5
+
+#define UPDATES_PER_POINT		3//5 // # of calls before advancing to next point
+#define MAX_LOOP_POINTS			9
+#define TURN_RIGHT_DURATION		4//3 // time in seconds robot is turning if object not found
+
+BEGIN_DECLARE_MODULE(Behavior)
+	REQUIRE(RobotConfiguration,RobotConfiguration)
+	REQUIRE(BodyStatus,BodyStatus)
+	REQUIRE(YUVImage,Image)
+	REQUIRE(Object,Ball)
+	REQUIRE(Object,BallPredict)
+	REQUIRE(ObjectList,GoalPoles)
+	REQUIRE(GameStatus,GameStatus)
+	REQUIRE(Object, GoalKeeper)
+	PROVIDE(BehaviorStatus,BehaviorStatus)
+	PROVIDE(BodyAction,BodyAction)
+END_DECLARE_MODULE(Behavior)
+
+class Behavior :
+	public BehaviorBase,
+	public ConfigChangeListener,
+	public GameEventListener
+{
+public:
+	Behavior(Game *game, MitecomCommunicator *com);
+	virtual ~Behavior();
+
+	virtual bool execute();
+	virtual void configChanged();
+
+	virtual void isPenalizedHasChanged(bool penalized);
+	virtual void gameResultHasChanged(Game::GameResult result);
+	virtual void gameStateHasChanged(Game::GameState state);
+	virtual void kickOffHasChanged(bool haveKickOff);
+
+protected:
+	enum State {
+		searchBall,
+		trackBall,
+		moveTowardsBall,
+		searchGoal,
+		circleToGoal,
+		moveHalfCircle,
+		checkBallFound,
+		checkGoalFound,
+		doKick,
+		checkKick,
+		reactToSaveBall,
+		doNothing,
+		delayLoopState
+	};
+
+	bool executeStriker();
+	bool executeSupporter();
+	bool executeDefender();
+	bool executeGoalkeeper();
+
+	void updateCommunicator();
+	void updateTeamMates();
+	void updateState();
+
+	State processSearchBall();
+	State processTrackBall();
+	State processMoveTowardsBall(int targetDistance = 300);
+	State processSearchGoal();
+	State processCircleToGoal();
+	State processMoveHalfCircle();
+	State processCheckBallFound();
+	State processCheckGoalFound();
+	State processDoKick();
+	State processCheckKick();
+	State processReactToSaveBall();
+
+	void processTracker(const Object& object) const;
+	bool searchObject(bool topRowOnly);
+	void enterDelayState(State returnState, uint8_t delay);
+
+	void changeRole(int role);
+	void changeRole(std::string role);
+
+	std::string getStateName(State state) const;
+
+	int32_t mCurrentRole;
+	State mCurrentState;
+	State mReturnToState;
+	State mLastAnnouncedState;
+	uint8_t mDelayLoopDuration;
+	timeval mLoopStartTime;
+	uint64_t mLastRoleDecideTime;
+
+	uint32_t mSearchObjectFoundCounter;
+	uint32_t mSearchObjectNotFoundCounter;
+	vect3d_t mBall;
+	vect3d_t mTarget;
+	vect3d_t mKickoffTarget;
+	timeval mKickingBegun;
+
+	// Configuration variables
+	bool mAllowKick;
+	bool mSearchGoal;
+	bool mIsKickOff;
+	bool mHaveGoalie; // our team has a goalie inside goal
+	bool mUseMitecom;
+	bool mChangeRoleDynamically;
+	bool mIsPenalized;
+	bool mIsBallSeenStable;
+	int mNumberOfKicks; // number of successful kicks
+	int mNumberOfKickTries;
+	int mNumberOfKickTriesMax;
+	int mKickTiltDefault;
+	int mKickTilt;
+	double mTowardsBallLeftTurnAngle;
+	double mTowardsBallRightTurnAngle;
+	double mKickLeftTurnAngle;
+	double mKickRightTurnAngle;
+	int16_t mTurningXMovement;
+	int mKickLeftPan;
+	int mKickingTryTimeout;
+	int mKickoffKickTimeout;
+	int mMinKickBallRange;
+
+	int mWalkingSpeedAvg;
+	int mKickingDistanceMax;
+	int mSearchObjectRow;
+	int mSearchObjectPan;
+	int mSearchObjectTilt;
+	int mSearchObjectPanDir;
+	int mSearchObjectTiltDir;
+	int mSearchObjectLoopPoint;
+	int mSearchObjectUpdateCnt;
+
+	// goalie
+	int mReactTilt;
+	bool mPanTiltCorrection;
+	int mMaxPanAngle;
+	double mPanTiltScaling;
+	double mReactDistance;
+
+	MixedTeamMates mTeamMates;
+	MixedTeamMate mMyInfo;
+	Game *mGame;
+	MitecomCommunicator *mCommunicator;
+};
+
+#endif /* BEHAVIOR_H_ */

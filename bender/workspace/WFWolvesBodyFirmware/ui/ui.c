@@ -1,0 +1,155 @@
+/*
+ * ui.c
+ *
+ *  Created on: 15.03.2010
+ *      Author: Stefan
+ */
+
+#include "ui.h"
+#include "include/Board.h"
+#include "tc/tc.h"
+
+#ifdef WIN32
+#include <windows.h>
+#endif
+
+#define LED_A      AT91C_PIO_PB0
+#define LED_B      AT91C_PIO_PB1
+#define LED_C      AT91C_PIO_PB2
+
+#define SWITCH_1   AT91C_PIO_PB3
+#define SWITCH_2   AT91C_PIO_PB4
+
+void UI_Init(void) {
+#ifndef DEBUG_X86
+	//init LEDS
+	AT91C_BASE_PIOB->PIO_PER |= LED_A; // Allow PIO to control LEDs.
+	AT91C_BASE_PIOB->PIO_OER |= LED_A; // Enable output.
+	AT91C_BASE_PIOB->PIO_CODR = LED_A; // Start with LED off.
+
+	AT91C_BASE_PIOB->PIO_PER |= LED_B; // Allow PIO to control LEDs.
+	AT91C_BASE_PIOB->PIO_OER |= LED_B; // Enable output.
+	AT91C_BASE_PIOB->PIO_CODR = LED_B; // Start with LED off.
+
+	AT91C_BASE_PIOB->PIO_PER |= LED_C; // Allow PIO to control LEDs.
+	AT91C_BASE_PIOB->PIO_OER |= LED_C; // Enable output.
+	AT91C_BASE_PIOB->PIO_CODR = LED_C; // Start with LED off.
+
+	//init switches
+	AT91C_BASE_PIOB->PIO_ODR = SWITCH_1;		// set to input
+	AT91C_BASE_PIOB->PIO_PER = SWITCH_1;		// set to PIO mode
+	AT91C_BASE_PIOB->PIO_PPUDR = SWITCH_1;		// disable pull up
+
+	AT91C_BASE_PIOB->PIO_ODR = SWITCH_2;		// set to input
+	AT91C_BASE_PIOB->PIO_PER = SWITCH_2;		// set to PIO mode
+	AT91C_BASE_PIOB->PIO_PPUDR = SWITCH_2;		// disable pull up
+#endif
+}
+
+void UI_SetLED(char led, unsigned char state) {
+#ifndef DEBUG_X86
+	unsigned int pin = LED_A;
+
+	switch (led) {
+		case 0: pin = LED_A; break;
+		case 1: pin = LED_B; break;
+		case 2: pin = LED_C; break;
+	}
+	if (state == 1) {
+		AT91C_BASE_PIOB->PIO_SODR = pin; // Set bit = LED on
+	} else {
+		AT91C_BASE_PIOB->PIO_CODR = pin; // Clear bit = LED off
+	}
+#endif
+}
+
+void UI_ToggleLED(char led) {
+#ifndef DEBUG_X86
+	unsigned int pin = LED_A;
+
+	switch (led) {
+		case 0: pin = LED_A; break;
+		case 1: pin = LED_B; break;
+		case 2: pin = LED_C; break;
+	}
+	if ((AT91C_BASE_PIOB->PIO_ODSR & pin) > 0) {
+		AT91C_BASE_PIOB->PIO_CODR = pin; // Clear bit = LED off
+	} else {
+		AT91C_BASE_PIOB->PIO_SODR = pin; // Set bit = LED on
+	}
+#endif
+}
+
+unsigned char UI_GetKeyState(char key) {
+#ifndef DEBUG_X86
+	unsigned int pin = SWITCH_1;
+
+	switch (key) {
+		case 0: pin = SWITCH_1; break;
+		case 1: pin = SWITCH_2; break;
+	}
+
+	if(!((AT91C_BASE_PIOB->PIO_PDSR) & pin)) {
+		TC_DelayMs(10);
+		unsigned char cnt = 25;
+		while (!((AT91C_BASE_PIOB->PIO_PDSR) & pin) && cnt) {
+			TC_DelayMs(10);
+			cnt--;
+		}
+		return 1;
+	} else {
+		return 0;
+	}
+#else
+#ifdef WIN32
+	unsigned int pin = VK_MENU;
+
+	switch (key) {
+		case 0: pin = VK_MENU; break;
+		case 1: pin = VK_CONTROL; break;
+	}
+
+	if (GetAsyncKeyState(pin) & 0x8000) {
+		return 1;
+	} else {
+		return 0;
+	}
+#else
+	return 0;
+#endif
+#endif
+}
+
+unsigned char UI_GetKeyState_NoDebounce(char key) {
+#ifndef DEBUG_X86
+	unsigned int pin = SWITCH_1;
+
+	switch (key) {
+		case 0: pin = SWITCH_1; break;
+		case 1: pin = SWITCH_2; break;
+	}
+
+	if(!((AT91C_BASE_PIOB->PIO_PDSR) & pin)) {
+		return 1;
+	} else {
+		return 0;
+	}
+#else
+#ifdef WIN32
+	unsigned int pin = VK_MENU;
+
+	switch (key) {
+		case 0: pin = VK_MENU; break;
+		case 1: pin = VK_CONTROL; break;
+	}
+
+	if (GetAsyncKeyState(pin) & 0x8000) {
+		return 1;
+	} else {
+		return 0;
+	}
+#else
+	return 0;
+#endif
+#endif
+}

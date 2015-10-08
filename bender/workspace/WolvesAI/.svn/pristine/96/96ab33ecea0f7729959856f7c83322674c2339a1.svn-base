@@ -1,0 +1,72 @@
+/*
+ * FieldDetection.cpp
+ *
+ *  Created on: Sep 3, 2012
+ *      Author: jan
+ */
+
+#include "FieldLineDetection.h"
+#include "../../Debugging/DebugDrawer.h"
+#include "../../Utils/Clustering/Ransac/Ransac.h"
+#include "../../Utils/Clustering/Ransac/Models/LineModel.h"
+#include "../../Config.h"
+
+FieldLineDetection::FieldLineDetection()
+:	mNumIterations( 200),
+	mMinPoints( 8),
+	mMaxError( 2.0),
+	mShowDebugDrawings( false)
+{
+	Config::GetInstance()->registerConfigChangeHandler(this);
+	this->configChanged();
+}
+
+FieldLineDetection::~FieldLineDetection() {
+	Config::GetInstance()->removeConfigChangeHandler(this);
+}
+
+bool FieldLineDetection::execute() {
+	const YUVImage* image = &getImage();
+	int width = image->getWidth();
+	int height = image->getHeight();
+
+	list<Point>* greenPoints = const_cast<list<Point>*>(getGreenPoints().getCloud());
+	getFieldLines().clearPoints();
+
+	size_t iterations = mNumIterations;
+
+	LineModel *line, *model = new LineModel();
+	Ransac ransac( greenPoints, model, iterations, mMaxError);
+
+	Point p1, p2;
+
+	line = dynamic_cast<LineModel*>(ransac.run(mMinPoints));
+	if( line != NULL) {
+		p1 = Point(0, line->getY(0));
+		p2 = Point(width - 1, line->getY(width - 1));
+		getFieldLines().addEdgePoint(p1);
+		getFieldLines().addEdgePoint(p2);
+		if( mShowDebugDrawings) {
+			DRAW_LINE("FieldLine", p1.getX(), p1.getY(),
+				p2.getX(), p2.getY(), DebugDrawer::GREEN);
+		}
+		delete line;
+		return true;
+	} else {
+		// no line found, so use bottom of image (nothing is in field)
+		p1 = Point(0, height - 1);
+		p2 = Point(width - 1, height - 1);
+		getFieldLines().addEdgePoint(p1);
+		getFieldLines().addEdgePoint(p2);
+		return true;
+	}
+}
+
+void FieldLineDetection::configChanged() {
+	Debugger::INFO("FieldLineDetection", "config changed");
+
+	mShowDebugDrawings	= Config::GetBoolean("Vision", "FieldLine_debugDrawings", true);
+	mNumIterations	= (size_t)(unsigned)Config::GetInt("Vision", "FieldLine_numIterations", 100);//100
+	mMinPoints		= (size_t)(unsigned)Config::GetInt("Vision", "FieldLine_minPoints", 6);//6//8
+	mMaxError		= Config::GetDouble("Vision", "FieldLine_maxError", 2.0);
+}

@@ -1,0 +1,58 @@
+/*
+ * CameraSettings.h
+ *
+ *  Created on: 21.08.2012
+ *      Author: Stefan Krupop
+ */
+
+#ifndef CAMERASETTINGS_H_
+#define CAMERASETTINGS_H_
+
+#include "../Blackboard/Serializer.h"
+
+//lint -e1711
+
+#include <string>
+
+using namespace std;
+
+class CameraSettings {
+public:
+	CameraSettings();
+	virtual ~CameraSettings();
+
+	void setChanged();
+
+	bool changedStatus;
+	int width;
+	int height;
+	int frameIntervalNumerator;
+	int frameIntervalDenominator;
+	double brightness;
+	double contrast;
+	double saturation;
+	double autohue;
+	double hue;
+	double autowhitebalance;
+	double redbalance;
+	double bluebalance;
+	double gamma;
+	double exposure;
+	double autogain;
+	double gain;
+	double sharpness;
+	double powerlinefreq;
+	double whitebalancetemp;
+	double backlightcompensation;
+	double autoexposure;
+private:
+};
+
+template<>
+class Serializer<CameraSettings> {
+public:
+	static void serialize(const CameraSettings& representation, ostream& stream);
+	static void deserialize(istream& stream, CameraSettings& representation);
+};
+
+#endif /* CAMERASETTINGS_H_ */

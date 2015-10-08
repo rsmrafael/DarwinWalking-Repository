@@ -1,0 +1,85 @@
+/*
+ * Object.h
+ *
+ *  Created on: Sep 1, 2012
+ *      Author: jan
+ */
+
+#ifndef Object_H_
+#define Object_H_
+
+#include "../Blackboard/Printable.h"
+#include "../Blackboard/Serializer.h"
+#include "../Messages/Object.pb.h"
+#include "PointCloud.h"
+#include "Vector.h"
+#include "Point.h"
+
+class Object: public Printable {
+public:
+
+	enum ObjectType {
+		UNKNOWN = 0,
+		GOAL_POLE_YELLOW = 1,
+		BALL = 2,
+		GOAL_YELLOW_CROSSBAR = 3,
+		ROBOT = 4,
+		ROBOT_CYAN = 5,
+		ROBOT_MAGENTA = 6,
+		OBSTACLE = 7,
+		FIELD_LINE = 8,
+		LINE = 9,
+		LINE_POINT = 10
+	};
+
+	int lastImageTopLeftX;
+	int lastImageTopLeftY;
+	int lastImageX;
+	int lastImageY;
+	int lastImageWidth;
+	int lastImageHeight;
+	bool lastImageSeen;
+	bool matched;
+	ObjectType type;
+	int lastSeenCounter;
+	int originalHeight;
+	int originalWidth;
+
+	Vector lastVector;
+
+	Object();
+	Object(int x, int y, int width, int heigth);
+	Object(int x, int y, int x2, int y2, ObjectType typ);
+	Object(BoundingBox boundingBox, ObjectType typ);
+	Object(const Object* Object);
+	virtual ~Object();
+
+	virtual void print(ostream& stream) const {
+
+	}
+
+	void updateObject(int x, int y, int width, int heigth);
+	void notSeen();
+
+	void updateType();
+	void setOriginalSize(int width, int height);
+
+	void mergeBoundingBox(const BoundingBox &box);
+
+	const BoundingBox getBoundingBox() const;
+	const Point getBoundingBoxTopLeft() const;
+	const Point getBoundingBoxBottomRigth() const;
+
+	bool doBoundingBoxesOverlap(Object object) const;
+
+	void writeProtoBuf(protobuf::Object* object) const;
+};
+
+template<>
+class Serializer<Object> {
+public:
+	static void serialize(const Object& representation, ostream& stream);
+	static void deserialize(istream& stream, Object& representation);
+};
+
+#endif /* Object_H_ */

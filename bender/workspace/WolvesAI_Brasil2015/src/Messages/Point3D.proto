@@ -1,0 +1,11 @@
+package protobuf;
+
+option java_package = "de.ostfalia.robocup.message";
+option java_outer_classname = "MsgPoint3D";
+option optimize_for = LITE_RUNTIME;
+
+message Point3D {
+	required int32 x = 1;
+	required int32 y = 2;
+	required int32 z = 3;
+}

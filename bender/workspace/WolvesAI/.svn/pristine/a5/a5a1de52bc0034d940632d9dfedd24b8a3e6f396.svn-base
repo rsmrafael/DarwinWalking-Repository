@@ -1,0 +1,394 @@
+/*
+ * BallDetectionOpenCV.cpp
+ *
+ *  Created on: Sep 3, 2012
+ *      Author: jan
+ */
+
+#include "BallDetectionOpenCV.h"
+#include <ctime>
+#include "../../Debugging/Debugger.h"
+#include "../../Utils/Clustering/Ransac/Ransac.h"
+#include "../../Utils/Clustering/Ransac/Models/LineModel.h"
+#include "../../Utils/Clustering/Ransac/Models/CircleModel.h"
+#include "../../Utils/Clustering/LeastSquare/LeastSquareCircle.h"
+#include "../../Config.h"
+
+#ifdef USE_OPENCV
+
+BallDetectionOpenCV::BallDetectionOpenCV()
+:	mMaxFieldlineError(10),
+	mEdgeThresh(1),
+	mLowThreshold(20),
+	mLowThresholdMax(200),
+	mRatio(3),
+	mKernelSize(3),
+	mWindowName("BallDetection"),
+	mMinY(0),
+	mMaxY(255),
+	mMinU(0),
+	mMaxU(255),
+	mMinV(0),
+	mMaxV(255),
+	mIterations(50),
+	mMaxError(10),
+	mMinRatio(80),
+	mMinFits(10),
+	mNumIterations(1),
+	mDilationElem(2),
+	mDilationSize(0),
+	mMinRadius(10),
+	mMaxRadius(100),
+	mMinPointsSizeRatio(10),
+	mMaxUGreen(180),
+	mMaxVGreen(85),
+	mBestCircle(NULL),
+	mNumGreenRandom(50),
+	mDebugDrawings(0)
+{
+	mDst = cv::Mat(480, 640, CV_8U);
+	mDst2 = cv::Mat(480, 640, CV_8U);
+	mDst3 = cv::Mat(480, 640, CV_8U);
+	mDst4 = cv::Mat(480, 640, CV_8U);
+
+	cv::Mat mat(1, 400, CV_8U);
+	std::string name = "Sliders";
+	cv::namedWindow(name, CV_WINDOW_NORMAL);
+	cv::createTrackbar("Threshold:", name, &mLowThreshold,
+			mLowThresholdMax, &BallDetectionOpenCV::update, this);
+	//cv::createTrackbar("Ratio:", name, &ratio, 100, &BallDetectionOpenCV::update, this);
+	//cv::createTrackbar("minY:", name, &minY, 255, &BallDetectionOpenCV::update, this);
+	//cv::createTrackbar("maxY:", name, &maxY, 255, &BallDetectionOpenCV::update, this);
+	//cv::createTrackbar("minU:", name, &minU, 255, &BallDetectionOpenCV::update, this);
+	//cv::createTrackbar("maxU:", name, &maxU, 255, &BallDetectionOpenCV::update, this);
+	//cv::createTrackbar("minV:", name, &minV, 255, &BallDetectionOpenCV::update, this);
+	//cv::createTrackbar("maxV:", name, &maxV, 255, &BallDetectionOpenCV::update, this);
+	//cv::createTrackbar("iterations:", name, &iterations, 1000, &BallDetectionOpenCV::update, this);
+	cv::createTrackbar("maxError:", name, &mMaxError, 100, &BallDetectionOpenCV::update, this);
+	//cv::createTrackbar("minFits:", name, &minFits, 200, &BallDetectionOpenCV::update, this);
+	//cv::createTrackbar("numIterations:", name, &numIterations, 100, &BallDetectionOpenCV::update, this);
+	cv::createTrackbar("MinRatio:", name, &mMinRatio, 100, &BallDetectionOpenCV::update, this);
+	//cv::createTrackbar("Element:", name, &dilation_elem, 2, &BallDetectionOpenCV::update, this);
+	cv::createTrackbar("Dilation:", name, &mDilationSize, 30, &BallDetectionOpenCV::update, this);
+	cv::createTrackbar("minRadius:", name, &mMinRadius, 200, &BallDetectionOpenCV::update, this);
+	cv::createTrackbar("maxRadius:", name, &mMaxRadius, 200, &BallDetectionOpenCV::update, this);
+	cv::createTrackbar("minPointsSizeRatio:", name, &mMinPointsSizeRatio, 200, &BallDetectionOpenCV::update, this);
+
+	if (mDebugDrawings) {
+		cv::imshow(name, mat);
+
+		/// Create a window
+		cv::namedWindow(mWindowName, CV_WINDOW_NORMAL);
+		cv::imshow(mWindowName, mDst);
+		//cv::imshow("gray filtered", dst);
+
+		cv::namedWindow(mWindowName + "2", CV_WINDOW_NORMAL);
+		cv::imshow(mWindowName + "2", mDst2);
+
+		cv::namedWindow(mWindowName + "3", CV_WINDOW_NORMAL);
+		cv::imshow(mWindowName + "3", mDst3);
+		/*cv::namedWindow(window_name + "4", CV_WINDOW_NORMAL);
+		cv::imshow(window_name + "4", dst4);*/
+	}
+
+	Config::getInstance()->registerConfigChangeHandler(this);
+	this->configChanged();
+}
+
+BallDetectionOpenCV::~BallDetectionOpenCV() {
+	Config::getInstance()->removeConfigChangeHandler(this);
+}
+
+bool BallDetectionOpenCV::execute() {
+	update();
+
+	// filter nur gr�n / wei�
+	// least square
+	// ransac kreis
+	//
+
+	return true;
+}
+
+void BallDetectionOpenCV::update() {
+	mSrc = getOpenCVImage().getOpenCVYUV();
+
+	/// Create a matrix of the same type and size as src (for dst)
+	mDst.create(mSrc.size(), mSrc.type());
+
+	mSrcGray = getOpenCVImage().getChannelY();//CR
+	//src_gray = filterColor1(src_gray);
+
+	//filterField(src_gray);
+
+	//cv::imshow("gray filtered", src_gray);
+
+	/// Reduce noise
+	blur(mSrcGray, mDetected_edges, cv::Size(mKernelSize, mKernelSize));
+
+	/// Canny detector
+	Canny(mDetected_edges, mDetected_edges, mLowThreshold, mLowThreshold * mRatio,
+			mKernelSize);
+
+	mDst = cv::Scalar::all(0);
+	mSrc.copyTo(mDst, mDetected_edges);
+	//cv::imshow("canny", dst);
+	dilateMat( mDetected_edges, mDetected_edges);
+
+	cv::RNG rng(12345);
+	vector<vector<cv::Point> > contours;
+	vector<cv::Vec4i> hierarchy;
+	cv::findContours( mDetected_edges, contours, hierarchy,
+			CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+
+	mDst2.create(mSrc.size(), mSrc.type());
+	mSrc.copyTo(mDst2);
+	//dst2 = cv::Scalar::all(0);
+	mDst3.create(mSrc.size(), mSrc.type());
+	mSrc.copyTo(mDst3);
+	/*dst4.create(src.size(), src.type());
+	dst4 = cv::Scalar::all(0);*/
+
+	for( int i = 0; i < contours.size(); i++) {
+		cv::Scalar color = cv::Scalar(rng.uniform(40, 255), rng.uniform(40, 255),
+				rng.uniform(40, 255));
+		cv::drawContours( mDst, contours, i, color, 2, 8, hierarchy, 0, cv::Point());
+		list<Point> *points = new list<Point>;
+		getContourPoints(contours[i], points);
+		leastSquareCircle(points, color, mDst2);
+
+		//ransacCircle(points, color, dst3);
+		//ransacLine(points, colors[i], dst4);
+		delete points;
+	}
+
+	if( mBestCircle != NULL) {
+		int x = mBestCircle->getCenter().getX();
+		int y = mBestCircle->getCenter().getY();
+		int radius = mBestCircle->getRadius();
+		cv::circle(mDst3, cv::Point(x, y), radius, cv::Scalar(255, 0, 0), 2, 1, 0);
+		getBall().updateObject( x - radius, y - radius, 2*radius, 2*radius);
+		delete mBestCircle;
+		mBestCircle = NULL;
+	} else {
+		getBall().notSeen();
+	}
+
+	//cv::imshow(window_name, dst);
+	//dst = cv::Scalar::all(0);
+	//dst = filterColor(dst);
+
+	//cv::Mat augmented;
+	//augmented.create(src.size(), src.type());
+	//augmented = cv::Scalar::all(0);
+	if (mDebugDrawings) {
+		cv::imshow(mWindowName, mDst);
+		cv::imshow(mWindowName + "2", mDst2);
+		cv::imshow(mWindowName + "3", mDst3);
+		//cv::i	mshow(window_name + "4", dst4);
+	}
+}
+
+void BallDetectionOpenCV::erodeMat(cv::InputArray inputMat, cv::OutputArray outputMat) {
+	int type;
+	if (mDilationElem == 0) {
+		type = cv::MORPH_RECT;
+	} else if (mDilationElem == 1) {
+		type = cv::MORPH_CROSS;
+	} else if (mDilationElem == 2) {
+		type = cv::MORPH_ELLIPSE;
+	}
+	int size = mDilationSize - 30;
+	cv::Mat element = cv::getStructuringElement( type,
+			cv::Size( 2*size + 1, 2*size + 1),
+			cv::Point( size, size) );
+	erode( inputMat, outputMat, element);
+}
+
+bool BallDetectionOpenCV::isMostlyNotGreen(CircleModel *circle){
+	const YUVImage* yuvImage = &getImage();
+	int numOfGreen=0;
+	int size = 1 + circle->getRadius()*0.75;
+	for (int i = 0; i < mNumGreenRandom; ++i) {
+		int x = circle->getCenter().getX() + (rand()%(2 * size) - size);
+		int y = circle->getCenter().getY() + (rand()%(2 * size) - size);
+		auto currentColor = yuvImage->getValue(x, y);
+		if (currentColor.U < mMaxUGreen && currentColor.V < mMaxVGreen /*&& currentColor.Y < mMaxY_Green*/
+							/*&& (currentColor.U + currentColor.V + currentColor.Y) < mMaxSum_Green*/) {
+			numOfGreen++;
+		}
+	}
+
+	if (numOfGreen < mNumGreenRandom/3) {
+		return true;
+	}
+	return false;
+}
+void BallDetectionOpenCV::dilateMat(cv::InputArray inputMat, cv::OutputArray outputMat) {
+	int dilation_type;
+	if (mDilationElem == 0) {
+		dilation_type = cv::MORPH_RECT;
+	} else if (mDilationElem == 1) {
+		dilation_type = cv::MORPH_CROSS;
+	} else if (mDilationElem == 2) {
+		dilation_type = cv::MORPH_ELLIPSE;
+	}
+	int size = mDilationSize;
+	cv::Mat element = cv::getStructuringElement( dilation_type,
+			cv::Size( 2*size + 1, 2*size + 1),
+			cv::Point( size, size) );
+	dilate( inputMat, outputMat, element);
+}
+
+void BallDetectionOpenCV::getContourPoints(vector<cv::Point> const &contour, list<Point> *points) {
+	//for( vector<cv::Point>::const_iterator it = contour.begin(); it != contour.end(); ++it) {
+	for (auto point : contour) {
+		points->push_back(Point(point.x, point.y));
+	}
+}
+
+void BallDetectionOpenCV::getMatrixPoints(cv::Mat const &mat, list<Point> *points) {
+	points = new list<Point>;
+	for( int y = 0; y < mat.rows; y++) {
+		for( int x = 0; x < mat.cols; x++) {
+			if( mat.at<uchar>(y, x)) {
+				points->push_back(Point(x, y));
+			}
+		}
+	}
+}
+
+void BallDetectionOpenCV::leastSquareCircle(list<Point>* points, cv::Scalar const &color, cv::Mat &dstMat) {
+	cv::Scalar col = color;
+	LeastSquareCircle lsc( points);
+	CircleModel *circle = lsc.run();
+	int radius = circle->getRadius();
+	int pointsSize = 100 * points->size() / (1+radius);
+	int cx = circle->getCenter().getX();
+	int cy = circle->getCenter().getY();
+	if( radius < mMinRadius || radius > mMaxRadius) {
+		col = cv::Scalar(128, 128, 128);
+		delete circle;
+	} else if( !filterFieldLines(circle->getCenter())) {
+		col = cv::Scalar(0, 128, 128);
+		delete circle;
+	} else if( pointsSize < mMinPointsSizeRatio) {
+		col = cv::Scalar(128, 128, 0);
+		delete circle;
+	} else if( !isMostlyNotGreen(circle)) {
+		col = cv::Scalar(128, 0, 128);
+		delete circle;
+	} else {
+		int max_error = mMaxError;//maxError * circle->getRadius() / 100;
+		size_t number = circle->getNumberOfFittedDataPoints(points, max_error);
+		double ratio = 100.0f * (double)number / (double)(1+points->size());
+		if( (int)ratio < mMinRatio) {
+			col = cv::Scalar(0, 0, 0);
+			delete circle;
+		} else {
+			if( mBestCircle == NULL) {
+				mBestCircle = circle;
+			} else if( radius > mBestCircle->getRadius()) {
+				delete mBestCircle;
+				mBestCircle = circle;
+			}
+		}
+	}
+	cv::circle(dstMat, cv::Point(cx, cy), radius, col, 2, 1, 0);
+}
+
+void BallDetectionOpenCV::ransacCircle(list<Point>* points, cv::Scalar const &color, cv::Mat &dstMat) {
+	int numIters = mIterations;
+	Ransac ransac2( points, new CircleModel(), numIters, mMaxError);
+	for( int i = 0; i < mNumIterations; i++) {
+		CircleModel *circle = dynamic_cast<CircleModel*>(ransac2.run(mMinFits));
+		if( circle != NULL) {
+			int x = circle->getCenter().getX();
+			int y = circle->getCenter().getY();
+			cv::circle(dstMat, cv::Point(x, y), circle->getRadius(),
+					color, 1, 1, 0);
+			isMostlyNotGreen(circle);
+			circle->eraseFittedPoints(points, mMaxError);
+			delete circle;
+			//numIters -= 10;
+			//ransac2.setNumberOfIterations(numIters);
+		} else {
+			break;
+		}
+	}
+}
+
+void BallDetectionOpenCV::ransacLine(list<Point>* points, cv::Scalar const &color, cv::Mat &dstMat) {
+	int numIters = mIterations;
+	LineModel *line;
+	Ransac ransac1( points, new LineModel(), numIters, mMaxError);
+	for( int i = 0; i < mNumIterations; i++) {
+		line = dynamic_cast<LineModel*>(ransac1.run(mMinFits));
+		if( line != NULL) {
+			Point p1, p2;
+			p1 = line->getStartPoint();
+			p2 = line->getEndPoint();
+			cv::line(dstMat, cv::Point(p1.getX(), p1.getY()), cv::Point(p2.getX(), p2.getY()),
+					color, 1, 1, 0);
+			line->eraseFittedPoints(points, mMaxError);
+			//lines.insert(make_pair<int, LineModel*>(p1.getX(), line));
+			delete line;
+			//numIters -= 10;
+			//ransac1.setNumberOfIterations(numIters);
+		} else {
+			break;
+		}
+	}
+}
+
+void BallDetectionOpenCV::update(int, void* object) {
+	BallDetectionOpenCV *obj = (BallDetectionOpenCV*) object;
+	obj->update();
+}
+
+void BallDetectionOpenCV::filterField(cv::Mat &mat) {
+	for( int x = 0; x < mat.cols; x++) {
+		int row = getFieldLines().getY(x) - mMaxFieldlineError;
+		if( row >= mat.rows) {
+			row = mat.rows - mMaxFieldlineError - 1;
+		}
+		for( int y = row; y >= 0; y--) {
+			//printf("%i,%i;", x, y);
+			mat.at<uchar>(y, x) = 0;
+		}
+	}
+}
+
+cv::Mat BallDetectionOpenCV::filterColor1(cv::Mat &in) {
+	cv::Mat mask;
+	inRange(in, cv::Scalar(mMinY), cv::Scalar(mMaxY), mask);
+	return mask;
+}
+
+cv::Mat BallDetectionOpenCV::filterColor3(cv::Mat &in) {
+	cv::Mat mask;
+	inRange(in, cv::Scalar(mMinY, mMinU, mMinV), cv::Scalar(mMaxY, mMaxU, mMaxV), mask);
+	return mask;
+}
+
+bool BallDetectionOpenCV::filterFieldLines(const Point &ball) const
+{
+	//if (mIsFilterFieldLine) {
+		if( /*getBodyStatus().getTilt() > 25 &&*/ !getFieldLines().isPointInField(ball, mMaxFieldlineError)) {
+			/*if( mDebugInfoEnabled) {
+				Debugger::INFO("BallDetection", "Filtered by fieldLines");
+			}*/
+			return false;
+		}
+	//}
+	return true;
+}
+
+void BallDetectionOpenCV::configChanged() {
+	ConfigFile *config = Config::getInstance();
+	mMaxUGreen = config->get<int>("Vision", "Field_maxU", 180);//160
+	mMaxVGreen = config->get<int>("Vision", "Field_maxV", 100);//100//90//88//120
+	mNumGreenRandom = config->get<int>("Vision","NumGreenRandom",100);
+}
+
+#endif // USE_OPENCV

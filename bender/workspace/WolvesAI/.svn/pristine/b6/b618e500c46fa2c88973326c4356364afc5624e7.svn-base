@@ -1,0 +1,115 @@
+/*
+ * GoalFind.cpp
+ *
+ *  Created on: 16.03.2015
+ *      Author: bombadil
+ */
+
+#include "GoalFind.h"
+#include "../../Config.h"
+
+GoalFind::GoalFind():mMaxU_Green( 180),
+mMaxV_Green( 85),mMinY_Whitegoal(200),mMinPoleWidth(5),mMinPoleHeight(10) {
+	Config::getInstance()->registerConfigChangeHandler(this);
+	this->configChanged();
+
+}
+bool GoalFind::poleCompare(const pair<int, Object>& firstElem, const std::pair<int, Object>& secondElem) {
+	return firstElem.first < secondElem.first;
+}
+
+
+GoalFind::~GoalFind() {
+	// TODO Auto-generated destructor stub
+}
+
+bool GoalFind::execute(){
+	getGoalPoles().clearList();
+	//Debugger::DEBUG("GoalFind","Start Goal Find!");
+	const YUVImage* yuvImage = &getImage();
+	int width = yuvImage->getWidth();
+	int height = yuvImage->getHeight();
+	int poleWidth = 0;
+	vector< Object > objectMap;
+	//Iterate trough the Picture from left to Right
+	for (int x = 0; x < width; x++){
+		//Get the Field line Y for pixel x
+		int y = getFieldLines().getY(x);
+		//Get Color Value at Point x,y
+		struct YUVImage::YUVData currentColor = yuvImage->getValue(x,y);
+		//check if color not Green and High Y Value(White)
+		if (currentColor.U > mMaxU_Green || currentColor.V > mMaxV_Green ){
+			if (currentColor.Y >= mMinY_Whitegoal){
+				DRAW_POINT("Goal", x, y, DebugDrawer::CYAN);
+
+				//Used for calculate width of GolePole
+				poleWidth++;
+			//If the White Area end start provide it as goal
+			} else {
+				//Check if line is to small to be a goal Pole
+				if (poleWidth >= mMinPoleWidth) {
+					int topY = y;
+					//Now find out the Height of the Goal Beginning at x,y moving to the Top until its not white
+					int middleX = x - (poleWidth/2);
+					while (topY > 0) {
+						struct YUVImage::YUVData col = yuvImage->getValue(middleX,topY);
+						if (col.Y < mMinY_Whitegoal) {
+							break;
+						}
+						topY--;
+					}
+					int botY = y;
+					//Go to the Bottom of the Goal
+					while (botY+1 < height) {
+						struct YUVImage::YUVData col = yuvImage->getValue(middleX,botY);
+						if (col.Y < mMinY_Whitegoal) {
+							break;
+						}
+						botY++;
+					}
+					int poleHeight = botY - topY;
+					if (poleHeight >= mMinPoleHeight) {
+						Object obj(x - poleWidth, topY, poleWidth, poleHeight);
+						obj.type = Object::GOAL_POLE_YELLOW;
+						DRAW_BOX("Goal", obj.lastImageTopLeftX, obj.lastImageTopLeftY,
+								obj.lastImageWidth, obj.lastImageHeight, DebugDrawer::BLUE);
+
+						objectMap.push_back(obj);
+					} else {
+						DRAW_BOX("Goal", x - poleWidth, topY,
+								poleWidth, poleHeight, DebugDrawer::LIGHT_GRAY);
+					}
+				}
+				poleWidth = 0;
+			}
+		}
+
+	}
+	// use only the outer objects (left and right)
+	vector< Object >::iterator objIt = objectMap.begin();
+	if( objIt != objectMap.end()) {
+		Object obj = *objIt;
+		getGoalPoles().addObject(obj);
+
+		// check if there is a right pole (last in list) and then add it
+		objIt = objectMap.end();
+		if( --objIt != objectMap.begin()) {
+			obj = *objIt;
+			getGoalPoles().addObject(obj);
+		}
+	}
+
+	return true;
+}
+
+void GoalFind::configChanged() {
+	Debugger::INFO("Scanlines", "config changed");
+
+	ConfigFile *config = Config::getInstance();
+	mMaxU_Green = config->get<int>("Vision", "Field_maxU", 180);//160
+	mMaxV_Green = config->get<int>("Vision", "Field_maxV", 100);//100//90//88//120
+	mMinY_Whitegoal = config->get<int>("Vision", "Whitegoal_MinY", 200);//100//90//88//120
+	mMinPoleWidth = config->get<int>("Vision", "Goal_minPoleWidth", 5);//100//90//88//120
+	mMinPoleHeight = config->get<int>("Vision","Goal_minPoleHeight",10);
+
+}

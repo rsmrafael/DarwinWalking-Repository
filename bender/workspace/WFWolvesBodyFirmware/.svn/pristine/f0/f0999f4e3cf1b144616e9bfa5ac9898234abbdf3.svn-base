@@ -1,0 +1,209 @@
+/*
+ * uart_win32.c
+ *
+ *  Created on: 29.07.2011
+ *      Author: Stefan
+ */
+
+#ifdef DEBUG_X86
+
+#define SIMULATOR_HOST	"localhost"
+#define SIMULATOR_PORT	1057
+
+// Include Standard LIB  files
+#include "uart.h"
+
+// Include networking
+#include "network.h"
+
+CharReceivedCallback uart0_CharReceivedCallbackFnct = 0;
+CharReceivedCallback uart1_CharReceivedCallbackFnct = 0;
+
+unsigned char uart1_AggregateChars = 0;
+unsigned char uart1_AggregateCharsPos = 0;
+char uart1_AggregateCharsBuffer[100];
+
+// Prototypes
+void Usart0IRQHandler(void);
+void Usart1IRQHandler(void);
+
+void UART_Init(void) {
+	unsigned int ip = network_resolveHost(SIMULATOR_HOST);
+	network_init(ip, SIMULATOR_PORT);
+}
+
+void Usart0IRQHandler(void) {
+//	if (status & AT91C_US_RXRDY) {
+		if (uart0_CharReceivedCallbackFnct != 0) {
+			// get received char
+			char ch = 0; //USART_pt->US_RHR;
+			uart0_CharReceivedCallbackFnct(ch);
+		}
+//	}
+}
+
+void Usart1IRQHandler(void) {
+//	if (status & AT91C_US_RXRDY) {
+		if (uart1_CharReceivedCallbackFnct != 0) {
+			char ch = 0; //USART_pt->US_RHR;
+			uart1_CharReceivedCallbackFnct(ch);
+		}
+//	}
+}
+
+int uart0_getc(void) {
+	return 0;
+}
+
+void uart0_print_ascii(const char *buffer) {
+}
+
+int uart0_putc(int ch) {
+	return ch;
+}
+
+int uart0_putchar (int ch) {
+	if (ch == '\n')  {
+		uart0_putc('\r');
+	}
+	return uart0_putc(ch);
+}
+
+void uart0_print_char_in_hex(unsigned char value) {
+    unsigned char c1, c2;
+    c1 = (value & 0x0F); // LSB
+    c2 = (value & 0xF0) >> 4; //MSB
+    uart0_print_ascii("0x"); // print the hex notation first
+    uart0_print_4bit_in_hex(c2); // print LSB
+    uart0_print_4bit_in_hex(c1); // print MSB
+}
+
+void uart0_print_4bit_in_hex(unsigned char value) {
+}
+
+void uart0_print_digit(unsigned char value) {
+}
+
+void uart0_print_hex8(unsigned long value) {
+    char shift = sizeof(unsigned long) * 8;
+
+    uart0_print_ascii("0x");
+    do {
+        shift -= 4;
+    } while (shift != 0);
+}
+
+void uart0_print_int(int zahl){
+	if(zahl<=0){
+		uart0_putchar('-');
+		zahl = zahl * -1;
+	}
+
+	int mod = 10, durch = 1;
+	long int temp;
+	//Variablen der L�ngenerkenung
+	int laenge = 0;
+
+	//Ermittlung der anzahl der Stellen in der Variabl Bsp: 123 -> 3 Stellen
+	do {
+		laenge++;
+		durch = durch * 10;
+	} while (zahl / durch > 0);
+	durch = 1;   //Reset der "durch" Variable
+
+	//Ausgabe der einzelnen Stellenwerte, von links nach rechts (F�r USART oder der Gleichen)
+	int i, j, modtemp, durchtemp;
+	for(i = laenge; i > 0; i--) {
+		modtemp = mod;
+		durchtemp = durch;
+		for (j = 1; j < i; j++) { //Berechnen des Modulu und des Dividenden
+			modtemp *= 10;
+			durchtemp *= 10;
+		}
+		temp = (zahl % modtemp) / durchtemp;
+		uart0_putchar(temp + 48); //Ausgabe
+	}
+}
+
+CharReceivedCallback uart0_AssignCharReceivedCallback(CharReceivedCallback callback) {
+	 CharReceivedCallback temp;
+
+	 temp = uart0_CharReceivedCallbackFnct;
+	 uart0_CharReceivedCallbackFnct = callback;
+//	 if (callback == 0) {
+//			AT91F_AIC_DisableIt(AT91C_BASE_AIC, AT91C_ID_US0);
+//	 } else {
+//			AT91F_AIC_EnableIt(AT91C_BASE_AIC, AT91C_ID_US0);
+//	 }
+	 return temp;
+}
+
+void uart0_SetBaudrate(int baudrate) {
+}
+
+void uart1_SetBaudrate(int baudrate) {
+}
+
+int uart1_getc(void) {
+	return 0;
+}
+
+
+void uart1_print_ascii(const char *buffer) {
+}
+
+int uart1_putc(int ch) {
+	if (uart1_AggregateChars == 1) {
+		uart1_AggregateCharsBuffer[uart1_AggregateCharsPos++] = ch;
+		if (uart1_AggregateCharsPos > 100) {
+			network_sendData(uart1_AggregateCharsBuffer, uart1_AggregateCharsPos);
+			uart1_AggregateCharsPos = 0;
+		}
+	} else {
+		network_sendData((char *)&ch, 1);
+	}
+	return ch;
+}
+
+int uart1_putchar (int ch) {
+  if (ch == '\n')  {
+    uart1_putc('\r');
+  }
+  return uart1_putc(ch);
+}
+
+void uart1_waitforsent(void) {
+}
+
+unsigned char uart1_char_available(void) {
+	return 0;
+}
+
+
+CharReceivedCallback uart1_AssignCharReceivedCallback(CharReceivedCallback callback) {
+	 CharReceivedCallback temp;
+
+	 temp = uart1_CharReceivedCallbackFnct;
+	 uart1_CharReceivedCallbackFnct = callback;
+//	 if (callback == 0) {
+//			AT91F_AIC_DisableIt(AT91C_BASE_AIC, AT91C_ID_US1);
+//	 } else {
+//			AT91F_AIC_EnableIt(AT91C_BASE_AIC, AT91C_ID_US1);
+//	 }
+	 return temp;
+}
+
+void uart1_hintStartOfTransfer(void) {
+	uart1_AggregateChars = 1;
+	uart1_AggregateCharsPos = 0;
+}
+
+void uart1_hintEndOfTransfer(void) {
+	if (uart1_AggregateCharsPos > 0) {
+		network_sendData(uart1_AggregateCharsBuffer, uart1_AggregateCharsPos);
+		uart1_AggregateCharsPos = 0;
+	}
+	uart1_AggregateChars = 0;
+}
+
+#endif

@@ -1,0 +1,11 @@
+package protobuf;
+
+option java_package = "de.ostfalia.robocup.message";
+option java_outer_classname = "MsgPosition";
+option optimize_for = LITE_RUNTIME;
+
+message Position {
+	required double angle = 1;
+	required double length = 2;
+	required double accuracy = 3;
+}

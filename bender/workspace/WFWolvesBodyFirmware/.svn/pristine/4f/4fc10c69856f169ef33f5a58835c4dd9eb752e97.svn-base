@@ -1,0 +1,544 @@
+/*
+ * motioneditor.c
+ *
+ *  Created on: 01.03.2012
+ *      Author: Stefan
+ */
+
+#include "tests/motioneditor.h"
+#include "dbgu/dbgu.h"
+#include "tc/tc.h"
+#include "ui/ui.h"
+#include "servo/servo.h"
+#include "eeprom/eeprom.h"
+#include <string.h>
+#include <stdlib.h>
+#ifdef WIN32
+#include <windows.h>
+#endif
+
+#define SCREEN_COL			80
+#define SCREEN_ROW			24
+
+// Position of Column
+#define CMD_COL			2
+#define STP7_COL		19
+#define STP0_COL		25
+#define STP1_COL		30
+#define STP2_COL		35
+#define STP3_COL		40
+#define STP4_COL		45
+#define STP5_COL		50
+#define STP6_COL		55
+#define CWSLOPE_COL		60
+#define CCWSLOPE_COL	61
+#define NAME_COL		63
+#define ADDR_COL		72
+#define PAGENUM_COL		75
+#define PAGEPARAM_COL	76
+
+// Position of Row
+#define ID_0_ROW	0
+#define ID_1_ROW	1
+#define ID_2_ROW	2
+#define ID_3_ROW	3
+#define ID_4_ROW	4
+#define ID_5_ROW	5
+#define ID_6_ROW	6
+#define ID_7_ROW	7
+#define ID_8_ROW	8
+#define ID_9_ROW	9
+#define ID_10_ROW	10
+#define ID_11_ROW	11
+#define ID_12_ROW	12
+#define ID_13_ROW	13
+#define ID_14_ROW	14
+#define ID_15_ROW	15
+#define ID_16_ROW	16
+#define ID_17_ROW	17
+#define ID_18_ROW	18
+#define ID_19_ROW	19
+#define PAUSE_ROW	20
+#define SPEED_ROW	21
+#define CMD_ROW		23
+#define NAME_ROW		0
+#define PAGENUM_ROW		1
+#define ADDR_ROW		2
+#define PLAYCOUNT_ROW	3
+#define STEPNUM_ROW		4
+#define PLAYSPEED_ROW	5
+#define ACCEL_ROW		6
+#define NEXT_ROW		7
+#define EXIT_ROW		8
+
+int MotionEditor_Col = STP7_COL;
+int MotionEditor_Row = ID_0_ROW;
+int MotionEditor_Old_Col;
+int MotionEditor_Old_Row;
+unsigned char MotionEditor_bBeginCommandMode = 0;
+unsigned char MotionEditor_bEdited = 0;
+
+void MotionEditor_ClearScreen(void) {
+#ifdef WIN32
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	COORD coord = {0, 0};
+	DWORD dw;
+	CONSOLE_SCREEN_BUFFER_INFO csbi;
+	DWORD dwSize;
+	GetConsoleScreenBufferInfo(hConsole, &csbi);
+	dwSize = csbi.dwSize.X * csbi.dwSize.Y;
+	FillConsoleOutputCharacter(hConsole, ' ', dwSize, coord, &dw);
+	FillConsoleOutputAttribute(hConsole, csbi.wAttributes, dwSize, coord, &dw);
+	SetConsoleCursorPosition(hConsole, coord);
+#else
+	dbgu_printf("\x1B[2J");
+#endif
+}
+
+void MotionEditor_GoToCursor(int col, int row) {
+#ifdef WIN32
+	HANDLE screen_buffer_handle = GetStdHandle(STD_OUTPUT_HANDLE);
+	COORD coord;
+	coord.X = col;
+	coord.Y = row;
+	SetConsoleCursorPosition(screen_buffer_handle, coord);
+#else
+	dbgu_printf("\x1B[%d;%dH", row + 1, col);
+#endif
+	MotionEditor_Col = col;
+	MotionEditor_Row = row;
+}
+
+void MotionEditor_PrintCmd(const char *message) {
+	int len = strlen(message);
+	MotionEditor_GoToCursor(0, CMD_ROW);
+
+	dbgu_printf("] %s", message);
+	for(int i = 0; i < (SCREEN_COL - (len + 2)); i++)
+		dbgu_printf(" ");
+
+	MotionEditor_GoToCursor(len + 2, CMD_ROW);
+}
+
+void MotionEditor_ClearCmd() {
+	MotionEditor_PrintCmd("");
+}
+
+void MotionEditor_DrawStepLine(unsigned char erase) {
+	int old_col = MotionEditor_Col;
+	int old_row = MotionEditor_Row;
+	int col;
+
+		col = STP0_COL;
+
+	col--;
+
+	for(int id=0; id<(20 + 2); id++) {
+		MotionEditor_GoToCursor(col, id - 1);
+		if(erase == 1) {
+			dbgu_printf( " " );
+		} else {
+			dbgu_printf( "|" );
+		}
+	}
+
+	MotionEditor_GoToCursor(old_col, old_row);
+}
+
+void MotionEditor_MoveUpCursor() {
+	if(MotionEditor_Col >= STP7_COL && MotionEditor_Col <= CCWSLOPE_COL) {
+		if( MotionEditor_Row > ID_0_ROW )
+			MotionEditor_GoToCursor(MotionEditor_Col, MotionEditor_Row-1);
+	} else {
+		if( MotionEditor_Row > PLAYCOUNT_ROW )
+			MotionEditor_GoToCursor(MotionEditor_Col, MotionEditor_Row-1);
+	}
+}
+
+void MotionEditor_MoveDownCursor() {
+	if(MotionEditor_Col >= STP7_COL && MotionEditor_Col <= STP6_COL) {
+		if( MotionEditor_Row < SPEED_ROW )
+			MotionEditor_GoToCursor(MotionEditor_Col, MotionEditor_Row+1);
+	} else if(MotionEditor_Col <= CCWSLOPE_COL) {
+		if( MotionEditor_Row < ID_19_ROW )
+			MotionEditor_GoToCursor(MotionEditor_Col, MotionEditor_Row+1);
+	} else {
+		if( MotionEditor_Row < EXIT_ROW )
+			MotionEditor_GoToCursor(MotionEditor_Col, MotionEditor_Row+1);
+	}
+}
+
+void MotionEditor_MoveLeftCursor() {
+	switch(MotionEditor_Col) {
+	case STP0_COL:
+		MotionEditor_GoToCursor(STP7_COL, MotionEditor_Row);
+		break;
+
+	case STP1_COL:
+		MotionEditor_GoToCursor(STP0_COL, MotionEditor_Row);
+		break;
+
+	case STP2_COL:
+		MotionEditor_GoToCursor(STP1_COL, MotionEditor_Row);
+		break;
+
+	case STP3_COL:
+		MotionEditor_GoToCursor(STP2_COL, MotionEditor_Row);
+		break;
+
+	case STP4_COL:
+		MotionEditor_GoToCursor(STP3_COL, MotionEditor_Row);
+		break;
+
+	case STP5_COL:
+		MotionEditor_GoToCursor(STP4_COL, MotionEditor_Row);
+		break;
+
+	case STP6_COL:
+		MotionEditor_GoToCursor(STP5_COL, MotionEditor_Row);
+		break;
+
+	case CWSLOPE_COL:
+		MotionEditor_GoToCursor(STP6_COL, MotionEditor_Row);
+		break;
+
+	case CCWSLOPE_COL:
+		MotionEditor_GoToCursor(CWSLOPE_COL, MotionEditor_Row);
+		break;
+
+	case PAGEPARAM_COL:
+		MotionEditor_GoToCursor(CCWSLOPE_COL, MotionEditor_Row);
+		break;
+	}
+}
+
+void MotionEditor_MoveRightCursor() {
+	switch(MotionEditor_Col) {
+	case STP7_COL:
+		MotionEditor_GoToCursor(STP0_COL, MotionEditor_Row);
+		break;
+
+	case STP0_COL:
+		MotionEditor_GoToCursor(STP1_COL, MotionEditor_Row);
+		break;
+
+	case STP1_COL:
+		MotionEditor_GoToCursor(STP2_COL, MotionEditor_Row);
+		break;
+
+	case STP2_COL:
+		MotionEditor_GoToCursor(STP3_COL, MotionEditor_Row);
+		break;
+
+	case STP3_COL:
+		MotionEditor_GoToCursor(STP4_COL, MotionEditor_Row);
+		break;
+
+	case STP4_COL:
+		MotionEditor_GoToCursor(STP5_COL, MotionEditor_Row);
+		break;
+
+	case STP5_COL:
+		MotionEditor_GoToCursor(STP6_COL, MotionEditor_Row);
+		break;
+
+	case STP6_COL:
+		MotionEditor_GoToCursor(CWSLOPE_COL, MotionEditor_Row);
+		break;
+
+	case CWSLOPE_COL:
+		MotionEditor_GoToCursor(CCWSLOPE_COL, MotionEditor_Row);
+		break;
+
+	case CCWSLOPE_COL:
+		if(MotionEditor_Row >= PLAYCOUNT_ROW && MotionEditor_Row <= EXIT_ROW)
+			MotionEditor_GoToCursor(PAGEPARAM_COL, MotionEditor_Row);
+		break;
+	}
+}
+
+void MotionEditor_DrawPage() {
+	int old_col = MotionEditor_Col;
+	int old_row = MotionEditor_Row;
+
+	MotionEditor_ClearScreen();
+	MotionEditor_GoToCursor(0, 0);
+
+	// 80         01234567890123456789012345678901234567890123456789012345678901234567890123456789     //24
+	dbgu_printf( "ID: 0(L_HIP_YAW)  [    ]                                                       \n" );//0
+	dbgu_printf( "ID: 1(L_HIP_ROLL) [    ]                                       Page Number:    \n" );//1
+	dbgu_printf( "ID: 2(L_HIP_PITCH)[    ]                                        Address:       \n" );//2
+	dbgu_printf( "ID: 3(L_KNEE)     [    ]                                         Play Count:   \n" );//3
+	dbgu_printf( "ID: 4(L_ANK_PITCH)[    ]                                          Page Step:   \n" );//4
+	dbgu_printf( "ID: 5(L_ANK_ROLL) [    ]                                         Page Speed:   \n" );//5
+	dbgu_printf( "ID: 6(R_HIP_YAW)  [    ]                                         Accel Time:   \n" );//6
+	dbgu_printf( "ID: 7(R_HIP_ROLL) [    ]                                       Link to Next:   \n" );//7
+	dbgu_printf( "ID: 8(R_HIP_PITCH)[    ]                                       Link to Exit:   \n" );//8
+	dbgu_printf( "ID: 9(R_KNEE)     [    ]                                                       \n" );//9
+	dbgu_printf( "ID:10(R_ANK_PITCH)[    ]                                                       \n" );//0
+	dbgu_printf( "ID:11(R_ANK_ROLL) [    ]                                                       \n" );//1
+	dbgu_printf( "ID:12(L_SHL_PITCH)[    ]                                                       \n" );//2
+	dbgu_printf( "ID:13(L_SHL_ROLL) [    ]                                                       \n" );//3
+	dbgu_printf( "ID:14(L_ELBOW)    [    ]                                                       \n" );//4
+	dbgu_printf( "ID:15(R_SHL_PITCH)[    ]                                                       \n" );//5
+	dbgu_printf( "ID:16(R_SHL_ROLL) [    ]                                                       \n" );//6
+	dbgu_printf( "ID:17(R_ELBOW)    [    ]                                                       \n" );//7
+	dbgu_printf( "ID:18(HEAD_PAN)   [    ]                                                       \n" );//8
+	dbgu_printf( "ID:19(HEAD_TILT)  [    ]                                                       \n" );//9
+	dbgu_printf( "   PauseTime      [    ]                                                       \n" );//0
+
+	dbgu_printf( "   Time           [    ]                                                       \n" );//1
+
+	dbgu_printf( "                   STP7  STP0 STP1 STP2 STP3 STP4 STP5 STP6                    \n" );//2
+	dbgu_printf( "]                                                                              " );  // 3
+
+	//for(int i=0; i<=Action::MAXNUM_STEP; i++ )
+	//	DrawStep(i);
+
+	// Draw Compliance slope
+/*
+	for( int id=JointData::ID_R_SHOULDER_PITCH; id<JointData::NUMBER_OF_JOINTS; id++ ) {
+		GoToCursor(CWSLOPE_COL, id -1);
+		dbgu_printf( "%.1d%.1d", Page.header.slope[id]>>4, Page.header.slope[id]&0x0f );
+	}
+*/
+
+/*	// Draw Page parameter
+	GoToCursor( PAGEPARAM_COL, PLAYCOUNT_ROW );
+	dbgu_printf( "%.3d", Page.header.repeat );
+
+	GoToCursor( PAGEPARAM_COL, STEPNUM_ROW );
+	dbgu_printf( "%.3d", Page.header.stepnum );
+
+	GoToCursor( PAGEPARAM_COL, PLAYSPEED_ROW );
+	dbgu_printf( "%.3d", Page.header.speed );
+
+	GoToCursor( PAGEPARAM_COL, ACCEL_ROW );
+	dbgu_printf( "%.3d", Page.header.accel );
+
+	GoToCursor( PAGEPARAM_COL, NEXT_ROW );
+	dbgu_printf( "%.3d", Page.header.next );
+
+	GoToCursor( PAGEPARAM_COL, EXIT_ROW );
+	dbgu_printf( "%.3d", Page.header.exit );
+*/
+	// Draw Page information
+	//DrawName();
+
+	MotionEditor_GoToCursor(PAGENUM_COL, PAGENUM_ROW);
+//	dbgu_printf( "%.4d", indexPage );
+
+//	GoToCursor(ADDR_COL, ADDR_ROW);
+//	dbgu_printf( "0x%.5X", (int)(indexPage*sizeof(Action::PAGE)) );
+
+	MotionEditor_DrawStepLine(0);
+
+	MotionEditor_GoToCursor(old_col, old_row);
+}
+
+void MotionEditor_BeginCommandMode() {
+	MotionEditor_Old_Col = MotionEditor_Col;
+	MotionEditor_Old_Row = MotionEditor_Row;
+	MotionEditor_ClearCmd();
+	MotionEditor_GoToCursor(CMD_COL, CMD_ROW);
+	MotionEditor_bBeginCommandMode = 1;
+}
+
+void MotionEditor_EndCommandMode() {
+	MotionEditor_GoToCursor(MotionEditor_Old_Col, MotionEditor_Old_Row);
+	MotionEditor_bBeginCommandMode = 0;
+}
+
+unsigned char MotionEditor_AskSave() {
+	if(MotionEditor_bEdited == 1) {
+		MotionEditor_PrintCmd("Are you sure? (y/n)");
+		if(dbgu_get_char() != 'y') {
+			MotionEditor_ClearCmd();
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+void MotionEditor_Main(unsigned char motionIdx) {
+	MotionEditor_Col = STP7_COL;
+	MotionEditor_Row = ID_0_ROW;
+	MotionEditor_bBeginCommandMode = 0;
+	MotionEditor_bEdited = 0;
+
+	//ReadStep(cm730);
+	//Step.pause = 0;
+	//Step.time = 0;
+
+	MotionEditor_DrawPage();
+
+    while(1) {
+		if (dbgu_char_available() == 1) {
+			int ch = dbgu_get_char();
+			//dbgu_printf("Char1: %x ", ch);
+			if(ch == 0xe0 || ch == 0x1b) {
+				if (ch == 0x1b) {
+					ch = dbgu_get_char();
+					//dbgu_printf("Char2: %x ", ch);
+				}
+				//if(ch == 0x5b) {
+					ch = dbgu_get_char();
+					//dbgu_printf("Char3: %x ", ch);
+					if(ch == 0x48) // Up arrow key
+						MotionEditor_MoveUpCursor();
+					else if(ch == 0x50) // Down arrow key
+						MotionEditor_MoveDownCursor();
+					else if(ch == 0x4b) // Left arrow key
+						MotionEditor_MoveLeftCursor();
+					else if(ch == 0x4d)
+						MotionEditor_MoveRightCursor();
+				//}
+			} else if( ch == '[' ) {
+				//UpDownValue(&cm730, -1);
+			} else if( ch == ']' ) {
+				//UpDownValue(&cm730, 1);
+			} else if( ch == '{' ) {
+				//UpDownValue(&cm730, -10);
+			} else if( ch == '}' ) {
+				//UpDownValue(&cm730, 10);
+			} else if( ch == ' ' ) {
+				//ToggleTorque(&cm730);
+			} else if( ch >= 'A' && ch <= 'z' ) {
+				char input[128] = {0,};
+				char *token;
+				int input_len;
+				char cmd[80];
+				//int iparam[30];
+
+				int idx = 0;
+
+				MotionEditor_BeginCommandMode();
+
+				dbgu_printf("%c", ch);
+				input[idx++] = (char)ch;
+
+				while(1) {
+					ch = dbgu_get_char();
+					if( ch == 0x0D || ch == 0x0A ) {
+						break;
+					} else if (ch == 0x08 || ch == 0x7F) {
+						if(idx > 0) {
+							ch = 0x08;
+							dbgu_printf("%c", ch);
+							ch = ' ';
+							dbgu_printf("%c", ch);
+							ch = 0x08;
+							dbgu_printf("%c", ch);
+							input[--idx] = 0;
+						}
+					} else if( ( ch >= 'A' && ch <= 'z' ) || ch == ' ' || ( ch >= '0' && ch <= '9')) {
+						if(idx < 127) {
+							dbgu_printf("%c", ch);
+							input[idx++] = (char)ch;
+						}
+					}
+				}
+
+				//fflush(stdin);
+				input_len = strlen(input);
+				if(input_len > 0) {
+					token = strtok( input, " " );
+					if(token != 0) {
+						strcpy( cmd, token );
+						token = strtok( 0, " " );
+						int num_param = 0;
+						while(token != 0) {
+							//iparam[num_param++] = atoi(token);
+							num_param++;
+							token = strtok( 0, " " );
+						}
+
+						if(strcmp(cmd, "exit") == 0) {
+							if(MotionEditor_AskSave() == 0)
+								break;
+						} else if(strcmp(cmd, "re") == 0) {
+							MotionEditor_DrawPage();
+						} else if(strcmp(cmd, "help") == 0) {
+							//HelpCmd();
+						} else if(strcmp(cmd, "n") == 0) {
+							//NextCmd();
+						} else if(strcmp(cmd, "b") == 0) {
+							//PrevCmd();
+						} else if(strcmp(cmd, "time") == 0) {
+							//TimeCmd();
+						} else if(strcmp(cmd, "speed") == 0) {
+							//SpeedCmd();
+						} else if(strcmp(cmd, "page") == 0) {
+							if(num_param > 0) {
+								//PageCmd(iparam[0]);
+							} else {
+								MotionEditor_PrintCmd("Need parameter");
+							}
+						} else if(strcmp(cmd, "play") == 0) {
+							//PlayCmd(&cm730);
+						} else if(strcmp(cmd, "set") == 0) {
+							if(num_param > 0) {
+								//SetValue(&cm730, iparam[0]);
+							} else {
+								MotionEditor_PrintCmd("Need parameter");
+							}
+						} else if(strcmp(cmd, "list") == 0) {
+							//ListCmd();
+						} else if(strcmp(cmd, "on") == 0) {
+							//OnOffCmd(&cm730, true, num_param, iparam);
+						} else if(strcmp(cmd, "off") == 0) {
+							//OnOffCmd(&cm730, false, num_param, iparam);
+						} else if(strcmp(cmd, "w") == 0) {
+							if(num_param > 0) {
+								//WriteStepCmd(iparam[0]);
+							} else {
+								MotionEditor_PrintCmd("Need parameter");
+							}
+						} else if(strcmp(cmd, "d") == 0) {
+							if(num_param > 0) {
+								//DeleteStepCmd(iparam[0]);
+							} else {
+								MotionEditor_PrintCmd("Need parameter");
+							}
+						} else if(strcmp(cmd, "i") == 0) {
+							//if(num_param == 0) {
+								//InsertStepCmd(0);
+							//} else {
+								//InsertStepCmd(iparam[0]);
+							//}
+						} else if(strcmp(cmd, "m") == 0) {
+							if(num_param > 1) {
+								//MoveStepCmd(iparam[0], iparam[1]);
+							} else {
+								MotionEditor_PrintCmd("Need parameter");
+							}
+						} else if(strcmp(cmd, "copy") == 0) {
+							if(num_param > 0) {
+								//CopyCmd(iparam[0]);
+							} else {
+								MotionEditor_PrintCmd("Need parameter");
+							}
+						} else if(strcmp(cmd, "new") == 0) {
+							//NewCmd();
+						} else if(strcmp(cmd, "g") == 0) {
+							if(num_param > 0) {
+								//GoCmd(&cm730, iparam[0]);
+							} else {
+								MotionEditor_PrintCmd("Need parameter");
+							}
+						} else if(strcmp(cmd, "save") == 0) {
+							//SaveCmd();
+						} else if(strcmp(cmd, "name") == 0) {
+							//NameCmd();
+						} else {
+							MotionEditor_PrintCmd("Bad command! please input 'help'");
+						}
+					}
+				}
+
+				MotionEditor_EndCommandMode();
+			}
+		}
+    }
+}

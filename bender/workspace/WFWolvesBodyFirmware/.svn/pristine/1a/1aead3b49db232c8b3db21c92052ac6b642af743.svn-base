@@ -1,0 +1,17 @@
+/*
+ * eeprom.h
+ *
+ *  Created on: 26.02.2012
+ *      Author: Stefan
+ */
+
+#ifndef EEPROM_H_
+#define EEPROM_H_
+
+unsigned char eeprom_init();
+unsigned short eeprom_exists(char* name);
+unsigned short eeprom_read(char* name, void* struc, unsigned short length);
+unsigned short eeprom_write(char* name, void* struc, unsigned short length);
+void eeprom_erase(unsigned char sure);
+
+#endif /* EEPROM_H_ */

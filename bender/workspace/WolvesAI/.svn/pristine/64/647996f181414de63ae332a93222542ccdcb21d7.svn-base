@@ -1,0 +1,85 @@
+/*
+ * GoalSide.cpp
+ *
+ *  Created on: 25.03.2014
+ *      Author: Oliver Krebs
+ */
+
+#include "GoalSide.h"
+#include "../Debugging/Debugger.h"
+
+GoalSide::GoalSide()
+:	mGoalSideChance( UNKNOWN_GOAL),
+ 	mProbabilityOpGoal( 0.5),
+ 	mMinInterval( 0.1),
+ 	mAccuracy( 0.5)
+{
+
+}
+
+GoalSide::~GoalSide()
+{
+
+}
+
+void GoalSide::setAccuracy( double accuracy)
+{
+	if( accuracy > 1.0) {
+		mAccuracy = 1.0;
+	} else if( accuracy < 0.0) {
+		mAccuracy = 0.0;
+	} else {
+		mAccuracy = accuracy;
+	}
+}
+
+void GoalSide::setMinInterval( double min)
+{
+	if( min >= 0.0 && min <= 0.5) {
+		mMinInterval = min;
+	}
+}
+
+void GoalSide::setProbability(double probOpGoal)
+{
+	if( probOpGoal > 1.0) {
+		mProbabilityOpGoal = 1.0;
+	} else if( probOpGoal < 0.0) {
+		mProbabilityOpGoal = 0.0;
+	} else {
+		mProbabilityOpGoal = probOpGoal;
+	}
+
+	if( mProbabilityOpGoal < (0.5 - mMinInterval)) {
+		if (mGoalSideChance != MY_GOAL) {
+			Debugger::DEBUG("GoalSide", "Now playing towards my goal (%f)", probOpGoal);
+			mGoalSideChance = MY_GOAL;
+		}
+	} else if( mProbabilityOpGoal > (0.5 + mMinInterval)) {
+		if (mGoalSideChance != OP_GOAL) {
+			Debugger::DEBUG("GoalSide", "Now playing towards opponent goal (%f)", probOpGoal);
+			mGoalSideChance = OP_GOAL;
+		}
+	} else {
+		if (mGoalSideChance != UNKNOWN_GOAL) {
+			Debugger::DEBUG("GoalSide", "No idea playing towards which goal (%f)", probOpGoal);
+			mGoalSideChance = UNKNOWN_GOAL;
+		}
+	}
+}
+
+double GoalSide::getProbabilityOpGoal() const {
+	return mProbabilityOpGoal;
+}
+
+double GoalSide::getProbabilityMyGoal() const {
+	return 1.0 - mProbabilityOpGoal;
+}
+
+double GoalSide::getAccuracy() const {
+	return mAccuracy;
+}
+
+GoalSide::eGoalSide GoalSide::getGoalSide() const {
+	return mGoalSideChance;
+}

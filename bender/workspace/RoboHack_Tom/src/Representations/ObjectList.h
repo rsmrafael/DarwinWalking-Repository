@@ -1,0 +1,49 @@
+/*
+ * ObjectList.h
+ *
+ *  Created on: Sep 1, 2012
+ *      Author: jan
+ */
+
+#ifndef ObjectList_H_
+#define ObjectList_H_
+
+#include "../Blackboard/Printable.h"
+#include "../Blackboard/Serializer.h"
+#include "../Messages/ObjectList.pb.h"
+#include "Object.h"
+
+
+class ObjectList: public Printable {
+public:
+
+	ObjectList();
+	virtual ~ObjectList();
+
+	void clearList();
+	void addObject(Object ob);
+	void addObjects(const ObjectList& obs);
+	const vector<Object>& getObjects() const;
+
+	const Object getLargestObject() const;
+	const Object getNearestObject() const;
+	const vector<Object> getDistanceSortedObjects() const;
+
+	virtual void print(ostream& stream) const {
+
+	}
+
+private:
+
+	vector<Object> mData;
+
+};
+
+template<>
+	class Serializer<ObjectList> {
+	public:
+		static void serialize(const ObjectList& representation, ostream& stream);
+		static void deserialize(istream& stream, ObjectList& representation);
+	};
+
+#endif /* ObjectList_H_ */

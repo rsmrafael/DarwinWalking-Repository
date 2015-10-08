@@ -1,0 +1,743 @@
+/*
+ * walker.c
+ *
+ *  Created on: 17.07.2011
+ *      Author: Stefan
+ */
+
+#include "walker.h"
+#include "imu/imu.h"
+#include "servo/servo.h"
+#include "tc/tc.h"
+#include "kinematics/inverse.h"
+#include "dbgu/dbgu.h"
+#include "eeprom/eeprom.h"
+#include "odometry/odometry.h"
+#include "kinematics/inverse.h"
+#include <math.h>
+
+#ifndef M_PI
+#define M_PI 3.1415926535897932385
+#endif
+
+#define PHASE0			0
+#define PHASE1			1
+#define PHASE2			2
+#define PHASE3			3
+
+//                     R_HIP_YAW, R_HIP_ROLL, R_HIP_PITCH, R_KNEE, R_ANKLE_PITCH, R_ANKLE_ROLL, L_HIP_YAW, L_HIP_ROLL, L_HIP_PITCH, L_KNEE, L_ANKLE_PITCH, L_ANKLE_ROLL, R_ARM_SWING, L_ARM_SWING
+#ifdef DYNAMIXEL
+signed char dir[14]  = {    -1,        1,         -1,        -1,          1,           -1,          -1,         1,          1,          1,        -1,           -1,         -1,             1     };
+float initAngle[14]  = {  0.0,       0.0,        0.0,       0.0,        0.0,          0.0,         0.0,       0.0,        0.0,        0.0,       0.0,          0.0,     48.345,       -41.313     };
+#else
+signed char dir[14]  = {    1,        -1,         -1,        -1,          1,            1,           1,        -1,          1,          1,        -1,            1,          -1,            1      };
+float initAngle[14]  = {  0.0,      45.0,      -80.0,     -28.0,       62.0,        -90.0,         0.0,     -45.0,       80.0,       28.0,     -62.0,         90.0,      48.345,       -41.313     };
+#endif
+
+float m_Arm_Swing_Gain;
+float m_X_Offset;
+float m_Y_Offset;
+float m_Z_Offset;
+float m_R_Offset = 0;
+float m_P_Offset = 0;
+float m_A_Offset = 0;
+float m_PeriodTime;
+float m_Time;
+unsigned char m_Real_Running;
+unsigned char m_Ctrl_Running;
+unsigned char m_Servos_Active;
+unsigned long walker_lastUpdate;
+unsigned char m_Phase;
+
+float m_X_Swap_Phase_Shift;
+float m_X_Swap_Amplitude;
+float m_X_Swap_Amplitude_Shift;
+float m_X_Move_Phase_Shift;
+float m_X_Move_Amplitude;
+float m_X_Move_Amplitude_Shift;
+float m_Y_Swap_Phase_Shift;
+float m_Y_Swap_Amplitude;
+float m_Y_Swap_Amplitude_Shift;
+float m_Y_Move_Phase_Shift;
+float m_Y_Move_Amplitude;
+float m_Y_Move_Amplitude_Shift;
+float m_Z_Swap_Phase_Shift;
+float m_Z_Swap_Amplitude;
+float m_Z_Swap_Amplitude_Shift;
+float m_Z_Move_Phase_Shift;
+float m_Z_Move_Amplitude;
+float m_Z_Move_Amplitude_Shift;
+float m_A_Move_Phase_Shift;
+float m_A_Move_Amplitude;
+float m_A_Move_Amplitude_Shift;
+
+float m_X_Swap_PeriodTime;
+float m_X_Move_PeriodTime;
+float m_Y_Swap_PeriodTime;
+float m_Y_Move_PeriodTime;
+float m_Z_Swap_PeriodTime;
+float m_Z_Move_PeriodTime;
+float m_A_Move_PeriodTime;
+
+float m_SSP_Time_Start_L;
+float m_SSP_Time_End_L;
+float m_SSP_Time_Start_R;
+float m_SSP_Time_End_R;
+float m_Phase_Time1;
+float m_Phase_Time2;
+float m_Phase_Time3;
+
+float m_Pelvis_Offset;
+float m_Pelvis_Swing;
+/*
+struct Vector3D {
+	float X;
+	float Y;
+	float Z;
+};
+
+struct Matrix3D {
+	float m[16];
+};
+*/
+
+void Walker_update_param_time() {
+	m_PeriodTime = Walker_Params.PERIOD_TIME;
+    float m_SSP_Ratio = 1 - Walker_Params.DSP_RATIO;
+
+    m_X_Swap_PeriodTime = m_PeriodTime / 2;
+    m_X_Move_PeriodTime = m_PeriodTime * m_SSP_Ratio;
+    m_Y_Swap_PeriodTime = m_PeriodTime;
+    m_Y_Move_PeriodTime = m_PeriodTime * m_SSP_Ratio;
+    m_Z_Swap_PeriodTime = m_PeriodTime / 2;
+    m_Z_Move_PeriodTime = m_PeriodTime * m_SSP_Ratio / 2;
+    m_A_Move_PeriodTime = m_PeriodTime * m_SSP_Ratio;
+
+    m_SSP_Time_Start_L = (1 - m_SSP_Ratio) * m_PeriodTime / 4;
+    m_SSP_Time_End_L = (1 + m_SSP_Ratio) * m_PeriodTime / 4;
+    m_SSP_Time_Start_R = (3 - m_SSP_Ratio) * m_PeriodTime / 4;
+    m_SSP_Time_End_R = (3 + m_SSP_Ratio) * m_PeriodTime / 4;
+
+    m_Phase_Time1 = (m_SSP_Time_End_L + m_SSP_Time_Start_L) / 2;
+    m_Phase_Time2 = (m_SSP_Time_Start_R + m_SSP_Time_End_L) / 2;
+    m_Phase_Time3 = (m_SSP_Time_End_R + m_SSP_Time_Start_R) / 2;
+
+    m_Pelvis_Offset = Walker_Params.PELVIS_OFFSET;
+    m_Pelvis_Swing = m_Pelvis_Offset * 0.35;
+    m_Arm_Swing_Gain = Walker_Params.ARM_SWING_GAIN;
+}
+
+void Walker_update_param_move() {
+	// Forward/Back
+    m_X_Move_Amplitude = Walker_X_MOVE_AMPLITUDE;
+    m_X_Swap_Amplitude = Walker_X_MOVE_AMPLITUDE * Walker_Params.STEP_FB_RATIO;
+
+    // Right/Left
+    m_Y_Move_Amplitude = Walker_Y_MOVE_AMPLITUDE / 2;
+    if(m_Y_Move_Amplitude > 0) {
+        m_Y_Move_Amplitude_Shift = m_Y_Move_Amplitude;
+    } else {
+        m_Y_Move_Amplitude_Shift = -m_Y_Move_Amplitude;
+    }
+    m_Y_Swap_Amplitude = Walker_Params.Y_SWAP_AMPLITUDE + m_Y_Move_Amplitude_Shift * 0.04;
+
+    m_Z_Move_Amplitude = Walker_Params.Z_MOVE_AMPLITUDE / 2;
+    m_Z_Move_Amplitude_Shift = m_Z_Move_Amplitude / 2;
+    m_Z_Swap_Amplitude = Walker_Params.Z_SWAP_AMPLITUDE;
+    m_Z_Swap_Amplitude_Shift = m_Z_Swap_Amplitude;
+
+    // Direction
+    if(Walker_A_MOVE_AIM_ON == 0) {
+        m_A_Move_Amplitude = Walker_A_MOVE_AMPLITUDE * M_PI / 180.0 / 2;
+        if(m_A_Move_Amplitude > 0)
+            m_A_Move_Amplitude_Shift = m_A_Move_Amplitude;
+        else
+            m_A_Move_Amplitude_Shift = -m_A_Move_Amplitude;
+    } else {
+        m_A_Move_Amplitude = -Walker_A_MOVE_AMPLITUDE * M_PI / 180.0 / 2;
+        if(m_A_Move_Amplitude > 0)
+            m_A_Move_Amplitude_Shift = -m_A_Move_Amplitude;
+        else
+            m_A_Move_Amplitude_Shift = m_A_Move_Amplitude;
+    }
+}
+
+void Walker_update_param_balance() {
+	m_X_Offset = Walker_Params.X_OFFSET;
+    m_Y_Offset = Walker_Params.Y_OFFSET;
+    m_Z_Offset = Walker_Params.Z_OFFSET;
+    m_R_Offset = Walker_Params.R_OFFSET * M_PI / 180.0;
+    m_P_Offset = Walker_Params.P_OFFSET * M_PI / 180.0;
+    m_A_Offset = Walker_Params.A_OFFSET * M_PI / 180.0;
+}
+
+void Walker_ResetParameters(void) {
+	Walker_Params.X_OFFSET = 0;
+	Walker_Params.Y_OFFSET = 5;
+	Walker_Params.Z_OFFSET = 25;
+    Walker_Params.A_OFFSET = 0;
+    Walker_Params.HIP_PITCH_OFFSET = -1.1;
+	Walker_Params.PERIOD_TIME = 650;
+	Walker_Params.DSP_RATIO = 0.1;
+	Walker_Params.STEP_FB_RATIO = 0.28;
+	Walker_Params.Z_MOVE_AMPLITUDE = 23; //40;
+    Walker_Params.Y_SWAP_AMPLITUDE = 23.0; // 20.0
+    Walker_Params.Z_SWAP_AMPLITUDE = 0; // 5
+    Walker_Params.PELVIS_OFFSET = 8.0;
+    Walker_Params.ARM_SWING_GAIN = 1.5;
+	Walker_Params.BALANCE_KNEE_GAIN = 0.3;
+	Walker_Params.BALANCE_ANKLE_PITCH_GAIN = 0.9;
+	Walker_Params.BALANCE_HIP_ROLL_GAIN = 0.5;
+	Walker_Params.BALANCE_ANKLE_ROLL_GAIN = 1.0;
+	Walker_Params.BALANCE_ENABLE = 1;
+}
+
+void Walker_Init(void) {
+	Walker_ResetParameters();
+
+	eeprom_read("WALKER", &Walker_Params, sizeof(Walker_Params));
+
+	Walker_ServoSettings.version = 0;
+	Walker_ServoSettings.Pgain = 30;
+	Walker_ServoSettings.Igain = 1;
+	Walker_ServoSettings.Dgain = 70;
+	Walker_ServoSettings.overload = 104; // 1000 mA
+	eeprom_read("WALKER_SERVO", &Walker_ServoSettings, sizeof(Walker_ServoSettings));
+
+	Walker_X_MOVE_AMPLITUDE   = 0;
+    Walker_Y_MOVE_AMPLITUDE   = 0;
+    Walker_A_MOVE_AMPLITUDE   = 0;
+
+	m_X_Swap_Phase_Shift = M_PI;
+    m_X_Swap_Amplitude_Shift = 0;
+    m_X_Move_Phase_Shift = M_PI / 2;
+    m_X_Move_Amplitude_Shift = 0;
+    m_Y_Swap_Phase_Shift = 0;
+    m_Y_Swap_Amplitude_Shift = 0;
+    m_Y_Move_Phase_Shift = M_PI / 2;
+    m_Z_Swap_Phase_Shift = M_PI * 3 / 2;
+    m_Z_Move_Phase_Shift = M_PI / 2;
+    m_A_Move_Phase_Shift = M_PI / 2;
+
+	m_Ctrl_Running = 0;
+    m_Real_Running = 0;
+    m_Servos_Active = 1;
+    m_Time = 0;
+    Walker_update_param_time();
+    Walker_update_param_move();
+
+    Walker_Process();
+}
+
+void Walker_ResetArmPositions(void)
+{
+#ifdef DYNAMIXEL
+	Servo_SetPosition(SERVO_ID_R_SHOULDER_PITCH, 48.345);
+	Servo_SetPosition(SERVO_ID_L_SHOULDER_PITCH, -41.313);
+	Servo_SetPosition(SERVO_ID_R_SHOULDER_ROLL, 17.873);
+	Servo_SetPosition(SERVO_ID_L_SHOULDER_ROLL, -17.580);
+	Servo_SetPosition(SERVO_ID_R_ELBOW, -29.300);
+	Servo_SetPosition(SERVO_ID_L_ELBOW, 29.593);
+#else
+	inverse_startCycle();
+	struct vect3d_ext target;
+	target.x = 0;
+	target.y = 0;
+	target.z = 80;
+	target.yaw = 0;
+	inverse_calc(ARM_LEFT, &target);
+	inverse_calc(ARM_RIGHT, &target);
+	inverse_endCycle(0);
+#endif
+}
+
+float wsin(float time, float period, float period_shift, float mag, float mag_shift) {
+	return mag * sin(2 * M_PI / period * time - period_shift) + mag_shift;
+}
+/*
+void Vector3D_Init(struct Vector3D* vect, float x, float y, float z) {
+	vect->X = x;
+	vect->Y = y;
+	vect->Z = z;
+}
+
+float Vector3D_Length(struct Vector3D* vect) {
+	return sqrt(vect->X*vect->X + vect->Y*vect->Y + vect->Z*vect->Z);
+}
+
+void Matrix3D_Identity(struct Matrix3D* mat) {
+	mat->m[0] = 1; mat->m[1] = 0; mat->m[2] = 0; mat->m[3] = 0;
+	mat->m[4] = 0; mat->m[5] = 1; mat->m[6] = 0; mat->m[7] = 0;
+	mat->m[8] = 0; mat->m[9] = 0; mat->m[10] = 1; mat->m[11] = 0;
+	mat->m[12] = 0; mat->m[13] = 0; mat->m[14] = 0; mat->m[15] = 1;
+}
+
+void Matrix3D_Copy(struct Matrix3D* dest, struct Matrix3D* src) {
+	for (int i = 0; i < 16; i++)
+        dest->m[i] = src->m[i];
+}
+
+unsigned char Matrix3D_Inverse(struct Matrix3D* mat) {
+	struct Matrix3D src, dst, tmp;
+	double det;
+
+    // transpose matrix
+    for (int i = 0; i < 4; i++) {
+        src.m[i] = mat->m[i*4];
+        src.m[i + 4] = mat->m[i*4 + 1];
+        src.m[i + 8] = mat->m[i*4 + 2];
+        src.m[i + 12] = mat->m[i*4 + 3];
+    }
+
+    // calculate pairs for first 8 elements (cofactors)
+    tmp.m[0] = src.m[10] * src.m[15];
+    tmp.m[1] = src.m[11] * src.m[14];
+    tmp.m[2] = src.m[9] * src.m[15];
+    tmp.m[3] = src.m[11] * src.m[13];
+    tmp.m[4] = src.m[9] * src.m[14];
+    tmp.m[5] = src.m[10] * src.m[13];
+    tmp.m[6] = src.m[8] * src.m[15];
+    tmp.m[7] = src.m[11] * src.m[12];
+    tmp.m[8] = src.m[8] * src.m[14];
+    tmp.m[9] = src.m[10] * src.m[12];
+    tmp.m[10] = src.m[8] * src.m[13];
+    tmp.m[11] = src.m[9] * src.m[12];
+    // calculate first 8 elements (cofactors)
+    dst.m[0] = (tmp.m[0]*src.m[5] + tmp.m[3]*src.m[6] + tmp.m[4]*src.m[7]) - (tmp.m[1]*src.m[5] + tmp.m[2]*src.m[6] + tmp.m[5]*src.m[7]);
+    dst.m[1] = (tmp.m[1]*src.m[4] + tmp.m[6]*src.m[6] + tmp.m[9]*src.m[7]) - (tmp.m[0]*src.m[4] + tmp.m[7]*src.m[6] + tmp.m[8]*src.m[7]);
+    dst.m[2] = (tmp.m[2]*src.m[4] + tmp.m[7]*src.m[5] + tmp.m[10]*src.m[7]) - (tmp.m[3]*src.m[4] + tmp.m[6]*src.m[5] + tmp.m[11]*src.m[7]);
+    dst.m[3] = (tmp.m[5]*src.m[4] + tmp.m[8]*src.m[5] + tmp.m[11]*src.m[6]) - (tmp.m[4]*src.m[4] + tmp.m[9]*src.m[5] + tmp.m[10]*src.m[6]);
+    dst.m[4] = (tmp.m[1]*src.m[1] + tmp.m[2]*src.m[2] + tmp.m[5]*src.m[3]) - (tmp.m[0]*src.m[1] + tmp.m[3]*src.m[2] + tmp.m[4]*src.m[3]);
+    dst.m[5] = (tmp.m[0]*src.m[0] + tmp.m[7]*src.m[2] + tmp.m[8]*src.m[3]) - (tmp.m[1]*src.m[0] + tmp.m[6]*src.m[2] + tmp.m[9]*src.m[3]);
+    dst.m[6] = (tmp.m[3]*src.m[0] + tmp.m[6]*src.m[1] + tmp.m[11]*src.m[3]) - (tmp.m[2]*src.m[0] + tmp.m[7]*src.m[1] + tmp.m[10]*src.m[3]);
+    dst.m[7] = (tmp.m[4]*src.m[0] + tmp.m[9]*src.m[1] + tmp.m[10]*src.m[2]) - (tmp.m[5]*src.m[0] + tmp.m[8]*src.m[1] + tmp.m[11]*src.m[2]);
+    // calculate pairs for second 8 elements (cofactors)
+    tmp.m[0] = src.m[2]*src.m[7];
+    tmp.m[1] = src.m[3]*src.m[6];
+    tmp.m[2] = src.m[1]*src.m[7];
+    tmp.m[3] = src.m[3]*src.m[5];
+    tmp.m[4] = src.m[1]*src.m[6];
+    tmp.m[5] = src.m[2]*src.m[5];
+    //Streaming SIMD Extensions - Inverse of 4x4 Matrix 8
+    tmp.m[6] = src.m[0]*src.m[7];
+    tmp.m[7] = src.m[3]*src.m[4];
+    tmp.m[8] = src.m[0]*src.m[6];
+    tmp.m[9] = src.m[2]*src.m[4];
+    tmp.m[10] = src.m[0]*src.m[5];
+    tmp.m[11] = src.m[1]*src.m[4];
+    // calculate second 8 elements (cofactors)
+    dst.m[8] = (tmp.m[0]*src.m[13] + tmp.m[3]*src.m[14] + tmp.m[4]*src.m[15]) - (tmp.m[1]*src.m[13] + tmp.m[2]*src.m[14] + tmp.m[5]*src.m[15]);
+    dst.m[9] = (tmp.m[1]*src.m[12] + tmp.m[6]*src.m[14] + tmp.m[9]*src.m[15]) - (tmp.m[0]*src.m[12] + tmp.m[7]*src.m[14] + tmp.m[8]*src.m[15]);
+    dst.m[10] = (tmp.m[2]*src.m[12] + tmp.m[7]*src.m[13] + tmp.m[10]*src.m[15]) - (tmp.m[3]*src.m[12] + tmp.m[6]*src.m[13] + tmp.m[11]*src.m[15]);
+    dst.m[11] = (tmp.m[5]*src.m[12] + tmp.m[8]*src.m[13] + tmp.m[11]*src.m[14]) - (tmp.m[4]*src.m[12] + tmp.m[9]*src.m[13] + tmp.m[10]*src.m[14]);
+    dst.m[12] = (tmp.m[2]*src.m[10] + tmp.m[5]*src.m[11] + tmp.m[1]*src.m[9]) - (tmp.m[4]*src.m[11] + tmp.m[0]*src.m[9] + tmp.m[3]*src.m[10]);
+    dst.m[13] = (tmp.m[8]*src.m[11] + tmp.m[0]*src.m[8] + tmp.m[7]*src.m[10]) - (tmp.m[6]*src.m[10] + tmp.m[9]*src.m[11] + tmp.m[1]*src.m[8]);
+    dst.m[14] = (tmp.m[6]*src.m[9] + tmp.m[11]*src.m[11] + tmp.m[3]*src.m[8]) - (tmp.m[10]*src.m[11] + tmp.m[2]*src.m[8] + tmp.m[7]*src.m[9]);
+    dst.m[15] = (tmp.m[10]*src.m[10] + tmp.m[4]*src.m[8] + tmp.m[9]*src.m[9]) - (tmp.m[8]*src.m[9] + tmp.m[11]*src.m[10] + tmp.m[5]*src.m[8]);
+    // calculate determinant
+    det = src.m[0]*dst.m[0] + src.m[1]*dst.m[1] + src.m[2]*dst.m[2] + src.m[3]*dst.m[3];
+    // calculate matrix inverse
+    if (det == 0) {
+        det = 0;
+        return 0;
+    } else {
+        det = 1 / det;
+    }
+
+    for (int i = 0; i < 16; i++)
+        mat->m[i] = dst.m[i] * det;
+
+    return 1;
+}
+
+void Matrix3D_Multiply(struct Matrix3D* dest, struct Matrix3D* left, struct Matrix3D* right) {
+	Matrix3D_Identity(dest);
+    for (int j = 0; j < 4; j++) {
+        for (int i = 0; i < 4; i++) {
+            for (int c = 0; c < 4; c++) {
+				dest->m[j*4+i] += left->m[j*4+c] * right->m[c*4+i];
+            }
+        }
+    }
+}
+
+void Matrix3D_SetTransform(struct Matrix3D* mat, struct Vector3D* point, struct Vector3D* angle) {
+	float Cx = cos(angle->X * M_PI / 180.0);
+	float Cy = cos(angle->Y * M_PI / 180.0);
+	float Cz = cos(angle->Z * M_PI / 180.0);
+	float Sx = sin(angle->X * M_PI / 180.0);
+	float Sy = sin(angle->Y * M_PI / 180.0);
+	float Sz = sin(angle->Z * M_PI / 180.0);
+
+	Matrix3D_Identity(mat);
+	mat->m[0] = Cz * Cy;
+    mat->m[1] = Cz * Sy * Sx - Sz * Cx;
+    mat->m[2] = Cz * Sy * Cx + Sz * Sx;
+	mat->m[3] = point->X;
+    mat->m[4] = Sz * Cy;
+    mat->m[5] = Sz * Sy * Sx + Cz * Cx;
+    mat->m[6] = Sz * Sy * Cx - Cz * Sx;
+    mat->m[7] = point->Y;
+    mat->m[8] = -Sy;
+    mat->m[9] = Cy * Sx;
+    mat->m[10] = Cy * Cx;
+    mat->m[11] = point->Z;
+}
+*/
+/*
+unsigned char Walker_computeIK(float *out, float x, float y, float z, float a, float b, float c) {
+	struct Matrix3D Tad, Tda, Tcd, Tdc, Tac;
+	struct Vector3D vec;
+    double _Rac, _Acos, _Atan, _k, _l, _m, _n, _s, _c, _theta;
+
+    struct Vector3D tmp1, tmp2;
+    Vector3D_Init(&tmp1, x, y, z - LEG_LENGTH);
+    Vector3D_Init(&tmp2, a * 180.0 / M_PI, b * 180.0 / M_PI, c * 180.0 / M_PI);
+    Matrix3D_SetTransform(&Tad, &tmp1, &tmp2);
+
+	vec.X = x + Tad.m[2] * ANKLE_LENGTH;
+    vec.Y = y + Tad.m[6] * ANKLE_LENGTH;
+    vec.Z = (z - LEG_LENGTH) + Tad.m[10] * ANKLE_LENGTH;
+
+    // Get Knee
+	_Rac = Vector3D_Length(&vec);
+    _Acos = acos((_Rac * _Rac - THIGH_LENGTH * THIGH_LENGTH - CALF_LENGTH * CALF_LENGTH) / (2 * THIGH_LENGTH * CALF_LENGTH));
+    if(isnan(_Acos) == 1)
+		return 0;
+    *(out + 3) = _Acos;
+
+    // Get Ankle Roll
+	Matrix3D_Copy(&Tda, &Tad); // Tda = Tad;
+	if(Matrix3D_Inverse(&Tda) == 0)
+        return 0;
+    _k = sqrt(Tda.m[7] * Tda.m[7] + Tda.m[11] * Tda.m[11]);
+    _l = sqrt(Tda.m[7] * Tda.m[7] + (Tda.m[11] - ANKLE_LENGTH) * (Tda.m[11] - ANKLE_LENGTH));
+    _m = (_k * _k - _l * _l - ANKLE_LENGTH * ANKLE_LENGTH) / (2 * _l * ANKLE_LENGTH);
+    if(_m > 1.0)
+        _m = 1.0;
+    else if(_m < -1.0)
+        _m = -1.0;
+    _Acos = acos(_m);
+    if(isnan(_Acos) == 1)
+        return 0;
+    if(Tda.m[7] < 0.0)
+        *(out + 5) = -_Acos;
+    else
+        *(out + 5) = _Acos;
+
+    // Get Hip Yaw
+    Vector3D_Init(&tmp1, 0, 0, -ANKLE_LENGTH);
+    Vector3D_Init(&tmp2, *(out + 5) * 180.0 / M_PI, 0, 0);
+    Matrix3D_SetTransform(&Tcd, &tmp1, &tmp2);
+	Matrix3D_Copy(&Tdc, &Tcd); // Tdc = Tcd;
+	if(Matrix3D_Inverse(&Tdc) == 0)
+        return 0;
+	Matrix3D_Multiply(&Tac, &Tad, &Tdc); //Tac = Tad * Tdc;
+    _Atan = atan2(-Tac.m[1] , Tac.m[5]);
+    if(isinf(_Atan) == 1)
+        return 0;
+    *(out) = _Atan;
+
+    // Get Hip Roll
+    _Atan = atan2(Tac.m[9], -Tac.m[1] * sin(*(out)) + Tac.m[5] * cos(*(out)));
+    if(isinf(_Atan) == 1)
+        return 0;
+    *(out + 1) = _Atan;
+
+    // Get Hip Pitch and Ankle Pitch
+    _Atan = atan2(Tac.m[2] * cos(*(out)) + Tac.m[6] * sin(*(out)), Tac.m[0] * cos(*(out)) + Tac.m[4] * sin(*(out)));
+    if(isinf(_Atan) == 1)
+        return 0;
+    _theta = _Atan;
+    _k = sin(*(out + 3)) * CALF_LENGTH;
+    _l = -THIGH_LENGTH - cos(*(out + 3)) * CALF_LENGTH;
+	_m = cos(*(out)) * vec.X + sin(*(out)) * vec.Y;
+	_n = cos(*(out + 1)) * vec.Z + sin(*(out)) * sin(*(out + 1)) * vec.X - cos(*(out)) * sin(*(out + 1)) * vec.Y;
+    _s = (_k * _n + _l * _m) / (_k * _k + _l * _l);
+    _c = (_n - _k * _s) / _l;
+    _Atan = atan2(_s, _c);
+    if(isinf(_Atan) == 1)
+        return 0;
+    *(out + 2) = _Atan;
+    *(out + 4) = _theta - *(out + 3) - *(out + 2);
+
+    return 1;
+}
+*/
+
+unsigned char Walker_computeIK_Wolves(float *out, float x, float y, float z, float a, float b, float c) {
+	// Calculations based on http://www.fumanoids.de/wp-content/uploads/2011/01/Bachelorarbeit-Otte.pdf, chapter 5.4.2
+
+	// 1st step: Rotate foot
+	// HIP_YAW is only servo available to rotate foot, so set it
+	*(out) = c; // 0 = HIP_YAW
+	// Rotate coordinates accordingly
+	float x2 = x * cos(c) + y * sin(c);
+	float y2 = x * sin(c) + y * cos(c);
+	float z2 = (THIGH_LENGTH + CALF_LENGTH) - z;
+
+	//dbgu_printf("[inverse_calc] x,y,z 2 = %3.5f, %3.5f, %3.5f\r\n", x2, y2, z2);
+
+	// 2nd step: Set roll angles
+	// Calculate HIP_ROLL from y2 and z2
+	float x3 = x2;
+	//float y3 = y2;
+	float z3 = sqrt((y2 * y2) + (z2 * z2));
+	*(out + 1) = atan2(y2, z2); // HIP_ROLL
+	// Set foot parallel
+	*(out + 5) = -*(out + 1); // FOOT_ROLL
+	// Divide by 2 to get same value as from original darwin IK
+	*(out + 1) /= 2;
+
+	//dbgu_printf("[inverse_calc] x,y,z 3 = %3.5f, %3.5f, %3.5f\r\n", x3, y3, z3);
+	// 3rd step:
+	// Calculate effective leg length
+	float df = sqrt((z3 * z3) + (x3 * x3));
+
+	float beta = acos((df/ 2) / THIGH_LENGTH);
+	*(out + 3) = (2 * beta); // KNEE
+	// Calculate hip pitch
+	float alpha = atan2(x3, z3);
+	*(out + 2) = -(alpha + beta); // HIP_PITCH
+	// Set foot pitch to be parallel
+	*(out + 4) = -(-alpha + beta); // FOOT_PITCH
+
+	return 1;
+}
+
+void Walker_Process(void) {
+	float ep[12];
+	float angle[14];
+	float outValue[14];
+	float x_swap, y_swap, z_swap;
+	float x_move_r, y_move_r, z_move_r, c_move_r;
+    float x_move_l, y_move_l, z_move_l, c_move_l;
+	float pelvis_offset_r, pelvis_offset_l;
+
+	float dt = TC_GetMsSinceTick(walker_lastUpdate);
+	walker_lastUpdate = TC_GetSystemTicks();
+
+    // Update walk parameters
+    if (m_Time == 0) {
+		Walker_update_param_time();
+		m_Phase = PHASE0;
+		if (m_Ctrl_Running == 0) {
+			if (m_X_Move_Amplitude == 0 && m_Y_Move_Amplitude == 0 && m_A_Move_Amplitude == 0) {
+				m_Real_Running = 0;
+			} else {
+				Walker_X_MOVE_AMPLITUDE = 0;
+				Walker_Y_MOVE_AMPLITUDE = 0;
+				Walker_A_MOVE_AMPLITUDE = 0;
+			}
+		}
+	} else if (m_Time >= (m_Phase_Time1 - dt / 2) && m_Time < (m_Phase_Time1 + dt / 2)) {
+		Walker_update_param_move();
+		m_Phase = PHASE1;
+	} else if (m_Time >= (m_Phase_Time2 - dt / 2) && m_Time < (m_Phase_Time2 + dt / 2)) {
+		Walker_update_param_time();
+		m_Time = m_Phase_Time2;
+		m_Phase = PHASE2;
+		if (m_Ctrl_Running == 0) {
+			if (m_X_Move_Amplitude == 0 && m_Y_Move_Amplitude == 0 && m_A_Move_Amplitude == 0) {
+				m_Real_Running = 0;
+			} else {
+				Walker_X_MOVE_AMPLITUDE = 0;
+				Walker_Y_MOVE_AMPLITUDE = 0;
+				Walker_A_MOVE_AMPLITUDE = 0;
+			}
+		}
+	} else if (m_Time >= (m_Phase_Time3 - dt / 2) && m_Time < (m_Phase_Time3 + dt / 2)) {
+		Walker_update_param_move();
+		m_Phase = PHASE3;
+	}
+	Walker_update_param_balance();
+
+    // Compute endpoints
+    x_swap = wsin(m_Time, m_X_Swap_PeriodTime, m_X_Swap_Phase_Shift, m_X_Swap_Amplitude, m_X_Swap_Amplitude_Shift);
+    y_swap = wsin(m_Time, m_Y_Swap_PeriodTime, m_Y_Swap_Phase_Shift, m_Y_Swap_Amplitude, m_Y_Swap_Amplitude_Shift);
+    z_swap = wsin(m_Time, m_Z_Swap_PeriodTime, m_Z_Swap_Phase_Shift, m_Z_Swap_Amplitude, m_Z_Swap_Amplitude_Shift);
+    if(m_Time <= m_SSP_Time_Start_L) {
+        x_move_l = wsin(m_SSP_Time_Start_L, m_X_Move_PeriodTime, m_X_Move_Phase_Shift + 2 * M_PI / m_X_Move_PeriodTime * m_SSP_Time_Start_L, m_X_Move_Amplitude, m_X_Move_Amplitude_Shift);
+        y_move_l = wsin(m_SSP_Time_Start_L, m_Y_Move_PeriodTime, m_Y_Move_Phase_Shift + 2 * M_PI / m_Y_Move_PeriodTime * m_SSP_Time_Start_L, m_Y_Move_Amplitude, m_Y_Move_Amplitude_Shift);
+        z_move_l = wsin(m_SSP_Time_Start_L, m_Z_Move_PeriodTime, m_Z_Move_Phase_Shift + 2 * M_PI / m_Z_Move_PeriodTime * m_SSP_Time_Start_L, m_Z_Move_Amplitude, m_Z_Move_Amplitude_Shift);
+        c_move_l = wsin(m_SSP_Time_Start_L, m_A_Move_PeriodTime, m_A_Move_Phase_Shift + 2 * M_PI / m_A_Move_PeriodTime * m_SSP_Time_Start_L, m_A_Move_Amplitude, m_A_Move_Amplitude_Shift);
+        x_move_r = wsin(m_SSP_Time_Start_L, m_X_Move_PeriodTime, m_X_Move_Phase_Shift + 2 * M_PI / m_X_Move_PeriodTime * m_SSP_Time_Start_L, -m_X_Move_Amplitude, -m_X_Move_Amplitude_Shift);
+        y_move_r = wsin(m_SSP_Time_Start_L, m_Y_Move_PeriodTime, m_Y_Move_Phase_Shift + 2 * M_PI / m_Y_Move_PeriodTime * m_SSP_Time_Start_L, -m_Y_Move_Amplitude, -m_Y_Move_Amplitude_Shift);
+        z_move_r = wsin(m_SSP_Time_Start_R, m_Z_Move_PeriodTime, m_Z_Move_Phase_Shift + 2 * M_PI / m_Z_Move_PeriodTime * m_SSP_Time_Start_R, m_Z_Move_Amplitude, m_Z_Move_Amplitude_Shift);
+        c_move_r = wsin(m_SSP_Time_Start_L, m_A_Move_PeriodTime, m_A_Move_Phase_Shift + 2 * M_PI / m_A_Move_PeriodTime * m_SSP_Time_Start_L, -m_A_Move_Amplitude, -m_A_Move_Amplitude_Shift);
+        pelvis_offset_l = 0;
+        pelvis_offset_r = 0;
+    } else if(m_Time <= m_SSP_Time_End_L) {
+        x_move_l = wsin(m_Time, m_X_Move_PeriodTime, m_X_Move_Phase_Shift + 2 * M_PI / m_X_Move_PeriodTime * m_SSP_Time_Start_L, m_X_Move_Amplitude, m_X_Move_Amplitude_Shift);
+        y_move_l = wsin(m_Time, m_Y_Move_PeriodTime, m_Y_Move_Phase_Shift + 2 * M_PI / m_Y_Move_PeriodTime * m_SSP_Time_Start_L, m_Y_Move_Amplitude, m_Y_Move_Amplitude_Shift);
+        z_move_l = wsin(m_Time, m_Z_Move_PeriodTime, m_Z_Move_Phase_Shift + 2 * M_PI / m_Z_Move_PeriodTime * m_SSP_Time_Start_L, m_Z_Move_Amplitude, m_Z_Move_Amplitude_Shift);
+        c_move_l = wsin(m_Time, m_A_Move_PeriodTime, m_A_Move_Phase_Shift + 2 * M_PI / m_A_Move_PeriodTime * m_SSP_Time_Start_L, m_A_Move_Amplitude, m_A_Move_Amplitude_Shift);
+        x_move_r = wsin(m_Time, m_X_Move_PeriodTime, m_X_Move_Phase_Shift + 2 * M_PI / m_X_Move_PeriodTime * m_SSP_Time_Start_L, -m_X_Move_Amplitude, -m_X_Move_Amplitude_Shift);
+        y_move_r = wsin(m_Time, m_Y_Move_PeriodTime, m_Y_Move_Phase_Shift + 2 * M_PI / m_Y_Move_PeriodTime * m_SSP_Time_Start_L, -m_Y_Move_Amplitude, -m_Y_Move_Amplitude_Shift);
+        z_move_r = wsin(m_SSP_Time_Start_R, m_Z_Move_PeriodTime, m_Z_Move_Phase_Shift + 2 * M_PI / m_Z_Move_PeriodTime * m_SSP_Time_Start_R, m_Z_Move_Amplitude, m_Z_Move_Amplitude_Shift);
+        c_move_r = wsin(m_Time, m_A_Move_PeriodTime, m_A_Move_Phase_Shift + 2 * M_PI / m_A_Move_PeriodTime * m_SSP_Time_Start_L, -m_A_Move_Amplitude, -m_A_Move_Amplitude_Shift);
+        pelvis_offset_l = wsin(m_Time, m_Z_Move_PeriodTime, m_Z_Move_Phase_Shift + 2 * M_PI / m_Z_Move_PeriodTime * m_SSP_Time_Start_L, m_Pelvis_Swing / 2, m_Pelvis_Swing / 2);
+        pelvis_offset_r = wsin(m_Time, m_Z_Move_PeriodTime, m_Z_Move_Phase_Shift + 2 * M_PI / m_Z_Move_PeriodTime * m_SSP_Time_Start_L, -m_Pelvis_Offset / 2, -m_Pelvis_Offset / 2);
+    } else if(m_Time <= m_SSP_Time_Start_R) {
+        x_move_l = wsin(m_SSP_Time_End_L, m_X_Move_PeriodTime, m_X_Move_Phase_Shift + 2 * M_PI / m_X_Move_PeriodTime * m_SSP_Time_Start_L, m_X_Move_Amplitude, m_X_Move_Amplitude_Shift);
+        y_move_l = wsin(m_SSP_Time_End_L, m_Y_Move_PeriodTime, m_Y_Move_Phase_Shift + 2 * M_PI / m_Y_Move_PeriodTime * m_SSP_Time_Start_L, m_Y_Move_Amplitude, m_Y_Move_Amplitude_Shift);
+        z_move_l = wsin(m_SSP_Time_End_L, m_Z_Move_PeriodTime, m_Z_Move_Phase_Shift + 2 * M_PI / m_Z_Move_PeriodTime * m_SSP_Time_Start_L, m_Z_Move_Amplitude, m_Z_Move_Amplitude_Shift);
+        c_move_l = wsin(m_SSP_Time_End_L, m_A_Move_PeriodTime, m_A_Move_Phase_Shift + 2 * M_PI / m_A_Move_PeriodTime * m_SSP_Time_Start_L, m_A_Move_Amplitude, m_A_Move_Amplitude_Shift);
+        x_move_r = wsin(m_SSP_Time_End_L, m_X_Move_PeriodTime, m_X_Move_Phase_Shift + 2 * M_PI / m_X_Move_PeriodTime * m_SSP_Time_Start_L, -m_X_Move_Amplitude, -m_X_Move_Amplitude_Shift);
+        y_move_r = wsin(m_SSP_Time_End_L, m_Y_Move_PeriodTime, m_Y_Move_Phase_Shift + 2 * M_PI / m_Y_Move_PeriodTime * m_SSP_Time_Start_L, -m_Y_Move_Amplitude, -m_Y_Move_Amplitude_Shift);
+        z_move_r = wsin(m_SSP_Time_Start_R, m_Z_Move_PeriodTime, m_Z_Move_Phase_Shift + 2 * M_PI / m_Z_Move_PeriodTime * m_SSP_Time_Start_R, m_Z_Move_Amplitude, m_Z_Move_Amplitude_Shift);
+        c_move_r = wsin(m_SSP_Time_End_L, m_A_Move_PeriodTime, m_A_Move_Phase_Shift + 2 * M_PI / m_A_Move_PeriodTime * m_SSP_Time_Start_L, -m_A_Move_Amplitude, -m_A_Move_Amplitude_Shift);
+        pelvis_offset_l = 0;
+        pelvis_offset_r = 0;
+    } else if(m_Time <= m_SSP_Time_End_R) {
+        x_move_l = wsin(m_Time, m_X_Move_PeriodTime, m_X_Move_Phase_Shift + 2 * M_PI / m_X_Move_PeriodTime * m_SSP_Time_Start_R + M_PI, m_X_Move_Amplitude, m_X_Move_Amplitude_Shift);
+        y_move_l = wsin(m_Time, m_Y_Move_PeriodTime, m_Y_Move_Phase_Shift + 2 * M_PI / m_Y_Move_PeriodTime * m_SSP_Time_Start_R + M_PI, m_Y_Move_Amplitude, m_Y_Move_Amplitude_Shift);
+        z_move_l = wsin(m_SSP_Time_End_L, m_Z_Move_PeriodTime, m_Z_Move_Phase_Shift + 2 * M_PI / m_Z_Move_PeriodTime * m_SSP_Time_Start_L, m_Z_Move_Amplitude, m_Z_Move_Amplitude_Shift);
+        c_move_l = wsin(m_Time, m_A_Move_PeriodTime, m_A_Move_Phase_Shift + 2 * M_PI / m_A_Move_PeriodTime * m_SSP_Time_Start_R + M_PI, m_A_Move_Amplitude, m_A_Move_Amplitude_Shift);
+        x_move_r = wsin(m_Time, m_X_Move_PeriodTime, m_X_Move_Phase_Shift + 2 * M_PI / m_X_Move_PeriodTime * m_SSP_Time_Start_R + M_PI, -m_X_Move_Amplitude, -m_X_Move_Amplitude_Shift);
+        y_move_r = wsin(m_Time, m_Y_Move_PeriodTime, m_Y_Move_Phase_Shift + 2 * M_PI / m_Y_Move_PeriodTime * m_SSP_Time_Start_R + M_PI, -m_Y_Move_Amplitude, -m_Y_Move_Amplitude_Shift);
+        z_move_r = wsin(m_Time, m_Z_Move_PeriodTime, m_Z_Move_Phase_Shift + 2 * M_PI / m_Z_Move_PeriodTime * m_SSP_Time_Start_R, m_Z_Move_Amplitude, m_Z_Move_Amplitude_Shift);
+        c_move_r = wsin(m_Time, m_A_Move_PeriodTime, m_A_Move_Phase_Shift + 2 * M_PI / m_A_Move_PeriodTime * m_SSP_Time_Start_R + M_PI, -m_A_Move_Amplitude, -m_A_Move_Amplitude_Shift);
+        pelvis_offset_l = wsin(m_Time, m_Z_Move_PeriodTime, m_Z_Move_Phase_Shift + 2 * M_PI / m_Z_Move_PeriodTime * m_SSP_Time_Start_R, m_Pelvis_Offset / 2, m_Pelvis_Offset / 2);
+        pelvis_offset_r = wsin(m_Time, m_Z_Move_PeriodTime, m_Z_Move_Phase_Shift + 2 * M_PI / m_Z_Move_PeriodTime * m_SSP_Time_Start_R, -m_Pelvis_Swing / 2, -m_Pelvis_Swing / 2);
+    } else {
+        x_move_l = wsin(m_SSP_Time_End_R, m_X_Move_PeriodTime, m_X_Move_Phase_Shift + 2 * M_PI / m_X_Move_PeriodTime * m_SSP_Time_Start_R + M_PI, m_X_Move_Amplitude, m_X_Move_Amplitude_Shift);
+        y_move_l = wsin(m_SSP_Time_End_R, m_Y_Move_PeriodTime, m_Y_Move_Phase_Shift + 2 * M_PI / m_Y_Move_PeriodTime * m_SSP_Time_Start_R + M_PI, m_Y_Move_Amplitude, m_Y_Move_Amplitude_Shift);
+        z_move_l = wsin(m_SSP_Time_End_L, m_Z_Move_PeriodTime, m_Z_Move_Phase_Shift + 2 * M_PI / m_Z_Move_PeriodTime * m_SSP_Time_Start_L, m_Z_Move_Amplitude, m_Z_Move_Amplitude_Shift);
+        c_move_l = wsin(m_SSP_Time_End_R, m_A_Move_PeriodTime, m_A_Move_Phase_Shift + 2 * M_PI / m_A_Move_PeriodTime * m_SSP_Time_Start_R + M_PI, m_A_Move_Amplitude, m_A_Move_Amplitude_Shift);
+        x_move_r = wsin(m_SSP_Time_End_R, m_X_Move_PeriodTime, m_X_Move_Phase_Shift + 2 * M_PI / m_X_Move_PeriodTime * m_SSP_Time_Start_R + M_PI, -m_X_Move_Amplitude, -m_X_Move_Amplitude_Shift);
+        y_move_r = wsin(m_SSP_Time_End_R, m_Y_Move_PeriodTime, m_Y_Move_Phase_Shift + 2 * M_PI / m_Y_Move_PeriodTime * m_SSP_Time_Start_R + M_PI, -m_Y_Move_Amplitude, -m_Y_Move_Amplitude_Shift);
+        z_move_r = wsin(m_SSP_Time_End_R, m_Z_Move_PeriodTime, m_Z_Move_Phase_Shift + 2 * M_PI / m_Z_Move_PeriodTime * m_SSP_Time_Start_R, m_Z_Move_Amplitude, m_Z_Move_Amplitude_Shift);
+        c_move_r = wsin(m_SSP_Time_End_R, m_A_Move_PeriodTime, m_A_Move_Phase_Shift + 2 * M_PI / m_A_Move_PeriodTime * m_SSP_Time_Start_R + M_PI, -m_A_Move_Amplitude, -m_A_Move_Amplitude_Shift);
+        pelvis_offset_l = 0;
+        pelvis_offset_r = 0;
+    }
+
+    ep[0] = x_swap + x_move_r + m_X_Offset;
+    ep[1] = y_swap + y_move_r - m_Y_Offset / 2;
+    ep[2] = z_swap + z_move_r + m_Z_Offset; // z default: 23
+    ep[3] = 0 + 0 - m_R_Offset / 2;
+    ep[4] = 0 + 0 + m_P_Offset;
+    ep[5] = c_move_r - m_A_Offset / 2;
+
+    ep[6] = x_swap + x_move_l + m_X_Offset;
+    ep[7] = y_swap + y_move_l + m_Y_Offset / 2;
+    ep[8] = z_swap + z_move_l + m_Z_Offset; // z default: 23
+    ep[9] = 0 + 0 + m_R_Offset / 2;
+    ep[10] = 0 + 0 + m_P_Offset;
+    ep[11] = c_move_l + m_A_Offset / 2;
+
+    // Compute arm swing
+    if(m_X_Move_Amplitude == 0) {
+        angle[12] = 0; // Right
+        angle[13] = 0; // Left
+    } else {
+        angle[12] = wsin(m_Time, m_PeriodTime, M_PI * 1.5, -m_X_Move_Amplitude * m_Arm_Swing_Gain, 0);
+        angle[13] = wsin(m_Time, m_PeriodTime, M_PI * 1.5, m_X_Move_Amplitude * m_Arm_Swing_Gain, 0);
+    }
+
+    if(m_Real_Running == 1) {
+        m_Time += dt;
+        if(m_Time >= m_PeriodTime) {
+            m_Time = 0;
+            odometry_calculateWalkerPos(m_X_Move_Amplitude,m_Y_Move_Amplitude,Walker_A_MOVE_AMPLITUDE);
+        }
+    }
+
+	// Compute angles
+	//dbgu_printf("Leg 1: x=%3.6f y=%3.6f z=%3.6f yaw=%3.6f\r\n", ep[0], ep[1], ep[2], ep[5]);
+	//dbgu_printf("Leg 2: x=%3.6f y=%3.6f z=%3.6f yaw=%3.6f\r\n", ep[6], ep[7], ep[8], ep[11]);
+    if ((Walker_computeIK_Wolves(&angle[0], ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]) == 1)
+	 && (Walker_computeIK_Wolves(&angle[6], ep[6], ep[7], ep[8], ep[9], ep[10], ep[11]) == 1)) {
+		for (int i = 0; i < 12; i++) {
+			angle[i] *= 180.0 / M_PI;
+		}
+	} else {
+		return; // Do not use angle;
+	}
+
+	// Compute motor value
+	for (int i = 0; i < 14; i++) {
+		float offset = (double)dir[i] * angle[i];
+		if (i == 1) { // R_HIP_ROLL
+			offset += (double)dir[i] * pelvis_offset_r;
+		} else if (i == 7) { // L_HIP_ROLL
+			offset += (double)dir[i] * pelvis_offset_l;
+		} else if (i == 2 || i == 8) { // R_HIP_PITCH or L_HIP_PITCH
+			offset -= (double)dir[i] * Walker_Params.HIP_PITCH_OFFSET;
+		}
+		outValue[i] = initAngle[i] + offset;
+	}
+
+	// adjust balance offset
+	if (Walker_Params.BALANCE_ENABLE) {
+#define GYRO_TO_SERVO_RATIO	16
+		float rlGyroErr = (float)(IMU_GetRLGyro() / GYRO_TO_SERVO_RATIO);
+		float fbGyroErr = (float)(IMU_GetFBGyro() / GYRO_TO_SERVO_RATIO);
+
+		outValue[1] += (int)(dir[1] * rlGyroErr * Walker_Params.BALANCE_HIP_ROLL_GAIN); // R_HIP_ROLL
+		outValue[7] += (int)(dir[7] * rlGyroErr * Walker_Params.BALANCE_HIP_ROLL_GAIN); // L_HIP_ROLL
+
+		outValue[3] -= (int)(dir[3] * fbGyroErr * Walker_Params.BALANCE_KNEE_GAIN); // R_KNEE
+		outValue[9] -= (int)(dir[9] * fbGyroErr * Walker_Params.BALANCE_KNEE_GAIN); // L_KNEE
+
+		outValue[4] -= (int)(dir[4] * fbGyroErr * Walker_Params.BALANCE_ANKLE_PITCH_GAIN); // R_ANKLE_PITCH
+		outValue[10] -= (int)(dir[10] * fbGyroErr * Walker_Params.BALANCE_ANKLE_PITCH_GAIN); // L_ANKLE_PITCH
+
+		outValue[5] -= (int)(dir[5] * rlGyroErr * Walker_Params.BALANCE_ANKLE_ROLL_GAIN); // R_ANKLE_ROLL
+		outValue[11] -= (int)(dir[11] * rlGyroErr * Walker_Params.BALANCE_ANKLE_ROLL_GAIN); // L_ANKLE_ROLL
+	}
+
+    if(m_Servos_Active == 1) {
+		Servo_SetPosition(SERVO_ID_R_HIP_YAW,           outValue[0]);
+		Servo_SetPosition(SERVO_ID_R_HIP_ROLL,          outValue[1]);
+		Servo_SetPosition(SERVO_ID_R_HIP_PITCH,         outValue[2]);
+		Servo_SetPosition(SERVO_ID_R_KNEE,              outValue[3]);
+		Servo_SetPosition(SERVO_ID_R_ANKLE_PITCH,       outValue[4]);
+		Servo_SetPosition(SERVO_ID_R_ANKLE_ROLL,        outValue[5]);
+		Servo_SetPosition(SERVO_ID_L_HIP_YAW,           outValue[6]);
+		Servo_SetPosition(SERVO_ID_L_HIP_ROLL,          outValue[7]);
+		Servo_SetPosition(SERVO_ID_L_HIP_PITCH,         outValue[8]);
+		Servo_SetPosition(SERVO_ID_L_KNEE,              outValue[9]);
+		Servo_SetPosition(SERVO_ID_L_ANKLE_PITCH,       outValue[10]);
+		Servo_SetPosition(SERVO_ID_L_ANKLE_ROLL,        outValue[11]);
+		Servo_SetPosition(SERVO_ID_R_SHOULDER_PITCH,    outValue[12]);
+		Servo_SetPosition(SERVO_ID_L_SHOULDER_PITCH,    outValue[13]);
+    }
+}
+
+void Walker_SetServoParams(void) {
+	Servo_SetPositionsTorque(0);
+	//Servo_SendTGainGlobal(Walker_ServoSettings.Pgain, Walker_ServoSettings.Igain, Walker_ServoSettings.Dgain);
+}
+
+void Walker_GetPIDGains(float* pGain, float* iGain, float* dGain) {
+	*pGain = (float)Walker_ServoSettings.Pgain;
+	*iGain = (float)Walker_ServoSettings.Igain;
+	*dGain = (float)Walker_ServoSettings.Dgain;
+}
+
+
+void Walker_Start(void) {
+	Walker_SetServoParams();
+	m_Ctrl_Running = 1;
+    m_Real_Running = 1;
+}
+
+void Walker_Stop(void) {
+	m_Ctrl_Running = 0;
+}
+
+unsigned char Walker_IsRunning(void) {
+	return m_Real_Running;
+}
+
+void Walker_SetWalk(float X, float Y, float Yaw) {
+	Walker_X_MOVE_AMPLITUDE = X;
+	Walker_Y_MOVE_AMPLITUDE = Y;
+	Walker_A_MOVE_AMPLITUDE = Yaw;
+}
+
+void Walker_SetServosActive(unsigned char state) {
+	m_Servos_Active = state;
+}

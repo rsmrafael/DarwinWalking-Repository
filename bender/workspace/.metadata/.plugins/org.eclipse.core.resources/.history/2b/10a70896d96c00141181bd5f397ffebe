@@ -1,0 +1,127 @@
+/*
+ * BehaviorDummy.cpp
+ *
+ *  Created on: 20.10.2014
+ *      Author: bombadil
+ */
+#include "BehaviorDummy.h"
+
+BehaviorDummy::BehaviorDummy(){
+	cycle = 0;
+	state = 0;
+}
+
+BehaviorDummy::~BehaviorDummy(){
+
+}
+
+bool BehaviorDummy::execute(){
+	aufgabe5();
+
+	incrementCycle();
+	return true;
+}
+
+void BehaviorDummy::incrementCycle() {
+	cycle++;
+}
+
+void BehaviorDummy::aufgabe1() {
+	Debugger::INFO("BehaviorDummy", "Zyklus: %d", cycle);
+}
+
+
+void BehaviorDummy::aufgabe2() {
+	int pan = getBodyStatus().getPan();
+	int tilt = getBodyStatus().getTilt();
+	Debugger::INFO("BehaviorDummy", "Pan: %d", pan);
+	Debugger::INFO("BehaviorDummy", "Tilt: %d",  tilt);
+}
+
+void BehaviorDummy::aufgabe3() {
+	if ((cycle % 100 == 0) && cycle != 0) {
+		Debugger::INFO("BehaviorDummy", "Shoot! C: %d", cycle);
+		getBodyAction().kickRight();
+	} else {
+		Debugger::INFO("BehaviorDummy", "Walk. C: %d", cycle);
+		getBodyAction().setWalkerCommand(20,0,0);
+	}
+}
+
+void BehaviorDummy::aufgabe4() {
+	if (cycle == 1) {
+		getHeadAction().searchObject(Object::BALL, true);
+	} else {
+		VisionStatus::ObjectStatus status = getBallStatus().getObjectStatus();
+		switch (status) {
+			case VisionStatus::OBJECT_FOUND_STABLE:
+				break;
+
+			case VisionStatus::OBJECT_LOST:
+				break;
+
+			case VisionStatus::OBJECT_NOT_FOUND:
+				break;
+
+			case VisionStatus::OBJECT_SEARCHING:
+				break;
+
+			case VisionStatus::OBJECT_SEEN:
+				Debugger::INFO("BehaviorDummy", "Ball Seen");
+				break;
+
+			default:
+				break;
+		}
+	}
+}
+
+void BehaviorDummy::aufgabe5() {
+	Debugger::INFO("BehaviorDummy", "Beginning State %d", state);
+
+
+	switch (state) {
+		case 0:
+			getBodyAction().stop();
+			if (cycle == 0) {
+					getHeadAction().searchObject(Object::BALL, true);
+			}
+			if (getBallStatus().getObjectStatus() == VisionStatus::OBJECT_FOUND_STABLE) {
+				Debugger::INFO("BehaviorDummy", "BALL SEEN");
+				state = 1;
+			}
+			break;
+
+		case 1:
+			if (getBallStatus().getObjectStatus() != VisionStatus::OBJECT_FOUND_STABLE&&getBallStatus().getObjectStatus() != VisionStatus::OBJECT_LOST) {
+				state = 0;
+				cycle = 0;
+				Debugger::INFO("BehaviorDummy", "Back");
+			} else {
+				if ((int)getBall().lastVector.getLength() < 150) {
+					state = 2;
+					Debugger::INFO("BehaviorDummy", "KICK");
+				} else {
+					Debugger::INFO("BehaviorDummy", "Walking");
+					int pan = getBodyStatus().getPan();
+					int tilt = getBodyStatus().getTilt();
+					int fbStep = (int16_t)((double)tilt)/60.0;
+					int rlStep = (int16_t)(double)pan/300;
+					getBodyAction().setWalkerCommand(fbStep, 0, rlStep);
+				}
+			}
+			break;
+
+		case 2:
+			getBodyAction().kickRight();
+			Debugger::INFO("BehaviorDummy", "KickRight");
+			state = 0;
+			cycle=0;
+			break;
+
+		default:
+			Debugger::INFO("BehaviorDummy", "Unknown State! State: %d", state);
+			break;
+	}
+	Debugger::INFO("BehaviorDummy", "End State %d", state);
+}

@@ -1,0 +1,42 @@
+/*
+ * PlaceRobot.h
+ *
+ *  Created on: 05.02.2015
+ *      Author: bombadil
+ */
+
+#ifndef PLACEROBOT_H_
+#define PLACEROBOT_H_
+#include "AbstractBehavior.h"
+#include "../../Representations/Point.h"
+#include <math.h>
+
+
+class PlaceRobot:public AbstractBehavior {
+public:
+	PlaceRobot(Game *game, MitecomCommunicator *communicator);
+	virtual ~PlaceRobot();
+	virtual void executeBehavior();
+	virtual void updateState();
+	virtual string getStateName(int state);
+protected:
+	void entryMoveHalf();
+	int processMoveHalf();
+
+	void entryRotateToGoal();
+	int processRotateToGoal();
+
+
+	void entryMoveToGoal();
+	int processMoveToGoal();
+private:
+	enum {
+		MOVE_TO_HALF,
+		ROTATE_TO_GOAL,
+		MOVE_TO_GOAL
+	};
+	int often;
+	int lostCounterGoal;
+};
+
+#endif /* PLACEROBOT_H_ */

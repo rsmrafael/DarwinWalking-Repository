@@ -1,0 +1,88 @@
+/*
+ * CaptureOpenCV.cpp
+ *
+ *  Created on: Aug 28, 2012
+ *      Author: jan
+ */
+#include "CaptureOpenCV.h"
+#include "../../Debugging/Debugger.h"
+#include <cstdlib>
+
+CaptureOpenCV::CaptureOpenCV() {
+	mHeigth = getCameraSettings().height;
+	mWidth = getCameraSettings().width;
+	mChangedState = getCameraSettings().changedStatus;
+#ifdef USE_OPENCV
+	mCapture.open(0);
+	setCameraParameters();
+#endif
+	mData = (char*) malloc((size_t) (uint32_t) (mHeigth * mWidth * 2));
+}
+
+CaptureOpenCV::~CaptureOpenCV() {
+	free(mData);
+}
+
+#ifdef USE_OPENCV
+void CaptureOpenCV::setCameraParameters() {
+	mCapture.set(CV_CAP_PROP_FRAME_HEIGHT, mHeigth);
+	mCapture.set(CV_CAP_PROP_FRAME_WIDTH, mWidth);
+	mCapture.set(CV_CAP_PROP_FPS,
+			getCameraSettings().frameIntervalDenominator
+					/ getCameraSettings().frameIntervalNumerator);
+	if (getCameraSettings().saturation > -1) {
+		mCapture.set(CV_CAP_PROP_SATURATION, getCameraSettings().saturation);
+	}
+	if (getCameraSettings().brightness > -1) {
+		mCapture.set(CV_CAP_PROP_BRIGHTNESS, getCameraSettings().brightness);
+	}
+	if (getCameraSettings().contrast > -1) {
+		mCapture.set(CV_CAP_PROP_CONTRAST, getCameraSettings().contrast);
+	}
+	if (getCameraSettings().hue > -1) {
+		mCapture.set(CV_CAP_PROP_HUE, getCameraSettings().hue);
+	}
+	if (getCameraSettings().gain > -1) {
+		mCapture.set(CV_CAP_PROP_GAIN, getCameraSettings().gain);
+	}
+	if (getCameraSettings().exposure > -1) {
+		mCapture.set(CV_CAP_PROP_EXPOSURE, getCameraSettings().exposure);
+	}
+
+	Debugger::DEBUG("CaptureOpenCV", "Camera Settings Updated");
+}
+#endif
+
+bool CaptureOpenCV::execute() {
+#ifdef USE_OPENCV
+
+	if (getCameraSettings().changedStatus != mChangedState) {
+		setCameraParameters();
+		mChangedState = getCameraSettings().changedStatus;
+	}
+
+	if (!mCapture.isOpened()) {
+		Debugger::DEBUG("CaptureOpenCV", "Camera is not opened!");
+		return false;
+	}
+
+	cv::Mat frame;
+	cv::Mat yuvFrame;
+	mCapture >> frame; // get a new frame from camera
+
+	getOpenCVImage().updateImage(frame, mWidth, mHeigth);
+
+	cv::cvtColor(frame, yuvFrame, CV_BGR2YUV);
+
+	for (int i = 0; i < mWidth * mHeigth / 2; ++i) {
+		mData[4 * i] = yuvFrame.data[6 * i];
+		mData[4 * i + 1] = yuvFrame.data[6 * i + 1];
+		mData[4 * i + 2] = yuvFrame.data[6 * i + 3];
+		mData[4 * i + 3] = yuvFrame.data[6 * i + 5];
+	}
+	getImage().updateImage(mData, mWidth, mHeigth);
+#endif
+
+	return true;
+}
+

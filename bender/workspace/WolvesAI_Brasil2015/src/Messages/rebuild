@@ -1,0 +1,4 @@
+#!/bin/sh
+protoc --cpp_out ./ *.proto 
+protoc --java_out ../../../HumanoidTools/src/ *.proto
+for i in *.cc; do mv $i ${i%.*}.cpp; done

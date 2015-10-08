@@ -1,0 +1,89 @@
+/*
+ * GoalDetection.cpp
+ *
+ *  Created on: Sep 3, 2012
+ *      Author: jan
+ */
+
+#include "GoalDetection.h"
+#include "../../Debugging/Debugger.h"
+
+GoalDetection::GoalDetection() {
+}
+
+GoalDetection::~GoalDetection() {
+
+}
+
+void GoalDetection::execute() {
+	/**
+	 * Config Parameters
+	 */
+
+#define distanceBetweenScanlines 5
+#define maxResultsperLine 100
+#define CB_MAX_VALUE 100
+#define runThreshold 3
+#define CB_DIFF 15
+#define rasterSize 4
+#define maxDifferencewithinPoles 30
+#define minGoalValue 20
+
+	/*
+	 * CleanUp
+	 *
+	 */
+
+	getGoalPoles().clearList();
+	getGoalPoints().clearCloud();
+	getGoalHist().clearHist();
+
+	/**
+	 * Initialize parameters
+	 */
+	const YUVImage* yuvImage = &getImage();
+	int width = yuvImage->getWidth();
+	int height = yuvImage->getHeight();
+
+	int lastValue;
+
+	/*
+	 * Create horizontal Scanlines
+	 */
+
+	for (int row = 0; row < height; row += distanceBetweenScanlines) {
+
+		lastValue = yuvImage->getValue(width - 1, row).U;
+		for (int column = width - 1; column >= 0; column -= rasterSize) {
+			struct YUVImage::YUVData currentColor = yuvImage->getValue(column,
+					row);
+
+			if (abs(currentColor.U - lastValue) > CB_DIFF
+					&& currentColor.U < CB_MAX_VALUE) {
+
+				getGoalPoints().addPoint(column, row);
+				getGoalHist().addData(column);
+
+			}
+		}
+	}
+
+//
+//	vector<Area> areas = getGoalHist().getMaxAreas(30, 2);
+//
+//	for (size_t i = 0; i < areas.size(); ++i){
+//		if (areas[i].combinedValue > minGoalValue){
+//			Object pole;
+//			pole.lastImageX = areas[i].start+15;
+//			pole.lastImageWidth = 30;
+//			pole.lastImageY = 144;
+//			pole.lastImageHeigth = 286;
+//			getGoalPoles().addObject(pole);
+//		}
+//	}
+
+	BoundingBox box = getGoalPoints().calculateBoundingBox();
+
+	getGoalPoles().addObject(Object (box.topLeft.getX(), box.topLeft.getY(), (int)box.width, (int) box.heigth));
+
+}

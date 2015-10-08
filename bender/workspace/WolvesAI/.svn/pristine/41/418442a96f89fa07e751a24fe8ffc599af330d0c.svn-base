@@ -1,0 +1,11 @@
+package protobuf;
+
+option java_package = "de.ostfalia.robocup.message";
+option java_outer_classname = "MsgPoint";
+option optimize_for = LITE_RUNTIME;
+
+message Point {
+	required int32 x = 1;
+	required int32 y = 2;
+
+}

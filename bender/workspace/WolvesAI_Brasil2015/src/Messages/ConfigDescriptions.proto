@@ -1,0 +1,14 @@
+package protobuf;
+
+option java_package = "de.ostfalia.robocup.message";
+option java_outer_classname = "MsgConfigDescriptions";
+option optimize_for = LITE_RUNTIME;
+
+message ConfigDescriptions {
+	message ConfigDescription {
+		required string setting = 1;
+		required string description = 2;
+	}
+
+	repeated ConfigDescription description = 1;
+}

@@ -1,0 +1,122 @@
+/*
+ * Config.h
+ *
+ *  Created on: 01.07.2009
+ *      Author: Stefan
+ */
+
+#ifndef CONFIG_H_
+#define CONFIG_H_
+
+#include <string>
+#include <list>
+#include "External/ConfigFile.h"
+#include "ConfigChangeListener.h"
+#include "Representations/ConfigDescriptions.h"
+
+#define WRITE_DEFAULTS_ON_ACCESS
+
+#ifndef JENKINS
+	#define CONFIG_FILE_ACCESS
+#endif
+
+#ifdef WIN32
+  #define CONFIG_FILE		"config.ini" //"/mnt/sdcard/config.ini"
+#else
+  #define CONFIG_FILE		"config.ini" //"/mnt/sdcard/config.ini"
+#endif
+
+/**
+ * Standard Config file
+ */
+class Config : public ConfigFile {
+public:
+
+	/**
+	 * get the singleton instance
+	 */
+    static Config* getInstance();
+
+    /**
+     * clear up and destroy instance
+     */
+    static void shutdown();
+
+    /**
+     * save the config
+     */
+    virtual void save() const;
+
+    /**
+     * set config
+     * @param content
+     */
+    void setConfig(std::string const &content);
+
+    /**
+     * get the whole config as string
+     * @return string with the whole config
+     */
+    std::string getConfigAsString() const;
+
+    /**
+     * register a new ConfigChangeListener
+     * @param handler		the new listener
+     */
+    void registerConfigChangeHandler(ConfigChangeListener* handler);
+
+    /**
+     * remove a previous registered ConfigChangeListener
+     * @param handler		the lister to remove
+     */
+    void removeConfigChangeHandler(ConfigChangeListener* handler);
+
+    /**
+     * enable or disable ConfigChangeListeners
+     * @param state			if true, listeners are disabled
+     */
+    void setDisableChangeListeners(bool state);
+
+    /**
+     * module manager ready
+     */
+    void moduleManagerReady();
+
+    /**
+     * @see ConfigFile
+     */
+	virtual void setString(std::string const &section, std::string const &key, std::string const &value);
+
+	/**
+	 * @see ConfigFile
+	 */
+	virtual void setComment(std::string const &section, std::string const &setting, std::string const &comment);
+
+private:
+	/**
+	 * Constructor
+	 * private, because we only want access via singleton instance
+	 */
+	Config();
+
+	/**
+	 * Destructor
+	 */
+	~Config();
+
+	//lint -e(1704)
+	Config(const Config& cSource);
+	Config& operator=(const Config& cSource);
+
+	void notifyChangeHandlers();	//!< notify all registered ConfigChangeListers
+
+    static Config* mInstance;		//!< singleton instance
+    bool mNoSaveMode;				//!< true means no file is changed
+
+	std::list<ConfigChangeListener*>* mListeners;	//!< list of all ConfigChangeListeners
+	bool mDisableChangeListeners;					//!< true means ConfigChangeListeners are not notified
+
+	ConfigDescriptions* mDescriptions;				//!< config descriptions
+};
+
+#endif /* CONFIG_H_ */

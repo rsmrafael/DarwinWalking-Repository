@@ -1,0 +1,24 @@
+/*
+ * BehaviorDummy.h
+ *
+ *  Created on: 20.10.2014
+ *      Author: bombadil
+ */
+
+#ifndef BEHAVIORDUMMY_H_
+#define BEHAVIORDUMMY_H_
+
+#include "../../ModuleManager/Module.h"
+#include "../../Representations/BodyStatus.h"
+BEGIN_DECLARE_MODULE(BehaviorDummy)
+REQUIRE(BodyStatus,BodyStatus)
+END_DECLARE_MODULE(BehaviorDummy)
+
+class BehaviorDummy: public BehaviorDummyBase {
+public:
+	virtual bool execute();
+	BehaviorDummy();
+	virtual ~BehaviorDummy();
+};
+
+#endif /* BEHAVIORDUMMY_H_ */

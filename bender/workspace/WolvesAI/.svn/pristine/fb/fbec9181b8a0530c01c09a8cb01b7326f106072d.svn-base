@@ -1,0 +1,258 @@
+/*
+ * LocalModeling.cpp
+ *
+ *  Created on: 20.02.2013
+ *      Author: Jan Carstensen
+ */
+
+#include "LocalModeling.h"
+#include "../../Config.h"
+
+#define _USE_MATH_DEFINES
+#include <math.h>
+
+LocalModeling::LocalModeling() {
+	localModel = ObjectList();
+	maxMatchDistance = 0.5;
+	gain = 0.9;
+	maxNotSeen = 10;
+
+	lastOdomOrientation = 0.0;
+	lastOdomX = 0;
+	lastOdomY = 0;
+
+	mUpperBodyTilt = 13.0;
+
+	Config::GetInstance()->registerConfigChangeHandler(this);
+	this->configChanged();
+}
+
+LocalModeling::~LocalModeling() {
+}
+
+bool LocalModeling::execute() {
+
+	//Get Object and Camera Data
+
+	Odometry odom = getOdometry();
+
+	int odomX = odom.getX() - lastOdomX;
+	int odomY = odom.getY() - lastOdomY;
+	double odomOrentation = odom.getOrientation() - lastOdomOrientation;
+
+	lastOdomX = odom.getX();
+	lastOdomY = odom.getY();
+	lastOdomOrientation = odom.getOrientation();
+
+
+//	RobotConfiguration botConf = getRobotConfiguration();
+	//BodyStatus bodyStatus = getBodyStatus();
+//	CameraSettings camSet = getCameraSettings();
+
+	//Calculate Optical Axis
+
+	//double panAngle = (double) (bodyStatus.getPan()) / 180.0 * M_PI;
+	//double tiltAngle = (double) (bodyStatus.getTilt()) / 180.0 * M_PI;
+
+	/**
+	 * Update Local Model
+	 */
+
+	ObjectList predictetObjects = ObjectList();
+
+	for (vector<Object>::const_iterator it =
+			getLocalModel().getObjects().begin();
+			it != getLocalModel().getObjects().end(); ++it) {
+
+		Object ob = Object(*it);
+		Vector obV = ob.lastVector;
+
+		// 1) Rotate Objects
+
+		obV = Vector(obV.getAngle() + odomOrentation, obV.getLength());
+
+		// 2) Move Objects
+
+		Vector vecOdom(atan2((double)odomX, (double)odomY), sqrt((double)odomX*odomX + (double)odomY*odomY));
+		obV = obV.sum(vecOdom);
+
+		ob.lastVector = obV;
+
+		// 3) Filter unlikly
+		++ob.lastSeenCounter;
+
+		if (ob.lastSeenCounter < maxNotSeen) {
+			predictetObjects.addObject(ob);
+		}
+	}
+
+	ObjectList objects = ObjectList();
+
+	const vector<Object> goalList = getGoalPoles().getObjects();
+	for (vector<Object>::const_iterator it = goalList.begin();
+			it != goalList.end(); ++it) {
+		Vector vec = calculateVector(*it);
+
+		Object pole = Object(*it);
+		pole.lastVector = vec;
+
+		/**
+		 * Match Objects
+		 */
+
+		Object bestMatch;
+		double bestScore = 0;
+
+		for (vector<Object>::const_iterator ot =
+				predictetObjects.getObjects().begin();
+				ot != predictetObjects.getObjects().end(); ++ot) {
+
+			double currentScore = calculateMatchScoring((*ot), pole);
+
+			if (currentScore > bestScore) {
+				bestScore = currentScore;
+				bestMatch = (*ot);
+			}
+		}
+
+		if (bestScore != -1) {
+			//Filter Update (switch to Kalmann...)
+
+			double length = pole.lastVector.getLength() * gain
+					+ bestMatch.lastVector.getLength() * (1 - gain);
+			double angle = pole.lastVector.getAngle() * gain
+					+ bestMatch.lastVector.getAngle() * (1 - gain);
+
+			pole.lastVector = Vector(angle, length);
+			pole.lastSeenCounter = 0;
+			bestMatch.matched = true;
+			objects.addObject(pole);
+
+		} else {
+			objects.addObject(pole);
+		}
+
+	}
+
+//Ball
+	if (getBall().lastImageSeen) {
+		Object ball = Object(getBall());
+		ball.lastVector = calculateVector(ball);
+		//Debugger::DEBUG("LocalModeling", "angle: %f length %f", b.getAngle(), b.getLength());
+
+		Object bestMatch;
+		double bestScore = 0;
+
+		for (vector<Object>::const_iterator it =
+				predictetObjects.getObjects().begin();
+				it != predictetObjects.getObjects().end(); ++it) {
+
+			double currentScore = calculateMatchScoring((*it), ball);
+
+			if (currentScore > bestScore) {
+				bestScore = currentScore;
+				bestMatch = (*it);
+			}
+		}
+
+		if (bestScore != -1) {
+			//Filter Update (switch to Kalmann...)
+
+			double length = ball.lastVector.getLength() * gain
+					+ bestMatch.lastVector.getLength() * (1 - gain);
+			double angle = ball.lastVector.getAngle() * gain
+					+ bestMatch.lastVector.getAngle() * (1 - gain);
+
+			ball.lastVector = Vector(angle, length);
+			ball.lastSeenCounter = 0;
+			bestMatch.matched = true;
+			objects.addObject(ball);
+		} else {
+			bestMatch.matched= true; //Only one Ball....
+			//TODO: Filter...
+
+			objects.addObject(ball);
+		}
+	}
+
+	for (vector<Object>::const_iterator it =
+			predictetObjects.getObjects().begin();
+			it != predictetObjects.getObjects().end(); ++it) {
+
+		if(!(*it).matched){
+			objects.addObject(*it);
+		}
+	}
+
+	getLocalModel().clearList();
+	getLocalModel().addObjects(objects);
+
+	return true;
+}
+
+Vector LocalModeling::calculateVector(Object ob) const {
+
+	const RobotConfiguration& botConf = getRobotConfiguration();
+	const BodyStatus& bodyStatus = getBodyStatus();
+	const CameraSettings& camSet = getCameraSettings();
+
+	double degreePerPixelH = ((botConf.cameraOpeningHorizontal
+			/ (double) (camSet.width)) / 180.0) * M_PI;
+	double degreePerPixelV = ((botConf.cameraOpeningVertical
+			/ (double) (camSet.height)) / 180.0) * M_PI;
+
+	double panAngle = ((double) (bodyStatus.getPan()) / 180.0) * M_PI;
+	double tiltAngle = ((double) (bodyStatus.getTilt()) / 180.0) * M_PI;
+	tiltAngle -= (mUpperBodyTilt / 180.0) * M_PI;
+
+	double angle = (-((double) (botConf.principlePointX - ob.lastImageX)
+			* degreePerPixelH)) + panAngle;
+	double verticalAngle = ((double) (botConf.principlePointY
+			- (ob.lastImageTopLeftY + ob.lastImageHeight)) * degreePerPixelV)
+			+ tiltAngle;
+
+	double distanceFromAngle = tan(verticalAngle) * botConf.cameraHeigth;
+
+//Debugger::DEBUG("LocalModeling", "degreePerPixelV=%f, tiltAngle=%f, verticalAngle=%f, distance=%f", (degreePerPixelV * 180.0) / M_PI, (tiltAngle * 180.0) / M_PI, (verticalAngle * 180.0) / M_PI, distanceFromAngle);
+
+//Distanz über die Breite
+
+//Filter über beide Distanzen
+
+	return Vector(angle, distanceFromAngle);
+}
+
+double LocalModeling::calculateMatchScoring(Object one, Object two) const {
+
+	if (one.matched || two.matched) {
+		return -1;
+	}
+
+	if (one.type == two.type) {
+		double dist = one.lastVector.calcluateDistanceTo(two.lastVector);
+
+		if (dist < maxMatchDistance) {
+			if (dist != 0) {
+				return 1 / dist;
+			} else {
+				return 100;
+			}
+		} else {
+			return -1;
+		}
+
+	} else {
+		return -1;
+	}
+}
+
+void LocalModeling::configChanged() {
+	Debugger::INFO("LocalModeling", "config changed");
+
+	maxMatchDistance = Config::GetDouble("Localization",
+			"Local_maxMatchDistance", 0.5);
+	gain = Config::GetDouble("Localization", "Local_gain", 0.9);
+	maxNotSeen = Config::GetInt("Localization", "Local_maxNotSeen", 10);
+	mUpperBodyTilt = Config::GetDouble("Localization", "Local_upperBodyTilt", 13.0);
+}
+

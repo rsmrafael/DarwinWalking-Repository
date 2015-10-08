@@ -1,0 +1,2 @@
+advancedArgument=--suppressions-list\=./cppcheck-suppressions
+eclipse.preferences.version=1

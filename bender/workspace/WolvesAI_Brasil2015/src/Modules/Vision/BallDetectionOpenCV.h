@@ -1,0 +1,141 @@
+/*
+ * BallDetectionOpenCV.h
+ *
+ *  Created on: Sep 3, 2012
+ *      Author: jan
+ */
+
+#ifndef BallDetectionOpenCV_H_
+#define BallDetectionOpenCV_H_
+
+#ifdef USE_OPENCV
+#include "../../ModuleManager/Module.h"
+#include "../../Representations/OpenCVImage.h"
+#include "../../Representations/OpenCVMat.h"
+#include "../../Representations/YUVImage.h"
+#include "../../Representations/Object.h"
+#include "../../Representations/PointCloud.h"
+#include "../../Representations/FieldLines.h"
+#include "../../Representations/BodyStatus.h"
+#include "../../Utils/Clustering/Ransac/Models/CircleModel.h"
+#include "../../Representations/ObjectList.h"
+#include "../../ConfigChangeListener.h"
+#include <opencv2/opencv.hpp>
+
+BEGIN_DECLARE_MODULE(BallDetectionOpenCV)
+	REQUIRE(OpenCVImage,OpenCVImage)
+	REQUIRE(BodyStatus, BodyStatus)
+	REQUIRE(FieldLines, FieldLines)
+	//REQUIRE(PointCloud,BallPoints)
+	REQUIRE(YUVImage,Image)
+	REQUIRE(ObjectList, GoalPoles)
+	//new
+	PROVIDE(OpenCVMat,ContourWhite)
+	PROVIDE(OpenCVMat,ContourGreen)
+//	PROVIDE(OpenCVMat,EasyContour)
+
+#ifdef _DEBUG
+	PROVIDE(OpenCVMat, CannyMat)
+	PROVIDE(OpenCVMat, ContourMat)
+	PROVIDE(OpenCVMat, CircleMat)
+#endif
+	PROVIDE(PointCloud,BallEdges)
+	PROVIDE(Object,Ball)
+	PROVIDE(ObjectList,RemovedBallCandidates)
+END_DECLARE_MODULE(BallDetectionOpenCV)
+
+/**
+ * BallDetectionOpenCV tries to find the ball with OpenCV
+ */
+class BallDetectionOpenCV: public BallDetectionOpenCVBase, public ConfigChangeListener  {
+public:
+	BallDetectionOpenCV();
+	virtual ~BallDetectionOpenCV();
+
+	/**
+	 * execute
+	 * @see Module::execute
+	 */
+	virtual bool execute();
+	virtual void configChanged();
+
+private:
+	void cutContour();
+	void update();
+	bool checkGoalPoles(const CircleModel &current);
+	bool checkConturMinY(CircleModel current) const;
+	void erodeMat(cv::InputArray inputMat, cv::OutputArray outputMat);
+	void dilateMat(cv::InputArray inputMat, cv::OutputArray outputMat);
+	void getContourPoints(vector<cv::Point> const &contour, list<Point> *points);
+	void getMatrixPoints(cv::Mat const &mat, list<Point> *points);
+	void leastSquareCircle(list<Point>* points, cv::Scalar const &color, cv::Mat &dstMat);
+	void ransacCircle(list<Point>* points, cv::Scalar const &color, cv::Mat &dstMat);
+	void ransacLine(list<Point>* points, cv::Scalar const &color, cv::Mat &dstMat);
+	void filterField(cv::Mat &mat);
+	bool isColorMatching(CircleModel *circle);
+	bool isColorMatchingOld(CircleModel *circle);
+
+	cv::Mat filterColor1(cv::Mat &in);
+	cv::Mat filterColor3(cv::Mat &in);
+	bool filterFieldLines(const CircleModel &ball) const;
+	static void update(int, void*);
+
+	CircleModel *mBestCircle;
+	cv::Mat mSrc;
+	cv::Mat mSrcGray;
+	cv::Mat mDst;
+	cv::Mat mDetected_edges;
+	int mEdgeThresh;
+	int mLowThreshold;
+	int mLowThresholdMax;
+	int mRatio;
+	int mKernelSize;
+	std::string mWindowName;
+	int mMinY, mMinU, mMinV;
+	int mMaxY, mMaxU, mMaxV;
+	int mIterations;
+	int mMaxAnomalyError;
+	float mMinFittedPointsRatio;
+	int mMinRadius;
+	int mMaxRadius;
+	int mMinFits;
+	float mMinPointsSizeRatio;
+	int mNumIterations;
+	int mDilationElem;
+	int mDilationSize;
+	int mErosionSize;
+	int mMaxFieldlineError;
+	int mMaxUGreen;
+	int mMaxVGreen;
+	int mNumGreenRandom;
+	int mDebugDrawings;
+	int mNumWhiteRandom;
+	int mMinY_White;
+	float mMinWhiteRatio;
+	float mMinBlueRatio;
+	float mMinOrangeRatio;
+	float mMinGreenRatio;
+	int mMaxU_Orange;
+	int mMinV_Orange;
+	int mMinU_Blue;
+	int mMaxV_Blue;
+	int mMaxU_Green;
+	int mMaxV_Green;
+	int mVisionChangeBallDetection;
+
+	size_t mCamWidth;
+	size_t mCamHeight;
+	size_t mScanlineDistanceColumn;
+	size_t mScanlineDistanceRow;
+	size_t mKernelSizeContur;
+	size_t mMinWhiteCloud;
+	cv::Mat mContoursWhite;
+	cv::Mat mContoursGreen;
+#ifdef _DEBUG
+	cv::Mat mCircleDrawMat;
+#endif
+};
+
+#endif // USE_OPENCV
+
+#endif /* BallDetectionOpenCV_H_ */

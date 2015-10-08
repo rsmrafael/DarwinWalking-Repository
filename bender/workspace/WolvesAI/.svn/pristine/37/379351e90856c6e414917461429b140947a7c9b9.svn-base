@@ -1,0 +1,131 @@
+/*
+ * PanTiltUnit.cpp
+ *
+ *  Created on: 25.06.2009
+ *      Author: Stefan
+ */
+
+#include "PanTiltUnit.h"
+
+//#include <cmath>
+#include <iostream>
+#include "../Debugging/Debugger.h"
+#include "../RobotData.h"
+
+#define PAN_P_GAIN			0.11
+#define PAN_D_GAIN			0.05 // 0.22
+#define TILT_P_GAIN			0.11
+#define TILT_D_GAIN			0.05 // 0.22
+
+PanTiltUnit::PanTiltUnit(ICommunicator* comm) {
+	mComm = comm;
+	mPan = MIN_PAN_ANGLE;
+	mTilt = MIN_TILT_ANGLE;
+	mPanErr = 0;
+	mPanErrDiff = 0;
+	mTiltErr = 0;
+	mTiltErrDiff = 0;
+	MoveToHome();
+}
+
+PanTiltUnit::~PanTiltUnit() {
+	mComm = NULL;
+}
+
+void PanTiltUnit::SetPosition(int panDeg, int tiltDeg) {
+	if (panDeg > MAX_PAN_ANGLE) {
+		mPan = MAX_PAN_ANGLE;
+	} else if (panDeg < MIN_PAN_ANGLE) {
+		mPan = MIN_PAN_ANGLE;
+	} else {
+		mPan = panDeg;
+	}
+
+	if (tiltDeg > MAX_TILT_ANGLE) {
+		mTilt = MAX_TILT_ANGLE;
+	} else if (tiltDeg < MIN_TILT_ANGLE) {
+		mTilt = MIN_TILT_ANGLE;
+	} else {
+		mTilt = tiltDeg;
+	}
+	Execute();
+}
+
+int PanTiltUnit::GetPan() const {
+	return mPan;
+}
+
+void PanTiltUnit::SetPan(int panDeg) {
+	if (panDeg > MAX_PAN_ANGLE) {
+		mPan = MAX_PAN_ANGLE;
+	} else if (panDeg < MIN_PAN_ANGLE) {
+		mPan = MIN_PAN_ANGLE;
+	} else {
+		mPan = panDeg;
+	}
+	Execute();
+}
+
+int PanTiltUnit::GetTilt() const {
+	return mTilt;
+}
+
+void PanTiltUnit::SetTilt(int tiltDeg) {
+	if (tiltDeg > MAX_TILT_ANGLE) {
+		mTilt = MAX_TILT_ANGLE;
+	} else if (tiltDeg < MIN_TILT_ANGLE) {
+		mTilt = MIN_TILT_ANGLE;
+	} else {
+		mTilt = tiltDeg;
+	}
+	Execute();
+}
+
+void PanTiltUnit::Execute() {
+//	Debugger::DEBUG("PanTiltUnit", "Setting pan/tilt to %i/%i", mPan, mTilt);
+	mComm->PanTiltCommand((int16_t)mPan, (int16_t)mTilt);
+}
+
+void PanTiltUnit::InitTracking() {
+	mPanErr = 0;
+	mPanErrDiff = 0;
+	mTiltErr = 0;
+	mTiltErrDiff = 0;
+}
+
+void PanTiltUnit::MoveTracking(bool disablePan) {
+	double pOffset, dOffset;
+
+	if (disablePan) {
+		mPan = 0;
+	} else {
+		pOffset = mPanErr * PAN_P_GAIN;
+		dOffset = mPanErrDiff * PAN_D_GAIN;
+		mPan += (int)(pOffset + dOffset);
+	}
+
+	pOffset = mTiltErr * TILT_P_GAIN;
+	dOffset = mTiltErrDiff * TILT_D_GAIN;
+	mTilt += (int)(pOffset + dOffset);
+
+	SetPosition(mPan, mTilt);
+}
+
+void PanTiltUnit::MoveTracking(double errorX, double errorY, bool disablePan) {
+	if (disablePan) {
+		mPanErrDiff = 0;
+		mPanErr = 0;
+	} else {
+		mPanErrDiff = errorX - mPanErr;
+		mPanErr = errorX;
+	}
+
+	mTiltErrDiff = errorY - mTiltErr;
+	mTiltErr = errorY;
+
+	MoveTracking(disablePan);
+}
+
+void PanTiltUnit::MoveToHome() {
+	SetPosition(0, 0);
+}

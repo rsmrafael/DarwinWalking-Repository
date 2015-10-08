@@ -1,0 +1,203 @@
+/*
+ * BehaviorDefender.cpp
+ *
+ *  Created on: 27.03.2014
+ *      Author: Oliver Krebs
+ */
+
+#include "BehaviorDefender.h"
+#include "BehaviorConstants.h"
+#include "../../Config.h"
+
+BehaviorDefender::BehaviorDefender(Game *game, MitecomCommunicator *communicator)
+:	AbstractBehavior( game, communicator)
+{
+	mThisRole = ROLE_DEFENDER;
+	mTurningXMovement = 0;
+	mTowardsBallLeftTurnAngle = 0;
+	mTowardsBallRightTurnAngle = 0;
+	mFoundCounter = 0;
+	mNotFoundCounter = 0;
+	mBallLostCounter = 0;
+	mTargetBallDistance = BALL_DISTANCE_DEFENDER;
+	mCurrentState = SEARCH_BALL;
+	entrySearchBall();
+
+	Config::GetInstance()->registerConfigChangeHandler(this);
+	this->configChanged();
+}
+
+BehaviorDefender::~BehaviorDefender()
+{
+	Config::GetInstance()->removeConfigChangeHandler(this);
+}
+
+void BehaviorDefender::configChanged()
+{
+	mUseMitecom				= Config::GetBoolean("AI", "useMitecom", true);
+	mDynamicRoleChange		= Config::GetBoolean("AI", "changeRoleDynamically", true);
+	mTurningXMovement 		= Config::GetValue<int16_t>("AI", "turningXMovement", 0);//Bot4: -40
+	mTowardsBallLeftTurnAngle 	= Config::GetInt("AI", "towardsBallLeftTurnAngle", -20);
+	mTowardsBallRightTurnAngle 	= Config::GetInt("AI", "towardsBallRightTurnAngle", 20);
+}
+
+void BehaviorDefender::executeBehavior()
+{
+	switch( mCurrentState) {
+	case SEARCH_BALL:
+		mCurrentState = processSearchBall();
+		break;
+	case MOVE_NEAR_BALL:
+		mCurrentState = processMoveNearBall();
+		break;
+	case DELAY_LOOP:
+		mCurrentState = processDelayLoop();
+		break;
+	default:
+		Debugger::INFO("Defender", "Unknown state, change to searchBall");
+		mCurrentState = SEARCH_BALL;
+		break;
+	}
+}
+
+void BehaviorDefender::updateState()
+{
+	if (mCurrentState != mLastState) {
+		switch( mCurrentState) {
+		case SEARCH_BALL:
+			entrySearchBall();
+			break;
+		case MOVE_NEAR_BALL:
+			entryMoveNearBall();
+			break;
+		default:
+			mMyInfo.data[ROBOT_CURRENT_ACTION] = ACTION_WAITING;
+			//Debugger::announce("Waiting");
+			break;
+		}
+		Debugger::INFO("Defender", "Changed state %d to %d", mLastState, mCurrentState);
+		mLastState = mCurrentState;
+	}
+}
+
+void BehaviorDefender::entrySearchBall()
+{
+	mFoundCounter = 0;
+	mNotFoundCounter = 0;
+	mBallLostCounter = 0;
+	mMyInfo.data[ROBOT_CURRENT_ACTION] = ACTION_UNDEFINED;
+	Debugger::announce("Searching ball");
+}
+
+int BehaviorDefender::processSearchBall()
+{
+	Debugger::DEBUG("Defender", "State: SearchBall");
+
+	mIsBallSeenStable = false;
+
+	if (getBall().lastImageSeen) {
+		Debugger::DEBUG("Defender", "Ball found, tracking");
+		processTracker(&getBall());//getBallPredict()
+		mFoundCounter++;
+		if (mFoundCounter >= BALL_FOUND_THRESHOLD) {
+			mIsBallSeenStable = true;
+			Debugger::INFO("Defender", "Ball found stable => Move to ball");
+			getBodyAction().Stop();
+			return MOVE_NEAR_BALL;
+		}
+	} else if (mFoundCounter == 0) {
+		Debugger::DEBUG("Defender", "Ball not found, looking for it");
+		getBodyAction().Stop();
+		if( !searchObject(false)) {
+			Debugger::INFO("Defender", "SearchBall: Ball not found, rotate");
+			mSearchObjectLoopPoint = -1;
+			searchObject(false);
+			getBodyAction().setPanTilt(mSearchObjectPan, mSearchObjectTilt);
+			getBodyAction().setWalkerCommand(mTurningXMovement, 0, 100);
+			initDelayLoop(TURN_DURATION);
+			return DELAY_LOOP;
+		} else {
+			Debugger::DEBUG("Defender", "SearchBall: Pan %d, Tilt: %d", mSearchObjectPan, mSearchObjectTilt);
+			getBodyAction().setPanTilt(mSearchObjectPan, mSearchObjectTilt);
+		}
+	} else {
+		mNotFoundCounter++;
+		if (mNotFoundCounter >= OBJECT_LOST_THRESHOLD){
+			Debugger::INFO("Defender", "SearchBall: Ball lost!");
+			mFoundCounter = 0;
+			mNotFoundCounter = 0;
+			mBallLostCounter++;
+			if( mBallLostCounter > 10) {
+				mSearchObjectLoopPoint = -1;
+				searchObject(false);
+				getBodyAction().setPanTilt(mSearchObjectPan, mSearchObjectTilt);
+				getBodyAction().setWalkerCommand(mTurningXMovement, 0, 100);
+				initDelayLoop(TURN_DURATION);
+				return DELAY_LOOP;
+			}
+		}
+	}
+	return SEARCH_BALL;
+}
+
+void BehaviorDefender::entryMoveNearBall()
+{
+	mFoundCounter = 0;
+	mNotFoundCounter = 0;
+	mMyInfo.data[ROBOT_CURRENT_ACTION] = ACTION_GOING_TO_BALL;
+	Debugger::announce("Going for ball");
+}
+
+int BehaviorDefender::processMoveNearBall()
+{
+	Debugger::DEBUG("Defender", "State: MoveToBall");
+
+	processTracker(&getBall());
+	if (!getBall().lastImageSeen) {
+		mIsBallSeenStable = false;
+		mNotFoundCounter++;
+		Debugger::DEBUG("Defender", "No Ball seen (%i/%i)",
+				mNotFoundCounter, NO_BALL_MAX_COUNT);
+		if (mNotFoundCounter >= NO_BALL_MAX_COUNT){
+			// can not find a ball
+			getBodyAction().Stop();
+			Debugger::INFO("Defender", "Move: Ball lost!");
+			return SEARCH_BALL;
+		}
+	} else {
+		mIsBallSeenStable = true;
+		mNotFoundCounter = 0;
+
+		int pan = getBodyStatus().getPan();
+		int tilt = getBodyStatus().getTilt();
+
+		timeval currentTime;
+		gettimeofday(&currentTime, 0);
+		if( currentTime.tv_sec - getGameStatus().kickOffTime.tv_sec < 0) {
+			if( getBall().lastVector.getLength() < CIRCLE_DISTANCE_MIN) {
+				getBodyAction().Stop();
+				Debugger::INFO("Defender", "Waiting kickOff, not moving nearer to ball");
+				return MOVE_NEAR_BALL;
+			}
+		}
+
+		if(pan > mTowardsBallLeftTurnAngle && pan < mTowardsBallRightTurnAngle) {
+			if( (int)getBall().lastVector.getLength() <= mTargetBallDistance) {
+			//if(tilt <= BALL_NEAR_TILT) {
+				getBodyAction().Stop();
+				return MOVE_NEAR_BALL;
+			} else {
+				int16_t fbStep, rlStep;
+				calculateWalkSteps( pan, tilt, rlStep, fbStep);
+				getBodyAction().setWalkerCommand(fbStep, 0, rlStep);
+				Debugger::DEBUG("Defender", "MoveToBall: forward %d, rotating %d", fbStep, rlStep);
+			}
+		} else {
+			int16_t rlStep;
+			calculateTurnWalkSteps( pan, rlStep);
+			getBodyAction().setWalkerCommand(mTurningXMovement, 0, rlStep);
+			Debugger::DEBUG("Defender", "MoveToBall: rotating %d", rlStep);
+		}
+	}
+	return MOVE_NEAR_BALL;
+}

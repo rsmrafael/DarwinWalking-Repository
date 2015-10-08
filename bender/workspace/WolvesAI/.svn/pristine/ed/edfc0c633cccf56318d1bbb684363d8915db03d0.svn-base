@@ -1,0 +1,56 @@
+/*
+ * GoalSidePrediction.h
+ *
+ *  Created on: 25.03.2014
+ *      Author: Oliver
+ */
+
+#ifndef GOALSIDEPREDICTION_H_
+#define GOALSIDEPREDICTION_H_
+
+#include "../../ModuleManager/Module.h"
+#include "../../Representations/ObjectList.h"
+#include "../../Representations/Histogram.h"
+#include "../../Representations/GameStatus.h"
+#include "../../Representations/BodyStatus.h"
+#include "../../Representations/GoalSide.h"
+#include "../../ConfigChangeListener.h"
+
+BEGIN_DECLARE_MODULE(GoalSidePrediction)
+	REQUIRE(ObjectList,GoalPoles)
+	REQUIRE(Histogram,BackgroundY)
+	REQUIRE(Histogram,BackgroundU)
+	REQUIRE(Histogram,BackgroundV)
+	REQUIRE(GameStatus,GameStatus)
+	REQUIRE(BodyStatus,BodyStatus)
+	PROVIDE(GoalSide,GoalSide)
+END_DECLARE_MODULE(GoalSidePrediction)
+
+
+class GoalSidePrediction
+:	public GoalSidePredictionBase,
+	public ConfigChangeListener
+{
+public:
+	GoalSidePrediction();
+	virtual ~GoalSidePrediction();
+
+	virtual bool execute();
+	virtual void configChanged();
+
+private:
+	double mColorMinInterval;
+
+	int mMyGoalBackgroundY;
+	int mMyGoalBackgroundU;
+	int mMyGoalBackgroundV;
+
+	int mOpGoalBackgroundY;
+	int mOpGoalBackgroundU;
+	int mOpGoalBackgroundV;
+
+	bool mLastFirstHalf;
+};
+
+
+#endif /* GOALSIDEPREDICTION_H_ */

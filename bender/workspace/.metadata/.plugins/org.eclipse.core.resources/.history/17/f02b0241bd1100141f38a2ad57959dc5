@@ -1,0 +1,26 @@
+/*
+ * FieldRunner.h
+ *
+ *  Created on: 22.07.2014
+ *      Author: da-v1n
+ */
+
+#ifndef FIELDRUNNER_H_
+#define FIELDRUNNER_H_
+
+#include "AbstractBehavior.h"
+
+class FieldRunner
+:	public AbstractBehavior,
+	public ConfigChangeListener
+{
+public:
+	FieldRunner();
+	virtual ~FieldRunner();
+	virtual string getStateName(int state);
+	virtual void configChanged();
+	void gameStateHasChanged(Game::GameState state);
+
+};
+
+#endif /* FIELDRUNNER_H_ */

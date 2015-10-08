@@ -1,0 +1,184 @@
+/*
+ * RobotDetection.cpp
+ *
+ *  Created on: April 3, 2013
+ *      Author: Jan
+ */
+
+#include "RobotDetection.h"
+#include "../../Debugging/Debugger.h"
+#include "../../Debugging/DebugDrawer.h"
+#include "../../Config.h"
+
+RobotDetection::RobotDetection()
+:	mDebugDrawings( 0),
+ 	mMinPointsAreaRatio( 0.3),
+ 	mMinColorBlackRatio( 0.2),
+ 	mMinCloudPoints( 12),
+ 	mMinColorCloudPoints( 6),
+ 	mMinCloudDistance( 15)
+{
+	this->configChanged();
+	Config::GetInstance()->registerConfigChangeHandler(this);
+}
+
+RobotDetection::~RobotDetection()
+{
+	Config::GetInstance()->removeConfigChangeHandler(this);
+}
+
+bool RobotDetection::execute()
+{
+	getCyanRobots().clearList();
+	getMagentaRobots().clearList();
+	getRobots().clearList();
+
+	/*vector<PointCloudObject_t> cyanClouds;
+	vector<PointCloudObject_t> magentaClouds;
+	vector<PointCloudObject_t> obstacleClouds;
+
+	// separate points to clouds
+	list<Point>::const_iterator pointIt = getCyanPoints().getCloud()->begin();
+	for( ; pointIt != getCyanPoints().getCloud()->end(); ++pointIt) {
+		addPointToNearestCloud( (*pointIt), cyanClouds);
+	}
+
+	pointIt = getMagentaPoints().getCloud()->begin();
+	for( ; pointIt != getMagentaPoints().getCloud()->end(); ++pointIt) {
+		addPointToNearestCloud( (*pointIt), magentaClouds);
+	}
+
+	pointIt = getObstaclePoints().getCloud()->begin();
+	for( ; pointIt != getObstaclePoints().getCloud()->end(); ++pointIt) {
+		addPointToNearestCloud( (*pointIt), obstacleClouds);
+	}
+
+	vector<PointCloudObject_t>::iterator cloudIt, cloudIt2;
+	for( cloudIt = magentaClouds.begin(); cloudIt != magentaClouds.end(); ) {
+		if( (*cloudIt).cloud.getSize() < mMinColorCloudPoints) {
+			cloudIt = magentaClouds.erase(cloudIt);
+		} else {
+			if( mDebugDrawings >= 2) {
+				BoundingBox box = (*cloudIt).cloud.calculateBoundingBox();
+				DRAW_BOX("Robot", box.topLeft.getX(), box.topLeft.getY(),
+						box.width, box.height, DebugDrawer::PURPLE);
+			}
+			cloudIt2 = cloudIt;
+			for( ++cloudIt2; cloudIt2 != magentaClouds.end(); ) {
+				if( (*cloudIt2).cloud.getSize() < mMinColorCloudPoints) {
+					cloudIt2 = magentaClouds.erase(cloudIt2);
+				} else {
+					//BoundingBox box = (*cloudIt2).cloud->calculateBoundingBox();
+					// Todo: check if black/gray between boxes
+					//if( cloudsBelongTogether) {
+					if( mDebugDrawings >= 2) {
+						BoundingBox box = (*cloudIt2).cloud.calculateBoundingBox();
+						DRAW_BOX("Robot", box.topLeft.getX(), box.topLeft.getY(),
+								box.width, box.height, DebugDrawer::PURPLE);
+					}
+					(*cloudIt).cloud.join( &(*cloudIt2).cloud);
+					cloudIt2 = magentaClouds.erase(cloudIt2);
+					//} else {
+					//	++cloudIt2;
+					//}
+				}
+			}
+			BoundingBox box = (*cloudIt).cloud.calculateBoundingBox();
+			if( mDebugDrawings >= 1) {
+				DRAW_BOX("Robot", box.topLeft.getX(), box.topLeft.getY(),
+					box.width, box.height, DebugDrawer::MAGENTA);
+			}
+			Object obj(box, Object::ROBOT_MAGENTA);
+			getMagentaRobots().addObject(obj);
+			++cloudIt;
+		}
+	}
+
+	for( cloudIt = cyanClouds.begin(); cloudIt != cyanClouds.end(); ) {
+		if( (*cloudIt).cloud.getSize() < mMinColorCloudPoints) {
+			cloudIt = cyanClouds.erase(cloudIt);
+		} else {
+			if( mDebugDrawings >= 2) {
+				BoundingBox box = (*cloudIt).cloud.calculateBoundingBox();
+				DRAW_BOX("Robot", box.topLeft.getX(), box.topLeft.getY(),
+						box.width, box.height, DebugDrawer::AZURE);
+			}
+			cloudIt2 = cloudIt;
+			for( ++cloudIt2; cloudIt2 != cyanClouds.end(); ) {
+				if( (*cloudIt2).cloud.getSize() < mMinColorCloudPoints) {
+					cloudIt2 = cyanClouds.erase(cloudIt2);
+				} else {
+					//BoundingBox box = (*cloudIt2).cloud->calculateBoundingBox();
+					// Todo: check if black/gray between boxes
+					//if( cloudsBelongTogether) {
+					if( mDebugDrawings >= 2) {
+						BoundingBox box = (*cloudIt2).cloud.calculateBoundingBox();
+						DRAW_BOX("Robot", box.topLeft.getX(), box.topLeft.getY(),
+								box.width, box.height, DebugDrawer::AZURE);
+					}
+					(*cloudIt).cloud.join( &(*cloudIt2).cloud);
+					cloudIt2 = cyanClouds.erase(cloudIt2);
+					//} else {
+					//	++cloudIt2;
+					//}
+				}
+			}
+			BoundingBox box = (*cloudIt).cloud.calculateBoundingBox();
+			if( mDebugDrawings >= 1) {
+				DRAW_BOX("Robot", box.topLeft.getX(), box.topLeft.getY(),
+					box.width, box.height, DebugDrawer::CYAN);
+			}
+			Object obj(box, Object::ROBOT_CYAN);
+			getCyanRobots().addObject(obj);
+			++cloudIt;
+		}
+	}*/
+
+	return true;
+}
+
+void RobotDetection::addPointToNearestCloud( const Point &point, vector<PointCloudObject_t> &cloudList) const
+{
+	int x = point.getX();
+	int y = point.getY();
+	vector<PointCloudObject_t>::iterator it;
+	for( it = cloudList.begin(); it != cloudList.end(); ++it) {
+		if( x > (*it).minX - mMinCloudDistance
+			&& x < (*it).maxX + mMinCloudDistance
+			&& y > (*it).minY - mMinCloudDistance
+			&& y < (*it).maxY + mMinCloudDistance) {
+				(*it).cloud.addPoint( point);
+				if( x < (*it).minX) {
+					(*it).minX = x;
+				} else if( x > (*it).maxX) {
+					(*it).maxX = x;
+				}
+				if( y < (*it).minY) {
+					(*it).minY = y;
+				} else if( y > (*it).maxY) {
+					(*it).maxY = y;
+				}
+				return;
+		}
+	}
+
+	PointCloudObject_t cloudObj;
+	cloudObj.cloud.addPoint(point);
+	cloudObj.minX = x;
+	cloudObj.maxX = x;
+	cloudObj.minY = y;
+	cloudObj.maxY = y;
+	cloudList.push_back(cloudObj);
+}
+
+void RobotDetection::configChanged()
+{
+	Debugger::INFO("RobotDetection", "config changed");
+
+	mDebugDrawings = Config::GetInt("Vision", "Robot_debugDrawings", 0);
+	mMinPointsAreaRatio = Config::GetDouble("Vision", "Robot_minPointsAreaRatio", 0.02);
+	mMinColorBlackRatio = Config::GetDouble("Vision", "Robot_minColorBlackRatio", 0.2);
+	mMinCloudPoints = (unsigned)(long)Config::GetInt("Vision", "Robot_minCloudPoints", 12);
+	mMinColorCloudPoints = (unsigned)(long)Config::GetInt("Vision", "Robot_minColorCloudPoints", 6);
+	mMinCloudDistance = Config::GetInt("Vision", "minCloudDistance", 10);//15
+}

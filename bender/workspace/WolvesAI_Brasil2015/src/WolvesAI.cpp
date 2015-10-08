@@ -1,0 +1,435 @@
+#include <stdint.h>
+#include <iostream>
+#include <sstream>
+#include <unistd.h>
+#include <signal.h>
+#include <string>
+#include <cstring>
+#include <algorithm>
+#include <cctype>
+#include <sys/time.h>
+#include <stdio.h>
+
+#include "Body/Body.h"
+#include "Body/SimulationCommunicator.h"
+#include "Body/BodyCommunicator.h"
+#include "Network/GameControllerServer.h"
+#include "Communication/MitecomCommunicator.h"
+#include "Debugging/Debugger.h"
+#include "Debugging/DebugDrawer.h"
+#ifdef ROBOTAUDIO
+	#include "Debugging/RobotAudio.h"
+#endif
+#include "Debugging/Services/BlackboardService.h"
+#include "Debugging/Services/FileService.h"
+#include "Debugging/Services/BodyDataService.h"
+#include "Debugging/Services/ImageService.h"
+#include "Debugging/Services/BotControlService.h"
+#include "Debugging/Services/HistogramService.h"
+#include "External/SettingConfig.h"
+#include "LEDs.h"
+#include "Config.h"
+#include "Game.h"
+
+#include "ModuleManager/ModuleManager.h"
+
+#include "Modules/ImageSources/CaptureV4L1.h"
+#include "Modules/ImageSources/CaptureV4L2.h"
+#include "Modules/ImageSources/PBFLoader.h"
+#include "Modules/ImageSources/CaptureOpenCV.h"
+#include "Modules/ImageSources/CaptureSimulator.h"
+#include "Modules/ImageSources/ConvertOpenCV.h"
+
+#include "Modules/ConfigurationProvider.h"
+#include "Modules/BodyController.h"
+#include "Modules/Movements/HeadMovement.h"
+
+#include "Modules/Vision/Scanlines.h"
+#include "Modules/Vision/ScanlinesMultithread.h"
+#include "Modules/Vision/BackgroundScan.h"
+#include "Modules/Vision/FieldDetection.h"
+#include "Modules/Vision/BallDetection.h"
+#include "Modules/Vision/BallDetectionOpenCV.h"
+#include "Modules/Vision/GoalDetection.h"
+#include "Modules/Vision/GoalDetectionOpenCV.h"
+#include "Modules/Vision/ImageWriter.h"
+#include "Modules/Vision/MJPEGStreamer.h"
+#include "Modules/Vision/VisionAnalyzer.h"
+#include "Modules/Vision/RobotDetection.h"
+#include "Modules/Vision/GoalieDetection.h"
+
+#include "Modules/Visualisation/VisionVisualisation.h"
+#include "Modules/Support/HorizonDetection.h"
+#include "Modules/Support/MovementPredictor.h"
+#include "Modules/Support/GoalSidePrediction.h"
+#include "Modules/Support/GoalSideGoalieBall.h"
+#include "Modules/Support/GoalSideGoalkeeper.h"
+#include "Modules/Support/GoalSidePredictor_MD.h"
+#include "Modules/Support/GoalSideBackground.h"
+#include "Modules/Support/GoalSideHistogram.h"
+#include "Modules/Support/GoalSideHistogramPredictor.h"
+#include "Modules/Support/RelativePositionDetection.h"
+#include "Modules/Support/GoalFind.h"
+
+#include "Modules/Behavior/RemoteBehavior.h"
+#include "Modules/Behavior/BehaviorStriker.h"
+#include "Modules/Behavior/BehaviorSupporter.h"
+#include "Modules/Behavior/BehaviorDefender.h"
+#include "Modules/Behavior/BehaviorGoalie.h"
+#include "Modules/Behavior/FieldRunner.h"
+#include "Modules/Behavior/PlaceRobot.h"
+
+#include "Modules/Localization/LocalModeling.h"
+#include "Modules/Localization/GlobalModeling.h"
+
+//#define USE_SINGLE_BEHAVIOR
+//#define USE_BALL_DETECTION_DOUBLE
+
+using namespace std;
+
+volatile bool mTerminate;
+
+void sighandler(int sig) {
+	mTerminate = true;
+}
+
+int main(int argc, char * const argv[]) {
+	// terminate program when SIGINT (Ctrl + C) occurs
+	signal(SIGINT, &sighandler);
+
+	PBFLoader::pbfData_t pbfData;
+	pbfData.autoIterate = false;
+	pbfData.iterationDirection = 1;
+	pbfData.panTiltFromPBF = true;
+	pbfData.pbfPath = "";
+	pbfData.repeatCount = 0;
+	pbfData.repeatList = false;
+	bool noComms = false;
+	bool createCsv = true;
+
+	std::string confPath = "";
+	std::string deviceNum = "0";
+
+
+	Body::BodyType bodyType = Body::Regular;
+	//lint -e{850} i is modified in the body of the for loop
+	for (int i = 1; i < argc; i++) {
+		if (strcmp(argv[i], "--pbf") == 0) {
+			if (++i < argc) {
+				pbfData.pbfPath = argv[i];
+			} else {
+				printf("Missing PBF filename!\n");
+				return 1;
+			}
+		} else if (strcmp(argv[i], "--config") == 0) {
+			//Load alternativ config direction
+			if (++i < argc) {
+				Config::sConfigPath = argv[i];
+			} else {
+				printf("No conf path, default is used!\n");
+			}
+		} else if (strcmp(argv[i], "--autoadvance") == 0) {
+			pbfData.autoIterate = true;
+			if (++i < argc) {
+				pbfData.repeatCount = atoi(argv[i]);
+			} else {
+				pbfData.repeatCount = 1;
+			}
+		} else if (strcmp(argv[i], "--repeat") == 0) {
+			pbfData.repeatList = true;
+		} else if (strcmp(argv[i], "--noPBFPanTilt") == 0) {
+			pbfData.panTiltFromPBF = false;
+		} else if (strcmp(argv[i], "--noComms") == 0) {
+			noComms = true;
+		} else if (strcmp(argv[i], "--noCsv") == 0) {
+			createCsv = false;
+		} else if (strcmp(argv[i], "--simulation") == 0) {
+			bodyType = Body::Simulator;
+		} else if (strcmp(argv[i], "--device") == 0) {
+			if (++i < argc) {
+				deviceNum= argv[i];
+			}else{
+				printf("No device number used!\n");
+			}
+
+		} else if (strcmp(argv[i], "--help") == 0) {
+			printf("Known command line options:\n");
+			printf("--help                      Prints this message\n");
+			printf("--pbf <file>                Load PBF image(s) from file or whole directory\n");
+			printf("--autoadvance [repeat]      Auto-advances to next PBF after [repeat] (or 1) captures\n");
+			printf("--repeat                    Repeat PBF list after all images where used\n");
+			printf("--noPBFPanTilt              Do not use pan/tilt position set in PBF\n");
+			printf("--noComms                   Do not try to open body communications port\n");
+			printf("--noCsv                     Do not create csv files\n");
+			printf("--simulation                Connect to simulator (Server given in config.ini)\n");
+			printf("--device					Use device with number <n>\n");
+			printf("--config <path>             Use other config file with path\n");
+			return 0;
+		}
+	}
+
+	std::stringstream deviceName;
+	deviceName << "/dev/video";
+	deviceName << deviceNum;
+
+	// Force Config to initialize
+	Config *config = Config::getInstance();
+
+	// Force Debugger to initialize
+	Debugger::GetInstance();
+
+#ifdef ROBOTAUDIO
+	RobotAudio::GetInstance();
+#endif
+	GameControllerServer* mGameController;
+	MitecomCommunicator* mMitecomCommunicator;
+	Body* mBody;
+	LEDs* mLEDs;
+	Game* mGame;
+	mGame = new Game();
+
+	ICommunicator *comm;
+	if (bodyType == Body::Simulator) {
+		comm = SimulationCommunicator::GetInstance();
+	} else {
+#ifdef SYSTEM_X86
+		comm = new BodyCommunicator("/dev/ttyUSB0", noComms);
+#else
+		comm = new BodyCommunicator("/dev/ttySS0", noComms);
+#endif
+	}
+	mBody = new Body(comm);
+
+	/// Add services to debugger
+	// FileService: ???
+	FileService* fileService = new FileService();
+	Debugger::GetInstance()->addPacketListener(fileService);
+	// BlackboardService:
+	BlackboardService* blackboardService = new BlackboardService();
+	Debugger::GetInstance()->addPacketListener(blackboardService);
+	RemoteBehavior* remoteBehavior = new RemoteBehavior();
+	BodyDataService* bodyDataService = new BodyDataService(mBody,
+			remoteBehavior);
+	Debugger::GetInstance()->addPacketListener(bodyDataService);
+	// ImageService: save/load pbf file
+	ImageService* imageService = new ImageService();
+	Debugger::GetInstance()->addPacketListener(imageService);
+	// BotControlService: read/save config.ini
+	BotControlService* controlService = new BotControlService(mGame);
+	Debugger::GetInstance()->addPacketListener(controlService);
+	// HistogramServer: Save or delete histograms of the current image.
+	HistogramService* histogramService = new HistogramService();
+	Debugger::GetInstance()->addPacketListener(histogramService);
+
+	mGame->setBotAllowedToMove(true);
+	mGame->setGameState(Game::PLAYING);
+
+	mGameController = new GameControllerServer(mGame);
+	mMitecomCommunicator = new MitecomCommunicator();
+	mLEDs = new LEDs();
+
+	srand((uint32_t) time(NULL));
+
+	Debugger::GetInstance()->announceOwnIP();
+
+	// Force Module manager to initialize
+	ModuleManager::GetInstance();
+	Config::getInstance()->moduleManagerReady();
+
+	if( !createCsv) {
+		ModuleManager::GetInstance()->setCreateCsv(false);
+	}
+	ModuleManager::GetInstance()->registerModule(new ConfigurationProvider(mBody, mGame));
+
+	/**
+	 * Here we define where the Source of the Image come from.
+	 */
+	if (bodyType == Body::Simulator) {
+		//It is a Simuation get Image from the Simulator
+		ModuleManager::GetInstance()->registerModule(new CaptureSimulator());
+	} else if (pbfData.pbfPath != "") {
+		//A Test Image should be loaded because it is a parameter
+		PBFLoader *pbfLoader = new PBFLoader(&pbfData);
+		ModuleManager::GetInstance()->registerModule(pbfLoader);
+		ModuleManager::GetInstance()->registerModule(new VisionAnalyzer(createCsv));
+		imageService->setPBFLoader( pbfLoader);
+	} else {
+		//If OPENCV is used you can use the OpenCVCapture
+#ifdef USE_OPENCV
+		if (config->get<bool>("Modules", "useOpenCVCapture", false)) {
+			ModuleManager::GetInstance()->registerModule(new CaptureOpenCV());
+		} else {
+			ModuleManager::GetInstance()->registerModule(
+					new CaptureV4L2(deviceName.str()));
+			ModuleManager::GetInstance()->registerModule(
+					new CaptureV4L1(deviceName.str()));
+		}
+#else
+		//Normally the Capture For Linux Modules get the Image
+		ModuleManager::GetInstance()->registerModule(new CaptureV4L2(deviceName.str()));
+		ModuleManager::GetInstance()->registerModule(new CaptureV4L1(deviceName.str()));
+#endif
+	}
+	//if (config->get<bool>("Modules", "useVisionVisualisation", false, "Display visualization window locally")) {
+		ModuleManager::GetInstance()->registerModule(new ConvertOpenCV());
+#ifdef _DEBUG
+		ModuleManager::GetInstance()->registerModule(new VisionVisualisation(), "", true);
+	//}
+#endif
+	ModuleManager::GetInstance()->registerModule(remoteBehavior, "Behavior");
+
+
+	/**
+	 * Now we Initialize the different Behavior Modules
+	 */
+	BehaviorStriker *striker = new BehaviorStriker(mGame, mMitecomCommunicator);
+	ModuleManager::GetInstance()->registerModule(striker, "Behavior");
+	mGame->addGameEventListener(striker);
+	BehaviorSupporter *supporter = new BehaviorSupporter(mGame, mMitecomCommunicator);
+	ModuleManager::GetInstance()->registerModule(supporter, "Behavior");
+	mGame->addGameEventListener(supporter);
+	BehaviorDefender *defender = new BehaviorDefender(mGame, mMitecomCommunicator);
+	ModuleManager::GetInstance()->registerModule(defender, "Behavior");
+	mGame->addGameEventListener(defender);
+	BehaviorGoalie *goalie = new BehaviorGoalie(mGame, mMitecomCommunicator);
+	ModuleManager::GetInstance()->registerModule(goalie, "Behavior");
+	mGame->addGameEventListener(goalie);
+	//FieldRunner *runner = new FieldRunner(mGame, mMitecomCommunicator);
+	//ModuleManager::GetInstance()->registerModule(runner, "Behavior");
+	//mGame->addGameEventListener(runner);
+
+	PlaceRobot *place = new PlaceRobot(mGame, mMitecomCommunicator);
+	ModuleManager::GetInstance()->registerModule(place, "Behavior");
+	mGame->addGameEventListener(place);
+
+	ModuleManager::GetInstance()->registerModule(new Scanlines());
+	//ModuleManager::GetInstance()->registerModule(new GoalSideHistogram(histogramService));
+	//ModuleManager::GetInstance()->registerModule(new BackgroundScan());
+#ifdef USE_OPENCV
+	ModuleManager::GetInstance()->registerModule(new BallDetectionOpenCV(), "BallDetection", true);
+#ifdef USE_BALL_DETECTION_DOUBLE
+	ModuleManager::GetInstance()->registerModule(new BallDetection(),"BallDetection");
+#endif
+	//ModuleManager::GetInstance()->registerModule(new GoalDetectionOpenCV());
+#else
+	ModuleManager::GetInstance()->registerModule(new BallDetection());
+	//ModuleManager::GetInstance()->registerModule(new GoalDetection());
+#endif
+
+	ModuleManager::GetInstance()->registerModule(new FieldDetection());
+	ModuleManager::GetInstance()->registerModule(new BodyController(mBody));
+	//ModuleManager::GetInstance()->registerModule(new RobotDetection());
+	//ModuleManager::GetInstance()->registerModule(new GoalieDetection());
+	//ModuleManager::GetInstance()->registerModule(new MovementPredictor());
+	//ModuleManager::GetInstance()->registerModule(new HorizonDetection());
+	ModuleManager::GetInstance()->registerModule(new RelativePositionDetection());
+	//ModuleManager::GetInstance()->registerModule(new LocalModeling());
+	ModuleManager::GetInstance()->registerModule(new ImageWriter());
+	//ModuleManager::GetInstance()->registerModule(new GoalSidePredictor_MD());
+	//ModuleManager::GetInstance()->registerModule(new GoalSideGoalieBall());
+	//ModuleManager::GetInstance()->registerModule(new GoalSideBackground());
+	//ModuleManager::GetInstance()->registerModule(new GoalSideHistogramPredictor());
+	//ModuleManager::GetInstance()->registerModule(new GoalSideGoalkeeper());
+	//ModuleManager::GetInstance()->registerModule(new GoalSidePrediction());
+	ModuleManager::GetInstance()->registerModule(new HeadMovement());
+	ModuleManager::GetInstance()->registerModule(new GoalFind());
+	//ModuleManager::GetInstance()->registerModule(new GlobalModeling());
+
+#ifdef _DEBUG
+	ModuleManager::GetInstance()->registerModule(new MJPEGStreamer());
+#endif
+
+	timeval lastLoopTime;
+	gettimeofday(&lastLoopTime, 0);
+//#if defined(_DEBUG) || defined(JENKINS)
+	double minFPS = 9999.0, maxFPS = 0.0, meanFPS = 0.0;
+	int loopCounter = 1;
+	uint32_t fpsCount = 0;
+//#endif
+	mTerminate = false;
+	while (!mTerminate) {
+		mLEDs->toggle(0);
+		if (mGame->isAllowedToMove()) {
+			mBody->setParalysis(false);
+		} else {
+			Debugger::WARN("WolvesAI", "Robot is paralyzed!");
+			mBody->setParalysis(true);
+		}
+
+		if (!ModuleManager::GetInstance()->execute()) {
+			mTerminate = true;
+		}
+
+		blackboardService->sendPartialBlackboard();
+
+		DebugDrawer::newCycle();
+//#if defined(_DEBUG) || defined(JENKINS)
+		timeval endTime;
+		gettimeofday(&endTime, 0);
+
+		long seconds = endTime.tv_sec - lastLoopTime.tv_sec;
+		long nseconds = endTime.tv_usec - lastLoopTime.tv_usec;
+		double loopTime = (seconds + (nseconds / 1000000.0));
+		if( loopTime == 0.0) {
+			loopCounter++;
+			continue;
+		}
+		double FPS = (double)loopCounter / loopTime;
+		if (FPS > maxFPS) {
+			maxFPS = FPS;
+		} else if (FPS < minFPS) {
+			minFPS = FPS;
+		}
+		loopCounter = 1;
+		fpsCount++;
+		meanFPS = meanFPS - (meanFPS - FPS) / (double)fpsCount;
+		lastLoopTime = endTime;
+
+		if (fpsCount % 20 == 0) {
+			Debugger::DEBUG("WolvesAI", "FPS (min/mean/max/curr): %.2f/%.2f/%.2f/%.2f",
+					minFPS,	meanFPS, maxFPS, FPS);
+		}
+		if (fpsCount > 20 * 30) {
+			minFPS = 9999.0;
+			maxFPS = 0.0;
+			meanFPS = 0.0;
+			fpsCount = 0;
+		}
+//#endif
+	}
+
+//#if defined(_DEBUG) || defined(JENKINS)
+	if( createCsv) {
+		Debugger::addMetric("fps", "min", minFPS);
+		Debugger::addMetric("fps", "max", maxFPS);
+		Debugger::addMetric("fps", "mean", meanFPS);
+	}
+//#endif
+
+	Debugger::INFO("WolvesAI", "Terminating program...");
+	Config::getInstance()->setDisableChangeListeners(true);
+	mBody->Stop();
+	mGame->save();
+	delete mMitecomCommunicator;
+	delete mGameController;
+	delete mGame;
+	delete mBody;
+	delete mLEDs;
+
+	delete fileService;
+	delete blackboardService;
+#ifdef _DEBUG
+	delete bodyDataService;
+#endif
+	delete imageService;
+	delete controlService;
+	delete histogramService;
+
+	SettingConfig::shutdown();
+	ModuleManager::shutdown();
+	Config::shutdown();
+	Debugger::shutdown();
+	DebugDrawer::shutdown();
+
+	return 0;
+}

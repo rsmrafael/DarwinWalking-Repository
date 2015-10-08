@@ -1,0 +1,99 @@
+/*
+ * inverse.c
+ *
+ *  Created on: 26.04.2011
+ *      Author: Stefan
+ */
+
+#include "inverse.h"
+#include <math.h>
+#include "servo/servo.h"
+#include "dbgu/dbgu.h"
+#include "config/config.h"
+
+#ifndef M_PI
+#define M_PI 3.1415926535897932385
+#endif
+
+double inverse_servoOffsets[SERVO_COUNT_MAX] = INVERSE_SERVO_OFFSETS;
+float inverse_servoPositions[SERVO_COUNT_MAX];
+struct vect3d inverse_currentPosition[4]; // 4 extremities
+signed short inverse_currentPositionYaw[4];
+float inverse_hipAngle = 0;
+
+float inverse_calcServoPos(unsigned char id, double angle);
+
+void inverse_startCycle(void) {
+	for (int i = 0; i < SERVO_COUNT_MAX; i++) {
+		inverse_servoPositions[i] = -1000; // -1000 = Not in use
+	}
+}
+
+void inverse_calc(enum body_extremity ext, struct vect3d * target, signed short yaw) {
+	float angles[INVERSE_SERVOS_MAX];
+
+	// Exit when 0-vector is given
+	if (target->x == 0 && target->y == 0 && target->z == 0) {
+		return;
+	}
+
+	inverse_calculateAngles(ext, target, yaw, &angles[0]);
+	//dbgu_printf("[inverse] calc: servoAngles[]=%3.5f, %3.5f, %3.5f, %3.5f, %3.5f, %3.5f\r\n", angles[0], angles[1], angles[2], angles[3], angles[4], angles[5]);
+
+	inverse_currentPosition[ext].x = target->x;
+	inverse_currentPosition[ext].y = target->y;
+	inverse_currentPosition[ext].z = target->z;
+	inverse_currentPositionYaw[ext] = yaw;
+
+	int offset = 0;
+	unsigned char len = 0;
+	float hip = 0;
+	// Hip angle is added to servos 2 and 8
+	switch (ext) {
+		case ARM_LEFT:  offset = 12; len = 3; hip = 0; break;
+		case ARM_RIGHT: offset = 15; len = 3; hip = 0; break;
+		case LEG_LEFT:  offset =  0; len = 6; hip = inverse_hipAngle * (M_PI / 180.0f); break;
+		case LEG_RIGHT: offset =  6; len = 6; hip = -inverse_hipAngle * (M_PI / 180.0f); break;
+	}
+	for (int i = 0; i < len; i++) {
+		if (i == 2) {
+			inverse_servoPositions[offset + i] = inverse_calcServoPos(offset + i, angles[i] - hip);
+		} else {
+			inverse_servoPositions[offset + i] = inverse_calcServoPos(offset + i, angles[i]);
+		}
+	}
+	//dbgu_printf("[inverse] calc: servoPositions[]=%d, %d, %d, %d, %d, %d\r\n", inverse_servoPositions[offset + 0], inverse_servoPositions[offset + 1], inverse_servoPositions[offset + 2], inverse_servoPositions[offset + 3], inverse_servoPositions[offset + 4], inverse_servoPositions[offset + 5]);
+}
+
+float inverse_calcServoPos(unsigned char id, double angle) {
+	return (((angle * (180.0 / M_PI)) + inverse_servoOffsets[id]));
+}
+
+void inverse_endCycle(unsigned char doNotSend) {
+	unsigned char servocnt = Config_GetServoCount();
+	for (int i = 0; i < servocnt; i++) {
+		if (inverse_servoPositions[i] != -1000) { // Valid value
+			Servo_SetPosition(i, inverse_servoPositions[i]);
+		}
+	}
+	Servo_SetPositionsTorque(0);
+	if (!doNotSend) {
+		Servo_SendPositions();
+	}
+}
+
+struct vect3d inverse_getCurrentPos(enum body_extremity ext) {
+	return inverse_currentPosition[ext];
+}
+
+signed short inverse_getCurrentPosYaw(enum body_extremity ext) {
+	return inverse_currentPositionYaw[ext];
+}
+
+void inverse_setHipAngle(float angle) {
+	inverse_hipAngle = angle;
+}
+
+float inverse_getHipAngle(void) {
+	return inverse_hipAngle;
+}

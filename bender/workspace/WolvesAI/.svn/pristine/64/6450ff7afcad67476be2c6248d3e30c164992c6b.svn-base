@@ -1,0 +1,53 @@
+/*
+ * Communicator.h
+ *
+ *  Created on: 24.06.2009
+ *      Author: Stefan
+ */
+
+#ifndef COMMUNICATOR_H_
+#define COMMUNICATOR_H_
+
+#include "AbstractCommunicator.h"
+#include "../Thread.h"
+
+
+class BodyCommunicator : public AbstractCommunicator, public Thread {
+public:
+	BodyCommunicator(std::string device, bool noComms);
+	~BodyCommunicator();
+
+	const struct statusMessage_t* GetStatusMessage();
+	void SendData(uint8_t type, uint8_t instruction, uint8_t controller, size_t commandLen, uint8_t* commandContent);
+
+private:
+	struct parser_message {
+		uint8_t type;
+		uint8_t instruction;
+		uint16_t length;
+		uint8_t data[100];
+	};
+
+	bool InitComPort(std::string device);
+
+	void execute(void* arg);
+	void ProcessChar(uint8_t ch);
+	void ProcessMessage(const struct parser_message* message);
+
+	int mComFileDescriptor;
+	struct termios mOldComSettings;
+	std::string mDeviceName;
+
+	uint16_t mParserState;
+	uint8_t mParserChecksum;
+	uint8_t mParserTemp;
+	struct parser_message mParserCurrentMessage;
+	uint8_t mParserLastBytes[2];
+
+	struct statusMessage_t mStatusMessage;
+	bool mStatusMessageAvailable;
+
+	bool mNoComms;
+};
+
+#endif /* COMMUNICATOR_H_ */

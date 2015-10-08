@@ -1,0 +1,45 @@
+/*
+ * PanTiltUnit.h
+ *
+ *  Created on: 25.06.2009
+ *      Author: Stefan
+ */
+
+#ifndef PANTILTUNIT_H_
+#define PANTILTUNIT_H_
+
+#include "ICommunicator.h"
+
+class PanTiltUnit {
+public:
+	PanTiltUnit(ICommunicator* comm);
+	~PanTiltUnit();
+
+	void SetPosition(double PanDeg, double TiltDeg);
+	void SetPan(double PanDeg);
+	void SetTilt(double TiltDeg);
+	void MoveToHome();
+
+	double GetTilt() const;
+	double GetPan() const;
+
+	void InitTracking();
+	void MoveTracking(bool disablePan);
+	void MoveTracking(double errorX, double errorY, bool disablePan);
+
+private:
+	void Execute();
+
+	ICommunicator* mComm;
+
+	double mPan;
+    double mTilt;
+
+	double mPanErr;
+	double mPanErrDiff;
+	double mTiltErr;
+	double mTiltErrDiff;
+
+};
+
+#endif /* PANTILTUNIT_H_ */

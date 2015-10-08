@@ -1,0 +1,189 @@
+/*
+ * VisionVisualisation.cpp
+ *
+ *  Created on: Sep 3, 2012
+ *      Author: jan
+ */
+
+#include "VisionVisualisation.h"
+
+#ifdef USE_OPENCV
+#include <opencv2/opencv.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#endif
+
+#ifdef USE_OPENCV
+
+cv::Scalar cv_Scalar(int r, int g, int b) {
+	return cv::Scalar(b, g, r);
+}
+
+#endif
+
+VisionVisualisation::VisionVisualisation()
+	:mDebugDrawings(0) {
+
+
+
+#ifdef USE_OPENCV
+	cv::Mat dummy(288, 320, CV_8U);
+
+	if (mDebugDrawings) {
+		cv::namedWindow("original", CV_WINDOW_NORMAL);
+		cvMoveWindow("original", 100, 0);
+		/*cv::namedWindow("Y-Channel", CV_WINDOW_NORMAL);
+		cvMoveWindow("Y-Channel", 450, 0);
+		cv::namedWindow("Cb-Channel", CV_WINDOW_NORMAL);
+		cvMoveWindow("Cb-Channel", 800, 0);
+		cv::namedWindow("Cr-Channel", CV_WINDOW_NORMAL);
+		cvMoveWindow("Cr-Channel", 100, 350);
+		cv::namedWindow("augmented", CV_WINDOW_NORMAL);
+		cvMoveWindow("augmented", 450, 350);*/
+
+
+		cv::imshow("original", dummy);
+		/*cv::imshow("Y-Channel", dummy);
+		cv::imshow("Cb-Channel", dummy);
+		cv::imshow("Cr-Channel", dummy);
+		cv::imshow("augmented", dummy);*/
+	}
+
+#endif
+
+}
+
+VisionVisualisation::~VisionVisualisation() {
+
+}
+
+bool VisionVisualisation::execute() {
+
+#ifdef USE_OPENCV
+
+	if (mDebugDrawings) {
+		cv::imshow("original", getOpenCVImage().getImage());
+		//cv::imshow("Y-Channel", getOpenCVImage().getChannelY());
+		//cv::imshow("Cb-Channel", getOpenCVImage().getChannelCB());
+		//cv::imshow("Cr-Channel", getOpenCVImage().getChannelCR());
+
+		cv::Mat augmented = cv::Mat(getOpenCVImage().getImage());
+
+		const vector<DebugDrawings::DebugDrawing>* drawings =
+				(*ModuleManager::GetInstance()->getBlackboardDirect(true)->getRepresentation<
+						DataHolder<DebugDrawings> >("DebugDrawings")).getData();
+
+		for (vector<DebugDrawings::DebugDrawing>::const_iterator it =
+				drawings->begin(); it != drawings->end(); ++it) {
+			cv::Scalar scalar = cv::Scalar(0, 0, 0);
+
+			switch ((*it).penColor) {
+			case DebugDrawer::BLACK:
+				scalar = cv_Scalar(0, 0, 0);
+				break;
+			case DebugDrawer::DARK_GRAY:
+				scalar = cv_Scalar(64, 64, 64);
+				break;
+			case DebugDrawer::LIGHT_GRAY:
+				scalar = cv_Scalar(192, 192, 192);
+				break;
+			case DebugDrawer::WHITE:
+				scalar = cv_Scalar(255, 255, 255);
+				break;
+			case DebugDrawer::RED:
+				scalar = cv_Scalar(255, 0, 0);
+				break;
+			case DebugDrawer::ORANGE:
+				scalar = cv_Scalar(255, 128, 0);
+				break;
+			case DebugDrawer::YELLOW:
+				scalar = cv_Scalar(255, 255, 0);
+				break;
+			case DebugDrawer::LIME:
+				scalar = cv_Scalar(128, 255, 0);
+				break;
+			case DebugDrawer::GREEN:
+				scalar = cv_Scalar(0, 255, 0);
+				break;
+			case DebugDrawer::CYAN:
+				scalar = cv_Scalar(0, 255, 255);
+				break;
+			case DebugDrawer::BLUE:
+				scalar = cv_Scalar(0, 0, 255);
+				break;
+			case DebugDrawer::VIOLET:
+				scalar = cv_Scalar(128, 0, 255);
+				break;
+			case DebugDrawer::PURPLE:
+				scalar = cv_Scalar(128, 0, 128);
+				break;
+			case DebugDrawer::MAGENTA:
+				scalar = cv_Scalar(255, 0, 255);
+				break;
+			case DebugDrawer::LIGHT_RED:
+				scalar = cv_Scalar(255, 128, 128);
+				break;
+			case DebugDrawer::LIGHT_YELLOW:
+				scalar = cv_Scalar(255, 255, 128);
+				break;
+			case DebugDrawer::LIGHT_GREEN:
+				scalar = cv_Scalar(128, 255, 128);
+				break;
+			case DebugDrawer::LIGHT_BLUE:
+				scalar = cv_Scalar(128, 128, 255);
+				break;
+			case DebugDrawer::LIGHT_PURPLE:
+				scalar = cv_Scalar(255, 128, 255);
+				break;
+			case DebugDrawer::BROWN:
+				scalar = cv_Scalar(128, 64, 0);
+				break;
+			case DebugDrawer::OLIVE:
+				scalar = cv_Scalar(128, 128, 0);
+				break;
+			case DebugDrawer::TEAL:
+				scalar = cv_Scalar(0, 128, 128);
+				break;
+			case DebugDrawer::AZURE:
+				scalar = cv_Scalar(0, 128, 255);
+				break;
+			case DebugDrawer::DARK_RED:
+				scalar = cv_Scalar(128, 0, 0);
+				break;
+			case DebugDrawer::DARK_GREEN:
+				scalar = cv_Scalar( 0, 128, 0);
+				break;
+			case DebugDrawer::DARK_BLUE:
+				scalar = cv_Scalar(0, 0, 128);
+				break;
+			default:
+				break;
+			}
+
+			//FILTER LOGIC
+
+			if ((*it).type == DebugDrawer::CIRCLE) {
+				cv::circle(augmented, cv::Point((*it).x1, (*it).y1), (*it).p1,
+						scalar, 1, 1, 0);
+			} else if ((*it).type == DebugDrawer::LINE) {
+				cv::line(augmented, cv::Point((*it).x1, (*it).y1),
+						cv::Point((*it).p1, (*it).p2), scalar, 1, 1, 0);
+			} else if ((*it).type == DebugDrawer::BOX) {
+				cv::rectangle(augmented, cv::Point((*it).x1, (*it).y1),
+						cv::Point((*it).x1 + (*it).p1, (*it).y1 + (*it).p2), scalar,
+						1, 1, 0);
+			} else if ((*it).type == DebugDrawer::DOT) {
+				cv::circle(augmented, cv::Point((*it).x1, (*it).y1), 1, scalar, 1,
+						1, 0);
+			}
+
+		}
+
+	//cv::imshow("augmented", augmented);
+
+		cv::waitKey(1);
+	}
+
+#endif
+
+	return true;
+}

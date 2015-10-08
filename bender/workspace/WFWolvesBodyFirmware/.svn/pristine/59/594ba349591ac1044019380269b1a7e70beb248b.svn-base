@@ -1,0 +1,608 @@
+#include <math.h>
+#include "include/Board.h"
+#include "tc/tc.h"
+#include "uart/uart.h"
+#include "dbgu/dbgu.h"
+#include "adc/adc.h"
+#include "imu/imu.h"
+#include "movements/scenes.h"
+#include "parser/parser.h"
+#include "ui/ui.h"
+#include "servo/servo.h"
+#include "servo_pwm/servo_pwm.h"
+#include "rbc/rbc.h"
+#include "tests/imu.h"
+#include "config/config.h"
+#include "shell/shell.h"
+#include "kinematics/inverse.h"
+#include "movements/kinematic_scenes.h"
+#include "controller/controller.h"
+#include "walker/walker.h"
+#include "i2c/i2c.h"
+#include "movements/motionselect.h"
+#include "eeprom/eeprom.h"
+#include "usb/usb.h"
+
+#ifdef DEBUG_X86
+#define MAIN_LOOP_DURATION			24 // ms
+#else
+#define MAIN_LOOP_DURATION			8 // ms
+#endif
+
+#define GETUP_FRONT_TRIGGER			420
+#define GETUP_BACK_TRIGGER			630
+
+#define WALK_FORWARD_MAX_SPEED		10
+#define WALK_SIDEWAY_MAX_SPEED		20
+#define TURN_MAX_SPEED				10
+#define UNIT_FB_STEP				0.3
+#define UNIT_RL_STEP				UNIT_FB_STEP
+#define UNIT_RL_TURN				1.0
+
+
+#define STATE_MAIN					0
+#define STATE_PLAYSTATIC			1
+#define STATE_RETURNTOSTAY			2
+#define STATE_GETUPFRONT			3
+#define STATE_GETUPBACK				4
+#define STATE_WALKBEGIN				5
+#define STATE_WALK					6
+#define STATE_WALKEND				7
+#define STATE_PLAYKINEMATIC			8
+#define STATE_STABILIZE				9
+
+#define MAX_STEPS					2
+
+#define GO_FORWARD_CMD				1
+
+#define WALK_START_TIMING_FACTOR	1.5
+#define TIMING_FACTOR_STEP			0.02 // WALK_START_TIMING_FACTOR + (x * TIMING_FACTOR_STEP) must give 1!
+
+#define STABILIZE_CYCLES			(1000 / MAIN_LOOP_DURATION)
+
+void main_loop_kinematic(void);
+signed char ParseMessages(void);
+void DisableWalkerControl(void);
+char* GetStateName(unsigned char state);
+
+unsigned char mBlockPanTilt = 0;
+
+signed char mGoalFBStep = 0;
+signed char mGoalRLStep = 0;
+signed char mGoalRLTurn = 0;
+
+void InitIO(void) {
+#ifndef DEBUG_X86
+	AT91C_BASE_PMC->PMC_PCER = (1 << AT91C_ID_PIOA);
+	// enable periph clock for PIO controller
+	AT91C_BASE_PMC->PMC_PCER = (1 << AT91C_ID_PIOB);
+	// enable periph clock for PIO controller
+
+	// Disable USB pullup (prevents enumeration)
+    // Set in PIO mode and Configure in Output
+	AT91C_BASE_PIOA->PIO_PER 	= AT91A_USB_PUP; 		// Set in PIO mode
+    AT91C_BASE_PIOA->PIO_OER    = AT91A_USB_PUP;		// Configure as output
+    AT91C_BASE_PIOA->PIO_CODR   = AT91A_USB_PUP;		// Set to LOW
+    AT91C_BASE_PIOA->PIO_PPUDR  = AT91A_USB_PUP;		// Disable pullup
+#endif
+}
+
+void EnableReset(void) {
+#ifndef DEBUG_X86
+	// Enable external reset via switch on PCB
+	AT91C_BASE_RSTC->RSTC_RCR = 0xA5000008;
+	AT91C_BASE_RSTC->RSTC_RMR = 0xA5000001;
+#endif
+}
+
+int main(void) {
+	EnableReset();							// Enable reset switch
+	InitIO();								// Initialize I/O which no other module will initialize
+	DBGU_Init();
+	TC_Init();
+	UI_Init();
+	ADC_Init();
+	UART_Init();
+	I2C_Init();
+	Parser_Init();
+	USB_Init();
+	uart0_AssignCharReceivedCallback(Parser_ProcessChar);
+
+	dbgu_print_ascii("WF Wolves Body Firmware\r\nCompiled: ");
+	dbgu_print_ascii(__DATE__);
+	dbgu_print_char(' ');
+	dbgu_print_ascii(__TIME__);
+	dbgu_print_ascii("\r\n\r\n");
+
+	dbgu_print_ascii("Hold down button 1 to enter Shell mode\r\n");
+#ifdef DYNAMIXEL
+	dbgu_print_ascii("Hold down button 2 to enter Dynamixel forwarding mode\r\n\r\n");
+#else
+	dbgu_print_ascii("Hold down button 2 to enter RoboBuilder (RBC) mode\r\n\r\n");
+#endif
+
+	UI_SetLED(0, 1);
+
+	dbgu_print_ascii("Trying to enumerate USB... ");
+	if (USBWaitForConfigTimeout(5000)) {
+		dbgu_print_ascii("Enumerated!\r\n");
+	} else {
+		dbgu_print_ascii("Not enumerated\r\n");
+	}
+
+	dbgu_print_ascii("Initializing servos...\r\n");
+	Config_Init();
+	Servo_Init();
+	ServoPWM_Init();
+
+	UI_SetLED(0, 0);
+	UI_SetLED(1, 1);
+
+#ifdef DYNAMIXEL
+	Servo_SetPosition(SERVO_ID_HEAD_PAN, 0);
+	Servo_SetPosition(SERVO_ID_HEAD_TILT, -45);
+#else
+	Servo_SetPosition(SERVO_ID_HEAD_PAN, 0);
+	Servo_SetPosition(SERVO_ID_HEAD_TILT, 90);
+#endif
+	Scenes_Init();
+	KinematicScenes_Init();
+	PID_Init();
+	Walker_Init();
+	// Do not move to basic pose in shell mode - robot could be
+	// strapped to scaffolding and would break all it's servos!
+	Walker_SetServoParams();
+	if (UI_GetKeyState(1) != 1) {
+#ifdef DYNAMIXEL
+		Servo_SetPosition(SERVO_ID_R_SHOULDER_PITCH, 41.345);
+		Servo_SetPosition(SERVO_ID_L_SHOULDER_PITCH, 0);
+		Servo_SetPosition(SERVO_ID_R_SHOULDER_ROLL, 17.873);
+		Servo_SetPosition(SERVO_ID_L_SHOULDER_ROLL, -17.580);
+		Servo_SetPosition(SERVO_ID_R_ELBOW, -29.300);
+		Servo_SetPosition(SERVO_ID_L_ELBOW, 29.593);
+#else
+		inverse_startCycle();
+		struct vect3d target;
+		target.x = 0;
+		target.y = 0;
+		target.z = 80;
+		inverse_calc(ARM_LEFT, &target, 0);
+		inverse_calc(ARM_RIGHT, &target, 0);
+		inverse_endCycle(0);
+#endif
+		Walker_SetWalk(0, 0, 0);
+		Walker_Start();
+		Walker_Process();
+		Servo_SendPositions();
+	}
+	dbgu_print_ascii("Done!\r\n");
+	TC_DelayMs(1500);
+
+	UI_SetLED(1, 0);
+	UI_SetLED(2, 1);
+
+	dbgu_print_ascii("Calibrating IMU... ");
+	IMU_Init();
+	if (IMU_Calibrate()) {
+		for (int i = 0; i < 250; i++) {
+			IMU_Update();
+			TC_DelayMs(2);
+		}
+		dbgu_print_ascii("Done!\r\n");
+	}
+#ifdef DYNAMIXEL
+	Servo_SetPosition(SERVO_ID_HEAD_PAN, 0);
+	Servo_SendPosition(SERVO_ID_HEAD_PAN, 0);
+	TC_DelayMs(1);
+	Servo_SetPosition(SERVO_ID_HEAD_TILT, -90);
+	Servo_SendPosition(SERVO_ID_HEAD_TILT, -90);
+#else
+	Servo_SetPosition(SERVO_ID_HEAD_PAN, 0);
+	Servo_SendPosition(SERVO_ID_HEAD_PAN, 0);
+	TC_DelayMs(1);
+	Servo_SetPosition(SERVO_ID_HEAD_TILT, -90);
+	Servo_SendPosition(SERVO_ID_HEAD_TILT, -90);
+#endif
+	UI_SetLED(2, 0);
+
+	if (UI_GetKeyState(0) == 1) {
+		UI_SetLED(0, 1);
+#ifdef DYNAMIXEL
+		dbgu_print_ascii("Board is in Dynamixel forwarding mode!\r\n");
+		Servo_SetForwardingMode(1);
+		while (1 == 1);
+#else
+		dbgu_print_ascii("Board is in RBC mode!\r\n");
+		RBC_Main(1);
+#endif
+	}
+
+	if (UI_GetKeyState(1) == 1) {
+		dbgu_print_ascii("Board is in Shell mode!\r\n");
+		UI_SetLED(0, 1);
+		Shell_Main();
+	}
+
+	dbgu_print_ascii("READY.\r\n\r\n");
+
+	main_loop_kinematic();
+}
+
+void main_loop_kinematic(void) {
+	unsigned char currentState = STATE_MAIN;
+	unsigned char lastState = 99;
+	signed char lastMotionCmd = -1;
+	unsigned short stabilizeCnt = 0;
+	unsigned char isParalyzed = 0;
+	struct t_motion_select motionSelects;
+	char usbBuffer[16];
+
+	for (unsigned char i = 0; i < sizeof(motionSelects.motionIDs); ++i) {
+		motionSelects.motionIDs[i] = 0xff;
+	}
+	motionSelects.motionIDs[GETUP_FRONT] = 1;
+	motionSelects.motionIDs[GETUP_BACK] = 0;
+	motionSelects.motionIDs[KICK_LEFT] = 3;
+	motionSelects.motionIDs[KICK_RIGHT] = 2;
+	motionSelects.motionIDs[GOALIE_MOVE_LEFT] = 6;
+	motionSelects.motionIDs[GOALIE_MOVE_RIGHT] = 6;
+	eeprom_read("MOTION SELECTS", &motionSelects, sizeof(motionSelects));
+
+	while(1){
+		unsigned long loopStartTime = TC_GetSystemTicks();
+
+		UI_ToggleLED(0);
+		IMU_Update();
+
+		// Look for USB chars, when available feed to parser
+		int read = USBRead_nonblocking(&usbBuffer[0], sizeof(usbBuffer));
+		if (read > 0) {
+			for (unsigned char i = 0; i < read; ++i) {
+				Parser_ProcessChar(usbBuffer[i]);
+			}
+		}
+
+		// Parse messages in all states, but actually use motion
+		// instructions only in some of them
+		signed char motionCmd = ParseMessages();
+
+		if (UI_GetKeyState(0) == 1) {
+			isParalyzed = 1 - isParalyzed;
+			UI_SetLED(2, isParalyzed);
+			dbgu_printf("[Main] Robot is now %sparalyzed!\r\n", isParalyzed ? "" : "un");
+			TC_DelayMs(50);
+			while (UI_GetKeyState(0) == 1);
+			TC_DelayMs(50);
+		}
+
+		if (isParalyzed == 1) {
+			if (lastMotionCmd != 0) {
+				motionCmd = 0;
+			} else {
+				motionCmd = -1;
+			}
+		}
+
+		if (currentState != lastState) {
+			dbgu_printf("[Main] New state: %d (%s)\r\n", currentState, GetStateName(currentState));
+			lastState = currentState;
+		}
+
+		if (currentState == STATE_MAIN) {
+			if (IMU_GetFBAccelAverage() < GETUP_FRONT_TRIGGER) {
+				dbgu_printf("[Main] Detected fall, getting up from front\r\n");
+				DisableWalkerControl();
+				Scenes_StartPlay(motionSelects.motionIDs[GETUP_FRONT]);
+#ifdef DYNAMIXEL
+				Servo_SetPosition(SERVO_ID_HEAD_PAN, 0);
+				Servo_SendPosition(SERVO_ID_HEAD_PAN, 0);
+				Servo_SetPosition(SERVO_ID_HEAD_TILT, -90);
+				Servo_SendPosition(SERVO_ID_HEAD_TILT, -90);
+#else
+				Servo_SetPosition(SERVO_ID_HEAD_PAN, 0);  // Set in current positions array (used for scenes)
+				Servo_SendPosition(SERVO_ID_HEAD_PAN, 0); // Send to servo for immediate execution
+				Servo_SetPosition(SERVO_ID_HEAD_TILT, 90);
+				Servo_SendPosition(SERVO_ID_HEAD_TILT, 90);
+#endif
+				mBlockPanTilt = 1;
+				currentState = STATE_GETUPFRONT;
+			} else if (IMU_GetFBAccelAverage() > GETUP_BACK_TRIGGER) {
+				dbgu_printf("[Main] Detected fall, getting up from back\r\n");
+				DisableWalkerControl();
+				Scenes_StartPlay(motionSelects.motionIDs[GETUP_BACK]);
+#ifdef DYNAMIXEL
+				Servo_SetPosition(SERVO_ID_HEAD_PAN, 0);
+				Servo_SendPosition(SERVO_ID_HEAD_PAN, 0);
+				Servo_SetPosition(SERVO_ID_HEAD_TILT, -90);
+				Servo_SendPosition(SERVO_ID_HEAD_TILT, -90);
+#else
+				Servo_SetPosition(SERVO_ID_HEAD_PAN, 0);  // Set in current positions array (used for scenes)
+				Servo_SendPosition(SERVO_ID_HEAD_PAN, 0); // Send to servo for immediate execution
+				Servo_SetPosition(SERVO_ID_HEAD_TILT, 90);
+				Servo_SendPosition(SERVO_ID_HEAD_TILT, 90);
+#endif
+				mBlockPanTilt = 1;
+				currentState = STATE_GETUPBACK;
+			} else {
+				if (motionCmd != lastMotionCmd) {
+					if (motionCmd > -1) {
+						switch (motionCmd) {
+						case 0:
+							mGoalFBStep = 0;
+							mGoalRLStep = 0;
+							mGoalRLTurn = 0;
+							currentState = STATE_RETURNTOSTAY;
+							break;
+						case GO_FORWARD_CMD: // Go forward
+							mGoalFBStep = WALK_FORWARD_MAX_SPEED;
+							mGoalRLStep = 0;
+							mGoalRLTurn = 0;
+							break;
+						case 2: // Turn left
+							mGoalFBStep = 0;
+							mGoalRLStep = 0;
+							mGoalRLTurn = TURN_MAX_SPEED;
+							break;
+						case 3: // Turn right
+							mGoalFBStep = 0;
+							mGoalRLStep = 0;
+							mGoalRLTurn = -TURN_MAX_SPEED;
+							break;
+						case 4: // Go right
+							mGoalFBStep = 0;
+							mGoalRLStep = -WALK_SIDEWAY_MAX_SPEED;
+							mGoalRLTurn = 0;
+							break;
+						case 5: // Go left
+							mGoalFBStep = 0;
+							mGoalRLStep = WALK_SIDEWAY_MAX_SPEED;
+							mGoalRLTurn = 0;
+							break;
+						case 6: //Kick Left
+							DisableWalkerControl();
+							Scenes_StartPlay(motionSelects.motionIDs[KICK_LEFT]);
+							currentState = STATE_PLAYSTATIC;
+							break;
+						case 7: //Kick Right
+							DisableWalkerControl();
+							Scenes_StartPlay(motionSelects.motionIDs[KICK_RIGHT]);
+							currentState = STATE_PLAYSTATIC;
+							break;
+						case 10://OH NO
+							DisableWalkerControl();
+							Scenes_StartPlay(30);
+							currentState = STATE_PLAYSTATIC;
+							break;
+						case 11:
+							DisableWalkerControl();
+							Scenes_StartPlay(motionSelects.motionIDs[GOALIE_MOVE_LEFT]);
+							currentState = STATE_PLAYSTATIC;
+							break;
+						case 12:
+							DisableWalkerControl();
+							Scenes_StartPlay(motionSelects.motionIDs[GOALIE_MOVE_RIGHT]);
+							currentState = STATE_PLAYSTATIC;
+							break;
+						case 14: // Hi pose
+							DisableWalkerControl();
+							Scenes_StartPlay(15);
+							currentState = STATE_PLAYSTATIC;
+							break;
+						case 15: // YeahGoal pose
+							DisableWalkerControl();
+							Scenes_StartPlay(16);
+							currentState = STATE_PLAYSTATIC;
+							break;
+						case 100: // Walker cmd
+							break;
+						}
+						lastMotionCmd = motionCmd;
+					}
+				}
+			}
+		} else if (currentState == STATE_PLAYSTATIC) {
+			if (!Scenes_IsPlaying()) {
+				currentState = STATE_RETURNTOSTAY;
+			}
+		} else if (currentState == STATE_PLAYKINEMATIC) {
+			if (!KinematicScenes_IsPlaying()) {
+				currentState = STATE_RETURNTOSTAY;
+			}
+		} else if (currentState == STATE_RETURNTOSTAY) {
+			Walker_SetServosActive(1);
+			Walker_SetServoParams();
+			currentState = STATE_STABILIZE;
+			stabilizeCnt = STABILIZE_CYCLES;
+		} else if (currentState == STATE_STABILIZE) {
+			if (stabilizeCnt == 0) {
+				currentState = STATE_MAIN;
+			} else {
+				stabilizeCnt--;
+			}
+		} else if (currentState == STATE_GETUPBACK) {
+			if (!Scenes_IsPlaying()) {
+				mBlockPanTilt = 0;
+				currentState = STATE_RETURNTOSTAY;
+			}
+		} else if (currentState == STATE_GETUPFRONT) {
+			if (!Scenes_IsPlaying()) {
+				mBlockPanTilt = 0;
+				currentState = STATE_RETURNTOSTAY;
+			}
+		}
+
+		if(mGoalFBStep == 0 && mGoalRLStep == 0 && mGoalRLTurn == 0 && Walker_X_MOVE_AMPLITUDE == 0 && Walker_Y_MOVE_AMPLITUDE == 0 && Walker_A_MOVE_AMPLITUDE == 0) {
+			if (Walker_IsRunning()) {
+				dbgu_printf("[Main] Walker stop\r\n");
+				Walker_Stop();
+			}
+		} else {
+			if(!Walker_IsRunning()) {
+				dbgu_printf("[Main] Walker start\r\n");
+				Walker_X_MOVE_AMPLITUDE = 0;
+				Walker_Y_MOVE_AMPLITUDE = 0;
+				Walker_A_MOVE_AMPLITUDE = 0;
+				Walker_Start();
+			} else {
+				if (Walker_X_MOVE_AMPLITUDE < mGoalFBStep) {
+					Walker_X_MOVE_AMPLITUDE += UNIT_FB_STEP;
+				} else if(Walker_X_MOVE_AMPLITUDE > mGoalFBStep) {
+					Walker_X_MOVE_AMPLITUDE = mGoalFBStep;
+				}
+
+				if (Walker_Y_MOVE_AMPLITUDE < mGoalRLStep) {
+					Walker_Y_MOVE_AMPLITUDE += UNIT_RL_STEP;
+				} else if(Walker_Y_MOVE_AMPLITUDE > mGoalRLStep) {
+					Walker_Y_MOVE_AMPLITUDE = mGoalRLStep;
+				}
+
+				if (Walker_A_MOVE_AMPLITUDE < mGoalRLTurn) {
+					Walker_A_MOVE_AMPLITUDE += UNIT_RL_TURN;
+				} else if(Walker_A_MOVE_AMPLITUDE > mGoalRLTurn) {
+					Walker_A_MOVE_AMPLITUDE -= UNIT_RL_TURN;
+				}
+
+				//dbgu_printf("[Main] FB: %.1f, RL S: %.1f, ,RL T: %.1f\r\n", Walker_X_MOVE_AMPLITUDE, Walker_Y_MOVE_AMPLITUDE, Walker_A_MOVE_AMPLITUDE);
+			}
+		}
+
+		Walker_Process();
+
+		Servo_SendPositions();
+
+		// Waste remaining loop time
+		if (TC_GetMsSinceTick(loopStartTime) > MAIN_LOOP_DURATION) {
+			dbgu_printf("[Main] WARNING: Main loop has taken too long: %d ms instead of %d ms!\r\n", TC_GetMsSinceTick(loopStartTime), MAIN_LOOP_DURATION);
+		}
+		while (TC_GetMsSinceTick(loopStartTime) < MAIN_LOOP_DURATION);
+	};
+}
+
+signed char ParseMessages(void) {
+	signed char ret = -1;
+
+	if (UI_GetKeyState(1) == 1) {
+		return GO_FORWARD_CMD;
+	}
+
+	if (Parser_IsMessageWaiting() == 1) {
+		UI_ToggleLED(1);
+		struct parser_message* msg = Parser_GetMessage();
+		if (msg->type == 1) { // Message is an instruction
+			unsigned char instruction = msg->instruction;
+			if (instruction == 0x10) { // Play motion instruction
+				ret = msg->data[1];
+				dbgu_printf("[Main] Motion inst: %d\r\n", ret);
+			} else if (instruction == 0x15) { // Set motion vector
+				signed char XSpeed = msg->data[0];
+				signed char YSpeed = msg->data[1];
+				signed char ThetaSpeed = msg->data[2];
+
+				if (XSpeed < -100) { XSpeed = -100; }
+				if (XSpeed > +100) { XSpeed = +100; }
+				if (YSpeed < -100) { YSpeed = -100; }
+				if (YSpeed > +100) { YSpeed = +100; }
+				if (ThetaSpeed < -100) { ThetaSpeed = -100; }
+				if (ThetaSpeed > +100) { ThetaSpeed = +100; }
+				mGoalFBStep = (WALK_FORWARD_MAX_SPEED / 100.0) * XSpeed;
+				mGoalRLStep = (WALK_SIDEWAY_MAX_SPEED / 100.0) * YSpeed;
+				mGoalRLTurn = (TURN_MAX_SPEED / 100.0) * ThetaSpeed;
+
+				// Determine voltage from raw ADC value
+				// Each ADC unit: 3300 / 1024 = 3.222656 mV
+				// Voltage divider factor : 270k / (1M + 270k) = 0.2126
+				// ADC units per battery V: 0.003222656 * (1 / 0.2126) = 0.01515831
+				int voltage = (((float)ADC_GetChannel(6) * 0.01515831f) * 100.0);
+				voltage += (3 * 350); // Shottky diodes in input path
+
+				uart0_putc((voltage & 0xFF00) >> 8);
+				uart0_putc((voltage & 0xFF));
+
+				ret = 100;
+			} else if (instruction == 0x11) { // Full stop instruction
+				ret = 0;
+			} else if (instruction == 0x12) { // Set pan/tilt instruction
+				signed char XGrad = msg->data[0];
+				signed char YGrad = msg->data[1];
+				float X = (float)XGrad;
+				float Y = (float)YGrad + 90;
+				if (Y < 0) Y = 0;
+				if (Y > 90) Y = 90;
+
+				if (X < -90) X = -90;
+				if (X > 90) X = 90;
+				if (!mBlockPanTilt) {
+					Servo_SetPosition(18, X);  // Set in current positions array (used for scenes)
+					Servo_SendPosition(18, X); // Send to servo for immediate execution
+					Servo_SetPosition(19, Y);
+					Servo_SendPosition(19, Y);
+				}
+				dbgu_printf("[Main] P/T: %d/%d\r\n", XGrad, YGrad);
+			}
+		} else if (msg->type == 2) { // Message is a request
+			unsigned char instruction = msg->instruction;
+
+			if (instruction == 0x1B) {
+				char item = msg->data[0];
+				if (item == 1) {
+					// Determine voltage from raw ADC value
+					// Each ADC unit: 3300 / 1024 = 3.222656 mV
+					// Voltage divider factor : 270k / (1M + 270k) = 0.2126
+					// ADC units per battery V: 0.003222656 * (1 / 0.2126) = 0.01515831
+
+					int voltage = (((float)ADC_GetChannel(6) * 0.01515831f) * 100.0);
+					voltage += (3 * 35); // Shottky diodes in input path
+
+					dbgu_printf("[Main] Voltage request received, V=%d cV\r\n", voltage);
+					uart0_putc((voltage & 0xFF00) >> 8);
+					uart0_putc((voltage & 0xFF));
+				} else if (item == 2) {
+/*
+					int angle = IMU_GetPitch();
+					uart0_putc((angle & 0xFF00) >> 8);
+					uart0_putc((angle & 0xFF));
+					angle = IMU_GetRoll();
+					uart0_putc((angle & 0xFF00) >> 8);
+					uart0_putc((angle & 0xFF));
+*/
+				}
+			}
+		}
+		Parser_SetMessageProcessed();
+	}
+	return ret;
+}
+
+void DisableWalkerControl(void) {
+	dbgu_printf("[Main] Walker stop\r\n");
+	Walker_Stop();
+    // Uncomment following to stop robot after static scenes
+	mGoalFBStep = 0;
+	mGoalRLStep = 0;
+	mGoalRLTurn = 0;
+    while(Walker_IsRunning() == 1) {
+		unsigned long loopStartTime = TC_GetSystemTicks();
+		Walker_Process();
+		Servo_SendPositions();
+		while (TC_GetMsSinceTick(loopStartTime) < MAIN_LOOP_DURATION);
+    }
+    Walker_SetServosActive(0);
+}
+
+char* GetStateName(unsigned char state) {
+#define STATETOCASE(n)	case n: return #n
+	switch (state) {
+		STATETOCASE(STATE_MAIN);
+		STATETOCASE(STATE_PLAYSTATIC);
+		STATETOCASE(STATE_RETURNTOSTAY);
+		STATETOCASE(STATE_GETUPFRONT);
+		STATETOCASE(STATE_GETUPBACK);
+		STATETOCASE(STATE_WALKBEGIN);
+		STATETOCASE(STATE_WALK);
+		STATETOCASE(STATE_WALKEND);
+		STATETOCASE(STATE_PLAYKINEMATIC);
+		STATETOCASE(STATE_STABILIZE);
+		default:
+			return "<unknown>";
+	}
+}

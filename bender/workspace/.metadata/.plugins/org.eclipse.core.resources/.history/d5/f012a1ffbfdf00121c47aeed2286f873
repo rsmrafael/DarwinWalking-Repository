@@ -1,0 +1,682 @@
+/**
+ * AttackerBehavior.cpp
+ *
+ *  Created on: 21.11.2012
+ *  Author: Stefan Krupop
+ */
+
+#include "AttackerBehavior.h"
+#include <unistd.h>
+#include "../../Debugging/Debugger.h"
+#include "../../Config.h"
+#include "../../Representations/VisionSettings.h"
+#include <sys/time.h>
+#include <math.h>
+
+/// SearchBall
+
+#define BALL_FOUND_THRESHOLD 	5		// Number of subsequent ball detections needed
+#define OBJECT_LOST_THRESHOLD 	8
+
+AttackerBehavior::AttackerBehavior() {
+	//Initialize variables
+	mCurrentState = searchBall;
+	mLastAnnouncedState = delayLoopState;
+
+	gettimeofday(&mLoopStartTime, 0);
+
+	mSearchObjectFoundCounter = 0;
+	mSearchObjectNotFoundCounter = 0;
+
+	mReturnToState = searchBall;
+	mDelayLoopDuration = 0;
+	mSearchObjectsCurrentPos = -1; // Restart search pattern
+	mSearchObjectsLoopCnt = 1;
+	mSearchObjectsUpdateCnt = 0;
+	mKickingBegun.tv_sec = 0; mKickingBegun.tv_usec = 0;
+
+	setSearchForGoal(false);
+
+	// Just to make LINT happy
+	mNoSearchGoal = false;
+	mNoKick = false;
+	mKickTilt = -72;
+	mTowardsBallLeftTurnAngle = -20.0;
+	mTowardsBallRightTurnAngle = 20.0;
+	mKickLeftTurnAngle = -30.0;
+	mKickRightTurnAngle = 30.0;
+	mTurningXMovement = 0;
+	mKickLeftPan = 0;
+	mKickingTryTimeout = 12;
+	mKickoffKickTimeout = 20;
+
+	mBall.x = 100;
+	mBall.y = 0;
+	mBall.z = 40;
+	mTarget.x = 1800;
+	mTarget.y = 0;
+	mTarget.z = 40;
+	mKickoffTarget.x = 300;
+	mKickoffTarget.y = 70;
+	mKickoffTarget.z = 60;
+
+	Config::GetInstance()->registerConfigChangeHandler(this);
+	this->configChanged();
+
+}
+
+AttackerBehavior::~AttackerBehavior() {
+	Config::GetInstance()->removeConfigChangeHandler(this);
+}
+
+bool AttackerBehavior::execute() {
+	getBehaviorStatus().setActualStatus(GetStateName(mCurrentState));
+	if (mCurrentState != mLastAnnouncedState) {
+		if (mCurrentState == searchBall) {
+			Debugger::announce("Searching ball");
+		} else if (mCurrentState == moveTowardsBall) {
+			Debugger::announce("Going for ball");
+		} else if (mCurrentState == searchGoal) {
+			Debugger::announce("Searching goal");
+		} else if (mCurrentState == circleToGoal) {
+			Debugger::announce("Aiming towards goal");
+		} else if (mCurrentState == doKick) {
+			Debugger::announce("Kick prepare");
+		}
+		mLastAnnouncedState = mCurrentState;
+	}
+
+
+	if (mCurrentState == searchBall) {
+		processSearchBall();
+	} else if (mCurrentState == moveTowardsBall) {
+		processMoveTowardsBall();
+	} else if (mCurrentState == searchGoal) {
+		processSearchGoal();
+	} else if (mCurrentState == circleToGoal) {
+		processCircleToGoal();
+	} else if (mCurrentState == moveHalfCircle) {
+		processMoveHalfCircle();
+	} else if (mCurrentState == checkBallFound) {
+		processCheckBallFound();
+	} else if (mCurrentState == checkGoalFound) {
+		processCheckGoalFound();
+	} else if (mCurrentState == doKick) {
+		processDoKick();
+	} else if (mCurrentState == doNothing) {
+		Debugger::INFO("AttackerBehavior", "Waiting 5 seconds...");
+		//body->MoveHi();
+		#ifdef WIN32
+		Sleep(5);
+		#else
+		usleep(5000 * 1000);
+		#endif
+		mCurrentState = searchBall;
+	} else if (mCurrentState == delayLoopState) {
+		timeval curTime;
+		gettimeofday(&curTime, 0);
+
+		long seconds  = curTime.tv_sec  - mLoopStartTime.tv_sec;
+
+		if (seconds >= mDelayLoopDuration) {
+			Debugger::DEBUG("AttackerBehavior", "Delay loop state ended");
+			mCurrentState = mReturnToState;
+		}
+	}
+
+	return true;
+}
+
+bool AttackerBehavior::processSearchBall() {
+	//Debugger::DEBUG("AttackerBehavior", "State: SearchBall (found %i times)", mSearchObjectFoundCounter);
+
+	// STATE CHANGES
+	if (mSearchObjectFoundCounter >= BALL_FOUND_THRESHOLD) {
+		Debugger::INFO("AttackerBehavior", "Ball found stable");
+		getBodyAction().Stop();
+		mCurrentState = moveTowardsBall;
+		mSearchObjectFoundCounter = 0;
+		mSearchObjectsCurrentPos = -1; // Restart search pattern
+		return true;
+	}
+
+	// STATE LOGIC
+	if (getBall().lastImageSeen) {
+		Debugger::DEBUG("AttackerBehavior", "Ball found, tracking");
+		processTracker(&getBall());
+		mSearchObjectFoundCounter++;
+		mSearchObjectsCurrentPos = -1; // Restart search pattern
+	} else if (mSearchObjectFoundCounter == 0) {
+		Debugger::DEBUG("AttackerBehavior", "Ball not found, looking for it");
+		getBodyAction().Stop();
+		searchObject(true, false, false);
+	} else {
+		mSearchObjectNotFoundCounter++;
+		if (mSearchObjectNotFoundCounter > OBJECT_LOST_THRESHOLD){
+			Debugger::INFO("AttackerBehavior", "Ball lost");
+			mSearchObjectFoundCounter = 0;
+			mSearchObjectNotFoundCounter = 0;
+		}
+	}
+
+	return true;
+}
+
+#define FOLLOW_MAX_RL_TURN	200.0	// Body scales these to mm/step
+#define FOLLOW_MAX_FB_STEP	100.0
+#define FOLLOW_MIN_FB_STEP	50.0
+
+#define BALL_NEAR_TILT		-55
+
+#define NO_BALL_MAX_COUNT	3
+
+bool AttackerBehavior::processMoveTowardsBall() {
+	//Debugger::DEBUG("AttackerBehavior", "State: MoveTowardsBall");
+
+	static int NoBallCount = NO_BALL_MAX_COUNT;
+
+	processTracker(&getBall());
+    if (!getBall().lastImageSeen) {
+		if(NoBallCount > NO_BALL_MAX_COUNT) {
+			// can not find a ball
+			getBodyAction().Stop();
+			mCurrentState = searchBall;
+		} else {
+			NoBallCount++;
+			Debugger::INFO("AttackerBehavior", "No Ball counting (%i/%i)", NoBallCount, NO_BALL_MAX_COUNT);
+		}
+    } else {
+		NoBallCount = 0;
+
+		double pan = getBodyStatus().getPan();
+		double pan_range = getRobotConfiguration().MaxPanAngle;
+		double pan_percent = pan / pan_range;
+
+		double tilt = getBodyStatus().getTilt();
+		double tilt_range = getRobotConfiguration().MaxTiltAngle;
+		double tilt_percent = (tilt / tilt_range);
+		if(tilt_percent < 0)
+			tilt_percent = -tilt_percent;
+		tilt_percent = 1 - tilt_percent;
+
+		if(pan > mTowardsBallLeftTurnAngle && pan < mTowardsBallRightTurnAngle) {
+			if(tilt <= BALL_NEAR_TILT) {
+				getBodyAction().Stop();
+				mSearchObjectsCurrentPos = -1; // Restart search pattern
+				if (mNoSearchGoal) {
+					Debugger::INFO("AttackerBehavior", "Not looking for goal because config.ini says so!");
+					mCurrentState = checkBallFound;
+				} else {
+					setSearchForGoal(true);
+					mCurrentState = searchGoal;
+					//getBodyAction().setPanTilt(0, 0); // Look straight up to increase possibility to find goal fast
+				}
+			} else {
+				double fbStep = FOLLOW_MAX_FB_STEP * tilt_percent;
+				if (fbStep < FOLLOW_MIN_FB_STEP)
+				    fbStep = FOLLOW_MIN_FB_STEP;
+				Debugger::DEBUG("AttackerBehavior", "MoveTowardsBall: Fitting to ball, forward %d %, rotating %d %", (signed short)fbStep, (signed short)(FOLLOW_MAX_RL_TURN * pan_percent));
+				getBodyAction().setWalkerCommand((signed short)fbStep, 0, (signed short)(FOLLOW_MAX_RL_TURN * pan_percent));
+			}
+		} else {
+			Debugger::DEBUG("AttackerBehavior", "MoveTowardsBall: Ball outside possible curve, rotating %d %", (signed short)(FOLLOW_MAX_RL_TURN * pan_percent));
+			getBodyAction().setWalkerCommand(mTurningXMovement, 0, (signed short)(FOLLOW_MAX_RL_TURN * pan_percent));
+		}
+	}
+
+	return true;
+}
+
+#define GOAL_FOUND_THRESHOLD 	20		// Number of subsequent goal detections needed
+
+bool AttackerBehavior::processSearchGoal() {
+	//Debugger::DEBUG("AttackerBehavior", "State: SearchGoal (found %i times)", mSearchObjectFoundCounter);
+
+	getBodyAction().Stop();
+
+	// STATE CHANGES
+	if (mSearchObjectFoundCounter >= GOAL_FOUND_THRESHOLD) {
+		Debugger::INFO("AttackerBehavior", "Goal found stable");
+
+		if (getGoalKeeper().lastImageSeen) {
+			Debugger::INFO("AttackerBehavior", "Found goalie of color %s in goal!", getGoalKeeper().type == Object::ROBOT_CYAN ? "CYAN" : getGoalKeeper().type == Object::ROBOT_MAGENTA ? "MAGENTA" : "UNKNOWN");
+		} else {
+			Debugger::INFO("AttackerBehavior", "Found no goalie in goal!");
+		}
+
+		setSearchForGoal(true);
+		mCurrentState = circleToGoal;
+		mSearchObjectFoundCounter = 0;
+		mSearchObjectsCurrentPos = -1; // Restart search pattern
+		return true;
+	}
+
+#ifdef GOAL_TARGETING_AVAILABLE
+	// STATE LOGIC
+	if (getGoalPoles().getLargestObject().lastImageSeen) {
+		Debugger::DEBUG("AttackerBehavior", "Goal found, tracking");
+		processTracker(getGoalPoles().getLargestObject());
+		mSearchObjectFoundCounter++;
+		mSearchObjectsCurrentPos = -1; // Restart search pattern
+	} else if (mSearchObjectFoundCounter == 0) {
+		Debugger::DEBUG("AttackerBehavior", "Goal not found, looking for it");
+		getBodyAction().Stop();
+		searchObject(false, true, true);
+	} else {
+		Debugger::DEBUG("AttackerBehavior", "Goal not found, retrying");
+		mSearchObjectNotFoundCounter++;
+		if (mSearchObjectNotFoundCounter > OBJECT_LOST_THRESHOLD){
+			Debugger::INFO("AttackerBehavior", "Goal lost");
+			mSearchObjectFoundCounter = 0;
+			mSearchObjectNotFoundCounter = 0;
+			mCurrentState = moveHalfCircle;
+		}
+	}
+#else
+	mCurrentState = circleToGoal;
+	mSearchObjectFoundCounter = 0;
+	mSearchObjectsCurrentPos = -1; // Restart search pattern
+#endif
+
+	return true;
+}
+
+#define NO_GOAL_MAX_COUNT	5
+#define GOAL_LEFT_ANGLE		-5
+#define GOAL_RIGHT_ANGLE	5
+
+bool AttackerBehavior::processCircleToGoal() {
+	//Debugger::DEBUG("AttackerBehavior", "State: CircleToGoal");
+
+#ifdef GOAL_TARGETING_AVAILABLE
+	static int NoGoalCount = NO_GOAL_MAX_COUNT;
+
+	const Object& goal = getGoalPoles().getLargestObject();
+	Debugger::DEBUG("AttackerBehavior", "circleToGoal: Using goal at ", goal.lastImageX, goal.lastImageY);
+	processTracker(goal);
+    if (!goal.lastImageSeen) {
+		if(NoGoalCount > NO_GOAL_MAX_COUNT) {
+			// lost the goal
+			getBodyAction().Stop();
+			mSearchObjectsCurrentPos = -1; // Restart search pattern
+			setSearchForGoal(true);
+			mCurrentState = searchGoal;
+		} else {
+			NoGoalCount++;
+			Debugger::INFO("AttackerBehavior", "No Goal counting (%i/%i)", NoGoalCount, NO_GOAL_MAX_COUNT);
+		}
+    } else {
+		NoGoalCount = 0;
+
+		double pan = getBodyStatus().getPan();
+
+		if(pan > GOAL_LEFT_ANGLE && pan < GOAL_RIGHT_ANGLE) {
+			getBodyAction().Stop();
+			setSearchForGoal(false);
+			mCurrentState = checkBallFound;
+		} else {
+			if (pan > GOAL_RIGHT_ANGLE) {
+				getBodyAction().CircleRight();
+				Debugger::INFO("AttackerBehavior", "Circling right...");
+			} else {
+				getBodyAction().CircleLeft();
+				Debugger::INFO("AttackerBehavior", "Circling left...");
+			}
+		}
+	}
+#else
+    setSearchForGoal(false);
+    mCurrentState = checkBallFound;
+#endif
+
+	return true;
+}
+
+bool AttackerBehavior::processMoveHalfCircle() {
+	Debugger::DEBUG("AttackerBehavior", "State: MoveHalfCircle");
+
+	// STATE CHANGES
+	// Do nothing for now, just switch to next state
+	Debugger::INFO("AttackerBehavior", "I'm sorry, Dave. I'm afraid I can't do that.");
+	mCurrentState = checkBallFound;
+	return true;
+
+	// STATE LOGIC
+}
+
+bool AttackerBehavior::processCheckBallFound() {
+	Debugger::DEBUG("AttackerBehavior", "State: CheckBallFound");
+
+	getBodyAction().setPanTilt(0, -70);
+
+	// STATE CHANGES
+	// Do nothing for now, just switch to next state
+	Debugger::INFO("AttackerBehavior", "I'm sorry, Dave. I'm afraid I can't do that.");
+	mCurrentState = checkGoalFound;
+	return true;
+
+	// STATE LOGIC
+}
+
+bool AttackerBehavior::processCheckGoalFound() {
+	Debugger::DEBUG("AttackerBehavior", "State: CheckGoalFound");
+
+	// STATE CHANGES
+	// Do nothing for now, just switch to next state
+	Debugger::INFO("AttackerBehavior", "I'm sorry, Dave. I'm afraid I can't do that.");
+	// Reset kicking timeout
+	mKickingBegun.tv_sec = 0; mKickingBegun.tv_usec = 0;
+	mCurrentState = doKick;
+	return true;
+
+	// STATE LOGIC
+}
+
+#define FIT_MAX_RL_TURN		100.0	// Body scales these to mm/step
+#define FIT_FB_STEP			20.0
+
+bool AttackerBehavior::processDoKick() {
+	Debugger::DEBUG("AttackerBehavior", "State: DoKick");
+
+	static int NoBallCount = NO_BALL_MAX_COUNT;
+
+	processTracker(&getBall());
+    if (!getBall().lastImageSeen) {
+		if(NoBallCount > NO_BALL_MAX_COUNT) {
+			// can not find a ball
+			getBodyAction().Stop();
+			// Reset kickTilt
+			mKickTilt = Config::GetInt("AI", "kickTilt", -72);
+			// Start looking for ball again
+			mCurrentState = searchBall;
+			NoBallCount = 0;
+		} else {
+			NoBallCount++;
+			Debugger::INFO("AttackerBehavior", "No Ball counting (%i/%i)", NoBallCount, NO_BALL_MAX_COUNT);
+		}
+    } else {
+		NoBallCount = 0;
+
+		double pan = getBodyStatus().getPan();
+		double pan_range = getRobotConfiguration().MaxPanAngle;
+		double pan_percent = pan / pan_range;
+
+		double tilt = getBodyStatus().getTilt();
+		double tilt_range = getRobotConfiguration().MaxTiltAngle;
+		double tilt_percent = (tilt / tilt_range);
+		if(tilt_percent < 0)
+			tilt_percent = -tilt_percent;
+		tilt_percent = 1 - tilt_percent;
+
+		if(pan > mKickLeftTurnAngle && pan < mKickRightTurnAngle) {
+			if(tilt <= BALL_NEAR_TILT) {
+				if (mNoKick) {
+					Debugger::INFO("AttackerBehavior", "Not kicking because config.ini says so!");
+				}
+				if(tilt < mKickTilt && !mNoKick) {
+					getBodyAction().setWalkerCommand(0, 0, 0);
+
+					if (mKickingBegun.tv_sec == 0 && mKickingBegun.tv_usec == 0) {
+						// Record time we started kicking the ball
+						gettimeofday(&mKickingBegun, 0);
+					}
+
+					timeval currentTime;
+					gettimeofday(&currentTime, 0);
+					if (getGameStatus().haveKickOff && getGameStatus().kickOffTime.tv_sec + mKickoffKickTimeout > currentTime.tv_sec) {
+						if(pan <= mKickLeftPan) {
+							Debugger::INFO("AttackerBehavior", "Kick off kick left");
+							//getBodyAction().KickLeft();
+							mBall.y = -70;
+							mKickoffTarget.y = -(mKickoffTarget.y < 0 ? -mKickoffTarget.y : mKickoffTarget.y);
+							getBodyAction().KickToTarget(mBall, mKickoffTarget);
+						} else {
+							Debugger::INFO("AttackerBehavior", "Kick off kick right");
+							//getBodyAction().KickRight();
+							mBall.y = 70;
+							mKickoffTarget.y = (mKickoffTarget.y < 0 ? -mKickoffTarget.y : mKickoffTarget.y);
+							getBodyAction().KickToTarget(mBall, mKickoffTarget);
+						}
+					} else {
+						if(pan <= mKickLeftPan) {
+							Debugger::INFO("AttackerBehavior", "Kick left");
+							//getBodyAction().KickLeft();
+							mBall.y = -70;
+							mTarget.y = -(mTarget.y < 0 ? -mTarget.y : mTarget.y);
+							getBodyAction().KickToTarget(mBall, mTarget);
+						} else {
+							Debugger::INFO("AttackerBehavior", "Kick right");
+							//getBodyAction().KickRight();
+							mBall.y = 70;
+							mTarget.y = (mTarget.y < 0 ? -mTarget.y : mTarget.y);
+							getBodyAction().KickToTarget(mBall, mTarget);
+						}
+					}
+
+					if (currentTime.tv_sec > (mKickingBegun.tv_sec + mKickingTryTimeout)) {
+						mKickTilt -= 1;
+						Debugger::WARN("AttackerBehavior", "DoKick: Seems ball was not hit in %d seconds, reducing kickTilt to %d", mKickingTryTimeout, mKickTilt);
+						// Restart timeout
+						gettimeofday(&mKickingBegun, 0);
+					}
+				} else {
+					getBodyAction().setWalkerCommand((signed short)(FIT_FB_STEP), 0, (signed short)(FIT_MAX_RL_TURN * pan_percent));
+					//Debugger::INFO("AttackerBehavior", "FIT(P:%.2f T:%.2f>%.2f)", pan, tilt, KICK_TILT);
+					Debugger::DEBUG("AttackerBehavior", "DoKick: Fitting tilt, forward %d %, rotating %d %", (signed short)(FIT_FB_STEP), (signed short)(FIT_MAX_RL_TURN * pan_percent));
+				}
+
+			} else {
+				double fbStep = FOLLOW_MAX_FB_STEP * tilt_percent;
+				if (fbStep < FOLLOW_MIN_FB_STEP)
+				    fbStep = FOLLOW_MIN_FB_STEP;
+				getBodyAction().setWalkerCommand((signed short)fbStep, 0, (signed short)(FOLLOW_MAX_RL_TURN * pan_percent));
+				Debugger::DEBUG("AttackerBehavior", "DoKick: Ball not near enough, forward %d %, rotating %d %", (signed short)fbStep, (signed short)(FOLLOW_MAX_RL_TURN * pan_percent));
+				//Debugger::INFO("AttackerBehavior", "FOLLOW2 P:%.2f T:%.2f", pan, tilt);
+			}
+		} else {
+			Debugger::DEBUG("AttackerBehavior", "DoKick: Ball outside possible curve, rotating %d %", (signed short)(FOLLOW_MAX_RL_TURN * pan_percent));
+			getBodyAction().setWalkerCommand(mTurningXMovement, 0, (signed short)(FOLLOW_MAX_RL_TURN * pan_percent));
+		}
+	}
+
+	return true;
+}
+
+#define NO_OBJECT_MAX_COUNT		15
+void AttackerBehavior::processTracker(const Object& object) const {
+	static int NoObjectCount = 0;
+
+	if (!object.lastImageSeen) { // No object found
+		if (NoObjectCount < NO_OBJECT_MAX_COUNT) {
+			getBodyAction().PanTiltTracking(false);
+			NoObjectCount++;
+		}
+	} else {
+		NoObjectCount = 0;
+		double offsetX = (object.lastImageX - (int)(getImage().getWidth() / 2));
+		double offsetY = (object.lastImageY - (int)(getImage().getHeight() / 2));
+		offsetY *= -1; // Inverse Y-axis
+		offsetX *= (getRobotConfiguration().CameraOpeningHorizontal / (double)getImage().getWidth()); // pixel per angle
+		offsetY *= (getRobotConfiguration().CameraOpeningVertical / (double)getImage().getHeight()); // pixel per angle
+//		Debugger::DEBUG("processTracker", "offsetX: %f, offsetY: %f", offsetX, offsetY);
+		getBodyAction().PanTiltTracking(offsetX, offsetY, false);
+
+		if (offsetX > 30 || offsetX < -30 || offsetY > 30 || offsetY < -30) {
+			#ifdef WIN32
+			Sleep(100);
+			#else
+			usleep(100 * 1000);
+			#endif
+		}
+	}
+}
+
+void AttackerBehavior::searchObject(bool allowedToMove, bool reverse, bool topRowOnly) {
+#define UPDATES_PER_POINT	30 // # of calls before advancing to next point
+#define NUMBER_OF_POINTS	10
+#define TOP_ROW_START		6
+#define LOOP_COUNT			2
+#define TURN_RIGHT_DURATION	3
+
+	signed char startIndex = 0;
+	if (topRowOnly) {
+		startIndex = TOP_ROW_START;
+	}
+
+	if (mSearchObjectsCurrentPos < 0) {
+		// Determine start position from current pan/tilt angle
+		signed char currentPan = getBodyStatus().getPan();
+		signed char currentTilt = getBodyStatus().getTilt();
+		signed char pan = 0;
+		signed char tilt = 0;
+		double minDist = 1000;
+		signed char minIndex = -1;
+		for (signed char i = startIndex; i < NUMBER_OF_POINTS; i++) {
+			getPanTiltSearchPosition(i, &pan, &tilt);
+			double deltaPan  = currentPan  - pan;
+			double deltaTilt = currentTilt - tilt;
+			double dist = sqrt((deltaPan * deltaPan) + (deltaTilt * deltaTilt));
+			if (dist < minDist) {
+				minDist = dist;
+				minIndex = i;
+			}
+		}
+		if (minIndex >= 0) {
+			Debugger::DEBUG("AttackerBehavior", "SearchObject: Nearest index for start: %i, minDist = %f", minIndex, minDist);
+			mSearchObjectsCurrentPos = minIndex;
+		} else {
+			if (reverse) {
+				mSearchObjectsCurrentPos = NUMBER_OF_POINTS;
+			} else {
+				mSearchObjectsCurrentPos = startIndex;
+			}
+		}
+
+		mSearchObjectsLoopCnt = 1;
+		mSearchObjectsUpdateCnt = 0;
+	}
+
+	mSearchObjectsUpdateCnt++;
+	if (mSearchObjectsUpdateCnt >= UPDATES_PER_POINT) {
+		mSearchObjectsUpdateCnt = 0;
+
+		signed char pan = 0;
+		signed char tilt = 0;
+		getPanTiltSearchPosition(mSearchObjectsCurrentPos, &pan, &tilt);
+
+		if (reverse) {
+			mSearchObjectsCurrentPos--;
+		} else {
+			mSearchObjectsCurrentPos++;
+		}
+		if ((mSearchObjectsCurrentPos >= NUMBER_OF_POINTS || mSearchObjectsCurrentPos < startIndex) && mSearchObjectsLoopCnt < LOOP_COUNT) {
+			Debugger::DEBUG("AttackerBehavior", "SearchObject: No success in loop %i, starting next", mSearchObjectsLoopCnt);
+			if (reverse) {
+				mSearchObjectsCurrentPos = NUMBER_OF_POINTS;
+			} else {
+				mSearchObjectsCurrentPos = startIndex; // Restart on first point
+			}
+			mSearchObjectsLoopCnt++;
+		}
+		if (mSearchObjectsCurrentPos > NUMBER_OF_POINTS || mSearchObjectsCurrentPos < startIndex) {
+			if (reverse) {
+				mSearchObjectsCurrentPos = NUMBER_OF_POINTS;
+			} else {
+				mSearchObjectsCurrentPos = startIndex; // Restart on first point
+			}
+			mSearchObjectsLoopCnt = 1;
+
+			if (allowedToMove) {
+				Debugger::INFO("AttackerBehavior", "SearchObject: Object not found, rotating body");
+				getBodyAction().setPanTilt(0, 0);
+				getBodyAction().setWalkerCommand(mTurningXMovement, 0, 100);
+				enterDelayState(mCurrentState, TURN_RIGHT_DURATION);
+				return;
+			} else {
+				Debugger::INFO("AttackerBehavior", "SearchObject: Object not found, but not allowed to move");
+			}
+		}
+		Debugger::DEBUG("AttackerBehavior", "SearchObject: Pan %d, Tilt: %d, next pos index: %i", pan, tilt, mSearchObjectsCurrentPos);
+		getBodyAction().setPanTilt(pan, tilt);
+
+		// Allow camera to set
+		#ifdef WIN32
+		Sleep(100);
+		#else
+		usleep(100 * 1000);
+		#endif
+	}
+}
+
+void AttackerBehavior::getPanTiltSearchPosition(signed char idx, signed char* pan, signed char* tilt) const {
+	switch (idx) {
+		case 0:	*pan = -40; *tilt = -70; break;
+		case 1:	*pan = +10; *tilt = -70; break;
+		case 2:	*pan = +60; *tilt = -70; break;
+		case 3:	*pan = +75; *tilt = -40; break;
+		case 4:	*pan =  +5; *tilt = -40; break;
+		case 5:	*pan = -65; *tilt = -40; break;
+		case 6:	*pan = -90; *tilt = -10; break;
+		case 7:	*pan = -30; *tilt = -10; break;
+		case 8:	*pan = +30; *tilt = -10; break;
+		case 9:	*pan = +90; *tilt = -10; break;
+		default: *pan = 0; *tilt = 0; break;
+	}
+}
+
+void AttackerBehavior::enterDelayState(State returnState, unsigned char delay) {
+	mDelayLoopDuration = delay;
+	mReturnToState = returnState;
+	gettimeofday(&mLoopStartTime, 0);
+	mCurrentState = delayLoopState;
+}
+
+void AttackerBehavior::configChanged() {
+	mNoSearchGoal = Config::GetBoolean("AI", "noSearchGoal", false);
+	mNoKick = Config::GetBoolean("AI", "noKick", false);
+	mKickTilt = Config::GetInt("AI", "kickTilt", -72);
+	mTowardsBallLeftTurnAngle = Config::GetDouble("AI", "towardsBallLeftTurnAngle", -20.0);
+	mTowardsBallRightTurnAngle = Config::GetDouble("AI", "towardsBallRightTurnAngle", 20.0);
+	mKickLeftTurnAngle = Config::GetDouble("AI", "kickLeftTurnAngle", -30.0);
+	mKickRightTurnAngle = Config::GetDouble("AI", "kickRightTurnAngle", 30.0);
+	mTurningXMovement = (signed short)Config::GetInt("AI", "turningXMovement", 0);
+	mKickLeftPan = Config::GetInt("AI", "kickLeftPan", 0);
+	mKickingTryTimeout = Config::GetInt("AI", "kickingTryTimeout", 12);
+	mKickoffKickTimeout = Config::GetInt("AI", "kickoffKickTimeout", 20);
+
+	mTarget.x = (signed short)Config::GetInt("AI", "kickTargetX", 2300);
+	mTarget.y = (signed short)Config::GetInt("AI", "kickTargetY", 70);
+	mTarget.z = (signed short)Config::GetInt("AI", "kickTargetZ", 60);
+	mKickoffTarget.x = (signed short)Config::GetInt("AI", "kickOffTargetX", 300);
+	mKickoffTarget.y = (signed short)Config::GetInt("AI", "kickOffTargetY", 70);
+	mKickoffTarget.z = (signed short)Config::GetInt("AI", "kickOffTargetZ", 60);
+	mBall.x = (signed short)Config::GetInt("AI", "kickBallX", 180);
+	mBall.y = (signed short)Config::GetInt("AI", "kickBallY", 70);
+	mBall.z = (signed short)Config::GetInt("AI", "kickBallZ", 60);
+}
+
+string AttackerBehavior::GetStateName(State state) const {
+#define STATETOCASE(n)	case n: return #n
+	switch (state) {
+		STATETOCASE(searchBall);
+		STATETOCASE(moveTowardsBall);
+		STATETOCASE(searchGoal);
+		STATETOCASE(circleToGoal);
+		STATETOCASE(moveHalfCircle);
+		STATETOCASE(checkBallFound);
+		STATETOCASE(checkGoalFound);
+		STATETOCASE(doKick);
+		STATETOCASE(doNothing);
+		STATETOCASE(delayLoopState);
+		default:
+			return "<unknown>";
+	}
+
+}
+
+void AttackerBehavior::setSearchForGoal(bool state) const {
+	//FIXME: Find clean solution to provide parameters for modules to be used in next loop iteration
+	DataHolder<VisionSettings>& rep = ModuleManager::GetInstance()->getBlackboardDirect(true)->getRepresentation<DataHolder<VisionSettings> >("VisionSettings");
+	VisionSettings* settings = &(*rep);
+	settings->searchForGoal = state;
+}

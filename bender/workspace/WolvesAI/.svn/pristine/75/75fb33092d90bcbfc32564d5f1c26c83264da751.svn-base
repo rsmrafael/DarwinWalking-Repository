@@ -1,0 +1,127 @@
+/*
+ * CommunicatorTest.h
+ *
+ *  Created on: 10.01.2014
+ *      Author: Oliver Krebs
+ */
+
+#include "CommunicatorTest.h"
+#include <stdlib.h>
+
+CPPUNIT_TEST_SUITE_REGISTRATION(CommunicatorTest);
+
+CommunicatorTest::CommunicatorTest() {
+	comm = NULL;
+	body = NULL;
+}
+
+void CommunicatorTest::setUp(void) {
+	comm = new TestCommunicator();
+	body = new Body(comm, false);
+}
+
+void CommunicatorTest::tearDown(void) {
+	delete body;
+	//delete comm; // deleted in body
+}
+
+void CommunicatorTest::movementCmdTest(void) {
+	body->GoaliMoveRight();
+	CPPUNIT_ASSERT_EQUAL_MESSAGE( "goalie right transmission fail",  TestCommunicator::OKAY, comm->GetTransmissionStatus());
+	body->GoaliMoveLeft();
+	CPPUNIT_ASSERT_EQUAL_MESSAGE( "goalie left transmission fail",  TestCommunicator::OKAY, comm->GetTransmissionStatus());
+	body->MoveHi();
+	CPPUNIT_ASSERT_EQUAL_MESSAGE( "move hi transmission fail",  TestCommunicator::OKAY, comm->GetTransmissionStatus());
+	body->YeahGoal();
+	CPPUNIT_ASSERT_EQUAL_MESSAGE( "yeah goal transmission fail",  TestCommunicator::OKAY, comm->GetTransmissionStatus());
+	body->PlayMotion( ICommunicator::KickLeft);
+	CPPUNIT_ASSERT_EQUAL_MESSAGE( "kick left transmission fail",  TestCommunicator::OKAY, comm->GetTransmissionStatus());
+	body->PlayMotion( ICommunicator::KickRight);
+	CPPUNIT_ASSERT_EQUAL_MESSAGE( "kick right transmission fail",  TestCommunicator::OKAY, comm->GetTransmissionStatus());
+}
+
+void CommunicatorTest::panTiltCmdTest(void) {
+	PanTiltUnit* unit = body->PanTilt();
+	CPPUNIT_ASSERT( unit != NULL);
+	unit->SetPosition( MIN_PAN_ANGLE, MIN_TILT_ANGLE);
+	CPPUNIT_ASSERT_EQUAL_MESSAGE( "min pan, min tilt transmission fail", TestCommunicator::OKAY, comm->GetTransmissionStatus());
+	unit->SetPosition( MAX_PAN_ANGLE, MAX_TILT_ANGLE);
+	CPPUNIT_ASSERT_EQUAL_MESSAGE( "max pan, max tilt transmission fail", TestCommunicator::OKAY, comm->GetTransmissionStatus());
+}
+
+void CommunicatorTest::kickerCmdTest(void) {
+	vect3d_t sendBall, sendTarget;
+	vect3d_t rcvBall, rcvTarget;
+	body->KickLeft();
+	CPPUNIT_ASSERT_EQUAL_MESSAGE( "KickLeft transmission fail", TestCommunicator::OKAY, comm->GetTransmissionStatus());
+	body->KickRight();
+	CPPUNIT_ASSERT_EQUAL_MESSAGE( "KickRight transmission fail", TestCommunicator::OKAY, comm->GetTransmissionStatus());
+	for( int i = 0; i < 20; i++) {
+		sendBall.x = (rand() % 400) - 200;
+		sendBall.y = (rand() % 400) - 200;
+		sendBall.z = (rand() % 400) - 200;
+		sendTarget.x = (rand() % 4000) - 2000;
+		sendTarget.y = (rand() % 4000) - 2000;
+		sendTarget.z = (rand() % 4000) - 2000;
+		body->KickToTarget( sendBall, sendTarget);
+		CPPUNIT_ASSERT_EQUAL_MESSAGE( "KickToTarget transmission fail", TestCommunicator::OKAY, comm->GetTransmissionStatus());
+		rcvBall = comm->GetKickerBall();
+		rcvTarget = comm->GetKickerTarget();
+		CPPUNIT_ASSERT_EQUAL_MESSAGE( "KickToTarget ball.x fail", sendBall.x, rcvBall.x);
+		CPPUNIT_ASSERT_EQUAL_MESSAGE( "KickToTarget ball.y fail", sendBall.y, rcvBall.y);
+		CPPUNIT_ASSERT_EQUAL_MESSAGE( "KickToTarget ball.z fail", sendBall.z, rcvBall.z);
+		CPPUNIT_ASSERT_EQUAL_MESSAGE( "KickToTarget target.x fail", sendTarget.x, rcvTarget.x);
+		CPPUNIT_ASSERT_EQUAL_MESSAGE( "KickToTarget target.y fail", sendTarget.y, rcvTarget.y);
+		CPPUNIT_ASSERT_EQUAL_MESSAGE( "KickToTarget target.z fail", sendTarget.z, rcvTarget.z);
+	}
+}
+
+void CommunicatorTest::walkerCmdTest(void) {
+	int8_t x, y, r;
+	int8_t r_x, r_y, r_r;
+	bool turningAim;
+	bool r_turningAim;
+	for( int i = 0; i < 20; i++) {
+		x = (rand() % 200) - 100;
+		y = (rand() % 200) - 100;
+		r = (rand() % 200) - 100;
+		turningAim = (rand() % 100) < 50 ? true : false;
+		body->setWalkerCommand( x, y, r, turningAim);
+		CPPUNIT_ASSERT_EQUAL_MESSAGE( "Walk transmission fail", TestCommunicator::OKAY, comm->GetTransmissionStatus());
+		r_x = comm->GetWalkX();
+		r_y = comm->GetWalkY();
+		r_r = comm->GetWalkR();
+		r_turningAim = comm->GetWalkTurningAim();
+		CPPUNIT_ASSERT_EQUAL_MESSAGE( "Walk x fail", x, r_x);
+		CPPUNIT_ASSERT_EQUAL_MESSAGE( "Walk y fail", y, r_y);
+		CPPUNIT_ASSERT_EQUAL_MESSAGE( "Walk r fail", r, r_r);
+		CPPUNIT_ASSERT_EQUAL_MESSAGE( "Walk turningAim fail", turningAim, r_turningAim);
+	}
+}
+
+void CommunicatorTest::statusMessageImuTest(void) {
+	ICommunicator::imuData_t imu;
+	imu.fb_accel = 0x01;
+	imu.rl_accel = 0x02;
+	imu.fb_gyro = 0x04;
+	imu.rl_gyro = 0x08;
+	comm->SetImuData( imu);
+	CPPUNIT_ASSERT_EQUAL_MESSAGE( "Set IMU transmission fail", TestCommunicator::OKAY, comm->GetTransmissionStatus());
+	int pitch, roll;
+	body->GetIMUData(&pitch, &roll);
+	CPPUNIT_ASSERT_EQUAL_MESSAGE( "Get IMU transmission fail", TestCommunicator::OKAY, comm->GetTransmissionStatus());
+	CPPUNIT_ASSERT_EQUAL_MESSAGE( "IMU pitch fail", pitch, imu.fb_accel);
+	CPPUNIT_ASSERT_EQUAL_MESSAGE( "IMU roll fail", roll, imu.rl_accel);
+}
+
+void CommunicatorTest::statusMessageVoltageTest(void) {
+	uint16_t voltage;
+	for( voltage = 0; voltage <= 100; voltage += 10) {
+		double expectedVoltage = (double)voltage / 100.0;
+		comm->SetVoltage( voltage);
+		double actualVoltage = body->GetBatteryVoltage();
+		CPPUNIT_ASSERT_EQUAL_MESSAGE( "Voltage transmission fail", TestCommunicator::OKAY, comm->GetTransmissionStatus());
+		CPPUNIT_ASSERT_DOUBLES_EQUAL( expectedVoltage, actualVoltage, 0.01);
+	}
+}
+

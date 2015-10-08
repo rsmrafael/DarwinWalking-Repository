@@ -1,0 +1,82 @@
+/*
+ * inverse_calc.c
+ *
+ *  Created on: 22.04.2011
+ *      Author: Stefan
+ */
+
+#include "inverse_calc.h"
+#include "dbgu/dbgu.h"
+#include <math.h>
+
+#ifndef M_PI
+#define M_PI 3.1415926535897932385
+#endif
+
+void inverse_calculateAngles(enum body_extremity ext, struct vect3d * target, signed short yaw, float servoAngles[]) {
+	if (ext == LEG_LEFT || ext == LEG_RIGHT) {
+		// Calculations based on http://www.fumanoids.de/wp-content/uploads/2011/01/Bachelorarbeit-Otte.pdf, chapter 5.4.2
+
+		// 1st step: Rotate foot
+		// HIP_YAW is only servo available to rotate foot, so set it
+		float yawrad = yaw * (M_PI / 180.0f);
+		servoAngles[0] = yawrad; // 0 = HIP_YAW
+		// Rotate coordinates accordingly
+		float x2 = target->x * cos(yawrad) + target->y * sin(yawrad);
+		float y2 = target->x * sin(yawrad) + target->y * cos(yawrad);
+		float z2 = target->z;
+
+		//dbgu_printf("[inverse_calc] x,y,z 2 = %3.5f, %3.5f, %3.5f\r\n", x2, y2, z2);
+
+		// 2nd step: Set roll angles
+		// Calculate HIP_ROLL from y2 and z2
+		float x3 = x2;
+		//float y3 = y2;
+		float z3 = sqrt((y2 * y2) + (z2 * z2));
+		servoAngles[1] = atan2(y2, z2); // HIP_ROLL
+		// Set foot parallel
+		servoAngles[5] = servoAngles[1]; // FOOT_ROLL
+
+		//dbgu_printf("[inverse_calc] x,y,z 3 = %3.5f, %3.5f, %3.5f\r\n", x3, y3, z3);
+		// 3rd step:
+		// Calculate effective leg length
+		float df = sqrt((z3 * z3) + (x3 * x3));
+
+		float beta = acos((df/ 2) / LEG_LENGTH);
+		servoAngles[3] = (2 * beta); // KNEE
+		// Calculate hip pitch
+		float alpha = atan2(x3, z3);
+		servoAngles[2] = -(alpha + beta); // HIP_PITCH
+		// Set foot pitch to be parallel
+		servoAngles[4] = -alpha + beta; // FOOT_PITCH
+
+		if (ext == LEG_RIGHT) {
+			servoAngles[2] = -servoAngles[2];
+			servoAngles[3] = -servoAngles[3];
+			servoAngles[4] = -servoAngles[4];
+		}
+	} else if (ext == ARM_LEFT || ext == ARM_RIGHT) {
+		// 1nd step: Set roll angles
+		// Calculate SHOULDER_ROLL from y2 and z2
+		float x3 = target->x;
+		float z3 = sqrt((target->y * target->y) + (target->z * target->z));
+		servoAngles[1] = atan2(target->y, target->y); // SHOULDER_ROLL
+
+		// 2nd step:
+		// Calculate effective leg length
+		float df = sqrt((z3 * z3) + (x3 * x3));
+
+		float beta = acos((df/ 2) / ARM_LENGTH);
+
+		servoAngles[2] = -(2 * beta); // ELBOW
+		// Calculate shoulder pitch
+		float alpha = atan2(x3, z3);
+		servoAngles[0] = -(alpha + beta); // SHOULDER_PITCH
+
+		if (ext == ARM_RIGHT) {
+			servoAngles[0] = -servoAngles[0];
+			servoAngles[1] = -servoAngles[1];
+			servoAngles[2] = -servoAngles[2];
+		}
+	}
+}

@@ -1,0 +1,15 @@
+[Commands]
+0 = Stop;00;1
+1 = WalkForward;01;1
+2 = TurnRight;02;1
+3 = TurnLeft;03;1
+4 = SidewalkLeft;04;1
+5 = SidewalkRight;05;1
+6 = KickLeft;06;1
+7 = KickRight;07;1
+8 = GoaliMoveRight;0c;1
+9 = GoaliMoveLeft;0b;1
+10 = MoveHi;0f;1
+11 = YeahGoal;0f;1
+12 = GetUpFront;09;1
+13 = MoveToBasicPosition;11;1

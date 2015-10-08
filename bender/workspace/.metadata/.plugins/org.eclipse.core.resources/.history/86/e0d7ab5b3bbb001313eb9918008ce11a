@@ -1,0 +1,688 @@
+/*
+ * BehaviorStriker.cpp
+ *
+ *  Created on: 26.03.2014
+ *      Author: Oliver Krebs
+ */
+
+#include <cmath>
+#include "BehaviorStriker.h"
+#include "BehaviorConstants.h"
+#include "../../Config.h"
+#include "../../Utils/Constants.h"
+
+//#define CHECK_KICKOFF_TIME // kick-off: stop robot moving into center circle
+#define USE_CONST_POSITIONS
+
+BehaviorStriker::BehaviorStriker(Game *game, MitecomCommunicator *communicator)
+:	AbstractBehavior( game, communicator)
+{
+	mThisRole = ROLE_STRIKER;
+
+	mLastBallPan = 0;
+	mLastBallTilt = 0;
+	mLastGoalPan = 0;
+	mLastGoalTilt = 0;
+
+	mBall.x = 100;
+	mBall.y = 0;
+	mBall.z = 40;
+	mTarget.x = 1800;
+	mTarget.y = 0;
+	mTarget.z = 40;
+	mKickOffTarget.x = 300;
+	mKickOffTarget.y = 70;
+	mKickOffTarget.z = 60;
+
+	mSearchGoal = true;
+	mAllowKick = true;
+	mCheckCorrectGoal = true;
+
+	mNumberOfKicks = 0;
+	mNumberOfKickTries = 0;
+	mNumberOfKickTriesMax = 10;
+	mKickTiltDefault = 50;
+	mKickTilt = mKickTiltDefault;
+
+	mTowardsBallLeftTurnAngle = -20;
+	mTowardsBallRightTurnAngle = 20;
+	mKickLeftTurnAngle = -30;
+	mKickRightTurnAngle = 30;
+	mTurningXMovement = 0;
+	mMinKickBallRange = 10;
+
+	mKickingBegun = 0;
+	mKickingTryTimeout = 5000;
+	mCircleToGoalEntryTime = 0;
+	mCircleToGoalTimeout = 2000;
+	mMyGoalCircleDelay = 2;
+	mPositionForKickTimeout = 10000;
+	mPositionForKickBegun = 0;
+	mNearBallDistanceMin = 100;
+	mNearBallDistanceMax = 200;
+	mKickMaxBallDistance = 100;
+
+	mFoundCounter = 0;
+	mNotFoundCounter = 0;
+	mBallLostCounter = 0;
+	mGoalLostCounter = 0;
+
+	mTargetBallDistance = BALL_DISTANCE_STRIKER;
+	mCurrentState = SEARCH_BALL;
+	entrySearchBall();
+
+	Config::GetInstance()->registerConfigChangeHandler(this);
+	this->configChanged();
+}
+
+BehaviorStriker::~BehaviorStriker()
+{
+	Config::GetInstance()->removeConfigChangeHandler(this);
+}
+
+void BehaviorStriker::configChanged()
+{
+	mMinKickBallRange		= Config::GetInt("AI", "minKickBallRange", 100);
+	mNumberOfKickTriesMax	= Config::GetInt("AI", "maxKickTries", 10);
+	mTarget.x 		 		= Config::GetValue<int16_t>("AI", "kickTargetX", 2300);
+	mTarget.y 		 		= Config::GetValue<int16_t>("AI", "kickTargetY", 70);
+	mTarget.z 		 		= Config::GetValue<int16_t>("AI", "kickTargetZ", 60);
+	mKickOffTarget.x 		= Config::GetValue<int16_t>("AI", "kickOffTargetX", 300);
+	mKickOffTarget.y 		= Config::GetValue<int16_t>("AI", "kickOffTargetY", 70);
+	mKickOffTarget.z 		= Config::GetValue<int16_t>("AI", "kickOffTargetZ", 60);
+	mBall.x 		 		= Config::GetValue<int16_t>("AI", "kickBallX", 180);
+	mBall.y 		 		= Config::GetValue<int16_t>("AI", "kickBallY", 70);
+	mBall.z 		 		= Config::GetValue<int16_t>("AI", "kickBallZ", 60);
+
+	mSearchGoal 		= Config::GetBoolean("AI", "searchGoal", true);
+	mAllowKick 			= Config::GetBoolean("AI", "allowKick", true);
+	mCheckCorrectGoal   = Config::GetBoolean("AI", "checkCorrectGoal", true);
+	mKickTiltDefault	= Config::GetInt("AI", "kickTilt", 50);
+	mTurningXMovement 	= Config::GetValue<int16_t>("AI", "turningXMovement", 0);//Bot4: -40
+	mTowardsBallLeftTurnAngle 	= Config::GetInt("AI", "towardsBallLeftTurnAngle", -20);
+	mTowardsBallRightTurnAngle 	= Config::GetInt("AI", "towardsBallRightTurnAngle", 20);
+	mKickLeftTurnAngle 			= Config::GetInt("AI", "kickLeftTurnAngle", -30);
+	mKickRightTurnAngle 		= Config::GetInt("AI", "kickRightTurnAngle", 30);
+	mMinKickBallRange		= Config::GetInt("AI", "minKickBallRange", 100);
+	mNumberOfKickTriesMax	= Config::GetInt("AI", "maxKickTries", 10);
+
+	mCircleToGoalTimeout 	= Config::GetValue<uint64_t>("AI", "circleToGoalTimeout", 2000L);
+	mMyGoalCircleDelay 		= Config::GetValue<uint64_t>("AI", "myGoalCircleDelay", 2000L);
+	mPositionForKickTimeout = Config::GetValue<uint64_t>("AI", "positionForKickTimeout", 10000L);
+	mKickingTryTimeout		= Config::GetValue<uint64_t>("AI", "kickingTryTimeout", 5000L);
+	mNearBallDistanceMin = Config::GetInt("AI", "nearBallDistanceMin", 100);
+	mNearBallDistanceMax = Config::GetInt("AI", "nearBallDistanceMax", 200);
+	mKickMaxBallDistance = Config::GetInt("AI", "kickMaxBallDistance", 100);
+
+	if (!mAllowKick) {
+		// unreachable, so no kick is executed
+		mKickTilt = -200;
+		mKickMaxBallDistance = -100;
+	} else {
+		mKickTilt = mKickTiltDefault;
+	}
+}
+
+void BehaviorStriker::executeBehavior()
+{
+	switch(mCurrentState) {
+	case SEARCH_BALL:
+		mCurrentState = processSearchBall();
+		break;
+	case MOVE_TO_BALL:
+		mCurrentState = processMoveToBall();
+		break;
+	case POSITION_NEAR_BALL:
+		mCurrentState = processPositionNearBall();
+		break;
+	case CIRCLE_TO_GOAL:
+		mCurrentState = processCircleToGoal();
+		break;
+	case PREPARE_KICK:
+		mCurrentState = processPrepareKick();
+		break;
+	case KICK_BALL:
+		mCurrentState = processKickBall();
+		break;
+	case CHECK_KICK:
+		mCurrentState = processCheckKick();
+		break;
+	case DELAY_LOOP:
+		mCurrentState = processDelayLoop();
+		break;
+	default:
+		Debugger::INFO("Striker", "Unknown state, change to searchBall");
+		mCurrentState = SEARCH_BALL;
+		break;
+	}
+}
+
+void BehaviorStriker::updateState()
+{
+	if (mCurrentState != mLastState) {
+		switch( mCurrentState) {
+		case SEARCH_BALL:
+			entrySearchBall();
+			break;
+		case MOVE_TO_BALL:
+			entryMoveToBall();
+			break;
+		case POSITION_NEAR_BALL:
+			entryPositionNearBall();
+			break;
+		case CIRCLE_TO_GOAL:
+			entryCircleToGoal();
+			break;
+		case PREPARE_KICK:
+			entryPrepareKick();
+			break;
+		case KICK_BALL:
+			entryKickBall();
+			break;
+		case CHECK_KICK:
+			entryCheckKick();
+			break;
+		default:
+			mMyInfo.data[ROBOT_CURRENT_ACTION] = ACTION_WAITING;
+			//Debugger::announce("Waiting");
+			break;
+		}
+		Debugger::INFO("Striker", "Changed state %d to %d", mLastState, mCurrentState);
+		mLastState = mCurrentState;
+	}
+}
+
+/**
+ * SearchBall
+ */
+void BehaviorStriker::entrySearchBall()
+{
+	mFoundCounter = 0;
+	mNotFoundCounter = 0;
+	mBallLostCounter = 0;
+	mMyInfo.data[ROBOT_CURRENT_ACTION] = ACTION_UNDEFINED;
+	Debugger::announce("Searching ball");
+}
+
+int BehaviorStriker::processSearchBall()
+{
+	Debugger::DEBUG("Striker", "State: SearchBall");
+
+	mIsBallSeenStable = false;
+
+	if (getBall().lastImageSeen) {
+		Debugger::DEBUG("Striker", "Ball found, tracking");
+		processTracker(&getBall());//getBallPredict()
+		mFoundCounter++;
+		if (mFoundCounter >= BALL_FOUND_THRESHOLD) {
+			mIsBallSeenStable = true;
+			Debugger::INFO("Striker", "Ball found stable => Move to ball");
+			getBodyAction().Stop();
+			return MOVE_TO_BALL;
+		}
+	} else if (mFoundCounter == 0) {
+		Debugger::DEBUG("Striker", "Ball not found, looking for it");
+		getBodyAction().Stop();
+		if( !searchObject(false)) {
+			Debugger::INFO("Striker", "SearchBall: Ball not found, rotate");
+			mSearchObjectLoopPoint = -1;
+			searchObject(false);
+			getBodyAction().setPanTilt(mSearchObjectPan, mSearchObjectTilt);
+			getBodyAction().setWalkerCommand(mTurningXMovement, 0, 100);
+			initDelayLoop(TURN_DURATION);
+			return DELAY_LOOP;
+		} else {
+			Debugger::DEBUG("Striker", "Pan %d, Tilt: %d", mSearchObjectPan, mSearchObjectTilt);
+			getBodyAction().setPanTilt(mSearchObjectPan, mSearchObjectTilt);
+		}
+	} else {
+		mNotFoundCounter++;
+		if (mNotFoundCounter >= OBJECT_LOST_THRESHOLD) {
+			Debugger::INFO("Striker", "SearchBall: Ball lost!");
+			mFoundCounter = 0;
+			mNotFoundCounter = 0;
+			mBallLostCounter++;
+			if( mBallLostCounter > MAX_LOST_COUNTER) {
+				mSearchObjectLoopPoint = -1;
+				searchObject(false);
+				getBodyAction().setPanTilt(mSearchObjectPan, mSearchObjectTilt);
+				getBodyAction().setWalkerCommand(mTurningXMovement, 0, 100);
+				initDelayLoop(TURN_DURATION);
+				return DELAY_LOOP;
+			}
+		}
+	}
+	return SEARCH_BALL;
+}
+
+/**
+ * MoveToBall
+ */
+void BehaviorStriker::entryMoveToBall()
+{
+	mFoundCounter = 0;
+	mNotFoundCounter = 0;
+	mMyInfo.data[ROBOT_CURRENT_ACTION] = ACTION_GOING_TO_BALL;
+	Debugger::announce("Going for ball");
+}
+
+int BehaviorStriker::processMoveToBall()
+{
+	Debugger::DEBUG("Striker", "State: MoveToBall");
+
+	processTracker(&getBall());
+	if (!getBall().lastImageSeen) {
+		mIsBallSeenStable = false;
+		mNotFoundCounter++;
+		Debugger::DEBUG("Striker", "No ball seen (%i/%i)",
+				mNotFoundCounter, NO_BALL_MAX_COUNT);
+		if (mNotFoundCounter >= NO_BALL_MAX_COUNT){
+			// can not find a ball
+			getBodyAction().Stop();
+			Debugger::INFO("Striker", "Move: Ball lost!");
+			return SEARCH_BALL;
+		}
+	} else {
+		mIsBallSeenStable = true;
+		mNotFoundCounter = 0;
+
+		int pan = getBodyStatus().getPan();
+		int tilt = getBodyStatus().getTilt();
+
+#ifdef CHECK_KICKOFF_TIME
+		timeval currentTime;
+		gettimeofday(&currentTime, 0);
+		if( currentTime.tv_sec - getGameStatus().kickOffTime.tv_sec < 0) {
+			if( getBall().lastVector.getLength() < CIRCLE_DISTANCE_MIN) {
+				getBodyAction().Stop();
+				Debugger::INFO("Striker", "Waiting kick-off, do not move nearer to ball");
+				return MOVE_TO_BALL;
+			}
+		}
+#endif
+		if(pan > mTowardsBallLeftTurnAngle && pan < mTowardsBallRightTurnAngle) {
+			if( (int)getBall().lastVector.getLength() < mTargetBallDistance) {
+			//if(tilt <= BALL_NEAR_TILT) {
+				//getBodyAction().Stop();
+				if (!mSearchGoal) {
+					Debugger::INFO("Striker", "Not looking for goal!");
+					return PREPARE_KICK;
+				} else {
+					mLastBallPan = getBodyAction().getPan();
+					mLastBallTilt = getBodyAction().getTilt();
+					mPositionForKickBegun = getCurrentTime();
+					return POSITION_NEAR_BALL;
+				}
+			} else {
+				int16_t fbStep, rlStep;
+				calculateWalkSteps( pan, tilt, rlStep, fbStep);
+				getBodyAction().setWalkerCommand(fbStep, 0, rlStep);
+				Debugger::DEBUG("Striker", "forward %d, rotating %d", fbStep, rlStep);
+			}
+		} else {
+			int16_t rlStep;
+			calculateTurnWalkSteps( pan, rlStep);
+			getBodyAction().setWalkerCommand(mTurningXMovement, 0, rlStep);
+			Debugger::DEBUG("Striker", "rotating %d", rlStep);
+		}
+	}
+
+	return MOVE_TO_BALL;
+}
+
+/**
+ * PositionNearBall
+ */
+void BehaviorStriker::entryPositionNearBall()
+{
+	getBodyAction().setPanTilt(mLastBallPan, mLastBallTilt);
+	mMyInfo.data[ROBOT_CURRENT_ACTION] = ACTION_POSITIONING;
+	//Debugger::announce("Position near ball");
+}
+
+int BehaviorStriker::processPositionNearBall()
+{
+	Debugger::DEBUG("Striker", "State: PositionNearBall");
+
+	uint64_t currentTime = getCurrentTime();
+	if( (currentTime - mPositionForKickBegun) > mPositionForKickTimeout) {
+		Debugger::INFO("Striker", "P: PositionForKickTimeout reached => prepare kick");
+		return PREPARE_KICK;
+	}
+
+	if( !processTracker(&getBall())) {
+		Debugger::INFO("Striker", "PositionNearBall: Ball lost!");
+		mIsBallSeenStable = false;
+		return SEARCH_BALL;
+	} else if( !getBall().lastImageSeen) {
+		mIsBallSeenStable = false;
+		return POSITION_NEAR_BALL;
+	} else {
+		int pan = getBodyStatus().getPan();
+
+		if(pan > mKickLeftTurnAngle && pan < mKickRightTurnAngle) {
+			int dist = (int)getBall().lastVector.getLength();
+			if( dist > mNearBallDistanceMax) {
+				dist -= mNearBallDistanceMin;
+				int tilt = (int)atan((double)(dist) / getRobotConfiguration().cameraHeigth);
+				tilt *= RADIANS_TO_DEGREE;
+				Debugger::DEBUG("Striker", "target dist: %d, tilt: %d", dist, tilt);
+				int16_t fbStep, rlStep;
+				calculateWalkSteps( pan, tilt, rlStep, fbStep);
+				getBodyAction().setWalkerCommand(fbStep, 0, rlStep);
+				Debugger::DEBUG("Striker", "forward %d, rotating %d", fbStep, rlStep);
+			} else if( dist < mNearBallDistanceMin) {
+				dist -= mNearBallDistanceMax;
+				int tilt = (int)atan((double)(-dist) / getRobotConfiguration().cameraHeigth);
+				tilt *= RADIANS_TO_DEGREE;
+				Debugger::DEBUG("Striker", "target dist: %d, tilt: %d", -dist, tilt);
+				int16_t fbStep, rlStep;
+				calculateWalkSteps( pan, 90-tilt, rlStep, fbStep);
+				fbStep = -fbStep / 2;
+				getBodyAction().setWalkerCommand(fbStep, 0, rlStep);
+				Debugger::DEBUG("Striker", "backward %d, rotating %d", fbStep, rlStep);
+			} else {
+				getBodyAction().Stop();
+				mLastBallPan = pan;
+				mLastBallTilt = getBodyStatus().getTilt();
+				return CIRCLE_TO_GOAL;
+			}
+		} else {
+			int16_t rlStep;
+			calculateTurnWalkSteps( pan, rlStep);
+			getBodyAction().setWalkerCommand(mTurningXMovement, 0, rlStep);
+			Debugger::DEBUG("Striker", "rotating %d", rlStep);
+		}
+	}
+
+	return POSITION_NEAR_BALL;
+}
+
+/**
+ * CircleToGoal
+ */
+void BehaviorStriker::entryCircleToGoal()
+{
+	getBodyAction().setPanTilt(mLastGoalPan, mLastGoalTilt);
+	mCircleToGoalEntryTime = getCurrentTime();
+	mIsBallSeenStable = false;
+	mGoalLostCounter = 0;
+	mMyInfo.data[ROBOT_CURRENT_ACTION] = ACTION_POSITIONING;
+	//Debugger::announce("Aiming towards goal");
+}
+
+int BehaviorStriker::processCircleToGoal()
+{
+	Debugger::DEBUG("Striker", "State: CircleToGoal");
+
+	getBodyAction().Stop();
+	uint64_t currentTime = getCurrentTime();
+	if( (currentTime - mPositionForKickBegun) > mPositionForKickTimeout) {
+		Debugger::INFO("Striker", "C: PositionForKickTimeout reached => prepare kick");
+		return PREPARE_KICK;
+	} else if( (currentTime - mCircleToGoalEntryTime) > mCircleToGoalTimeout) {
+		return POSITION_NEAR_BALL;
+	}
+
+	const Object& goal = getGoalPoles().getLargestObject();
+	if (goal.lastImageSeen) {
+		Debugger::DEBUG("Striker", "Goal found, tracking");
+		processTracker(goal);
+		mFoundCounter++;
+		if (mFoundCounter >= GOAL_FOUND_THRESHOLD) {
+			if( !mCheckCorrectGoal || getGoalSide().getChance() == GoalSide::OP_GOAL) {
+				int pan = getBodyStatus().getPan();
+				if (pan > GOAL_RIGHT_ANGLE) {
+					getBodyAction().CircleRight();
+					Debugger::INFO("Striker", "Circle right");
+					return CIRCLE_TO_GOAL;
+				} else if( pan < GOAL_LEFT_ANGLE) {
+					getBodyAction().CircleLeft();
+					Debugger::INFO("Striker", "Circle left");
+					return CIRCLE_TO_GOAL;
+				} else {
+					getBodyAction().Stop();
+	#ifndef USE_CONST_POSITIONS
+					seekTarget();
+	#endif
+					return PREPARE_KICK;
+				}
+			} else {
+				Debugger::INFO("Striker", "It could be my goal, circle!");
+				getBodyAction().setPanTilt(0, 90);
+				getBodyAction().CircleLeft();
+				initDelayLoop(mMyGoalCircleDelay);
+				return DELAY_LOOP;
+			}
+		}
+	} else if (mFoundCounter == 0) {
+		Debugger::DEBUG("Striker", "Goal not found, looking for it");
+		getBodyAction().Stop();
+		if( !searchObject(true)) {
+			Debugger::INFO("Striker", "Circle: Goal not found, circle!");
+			mSearchObjectLoopPoint = -1;
+			searchObject(true);
+			getBodyAction().setPanTilt(mSearchObjectPan, mSearchObjectTilt);
+			getBodyAction().CircleLeft();
+			initDelayLoop(CIRCLE_DURATION);
+			return DELAY_LOOP;
+		} else {
+			Debugger::DEBUG("Striker", "Pan %d, Tilt: %d", mSearchObjectPan, mSearchObjectTilt);
+			getBodyAction().setPanTilt(mSearchObjectPan, mSearchObjectTilt);
+		}
+	} else {
+		mNotFoundCounter++;
+		if (mNotFoundCounter >= OBJECT_LOST_THRESHOLD) {
+			Debugger::INFO("Striker", "Circle: Goal lost!");
+			mFoundCounter = 0;
+			mNotFoundCounter = 0;
+			mGoalLostCounter++;
+			if( mGoalLostCounter > MAX_LOST_COUNTER) {
+				mSearchObjectLoopPoint = -1;
+				searchObject(false);
+				getBodyAction().setPanTilt(mSearchObjectPan, mSearchObjectTilt);
+				getBodyAction().CircleLeft();
+				initDelayLoop(CIRCLE_DURATION);
+				return DELAY_LOOP;
+			}
+		} else {
+			Debugger::DEBUG("Striker", "Circle: Goal not seen, retrying");
+		}
+	}
+
+	return CIRCLE_TO_GOAL;
+}
+
+void BehaviorStriker::seekTarget()
+{
+	double angle = 0.0;
+	double length = 0.0;
+	vector<Object> goalPoles = getGoalPoles().getObjects();
+	vector<Object>::const_iterator it;
+	for( it = goalPoles.begin(); it != goalPoles.end(); ++it) {
+		angle += (*it).lastVector.getAngle();
+		length += (*it).lastVector.getLength();
+	}
+	angle = angle / (double)(goalPoles.size());
+	Vector target(angle, length);
+	mTarget.x = (int16_t)target.getX();
+	mTarget.y = (int16_t)target.getY();
+	Debugger::DEBUG("Striker", "Calculated target: %.4f, %.1f (%d; %d)", angle, length, mTarget.x, mTarget.y);
+}
+
+/**
+ * PrepareKick
+ */
+void BehaviorStriker::entryPrepareKick()
+{
+	getBodyAction().setPanTilt(mLastBallPan, mLastBallTilt);
+	mMyInfo.data[ROBOT_CURRENT_ACTION] = ACTION_TRYING_TO_SCORE;
+	Debugger::announce("Prepare Kick");
+}
+
+int BehaviorStriker::processPrepareKick()
+{
+	Debugger::DEBUG("Striker", "State: PrepareKick");
+
+	if( !processTracker(&getBall())) {
+		Debugger::INFO("Striker", "PrepareKick: Ball lost!");
+		mIsBallSeenStable = false;
+		return SEARCH_BALL;
+	} else if( !getBall().lastImageSeen) {
+		mIsBallSeenStable = false;
+		return PREPARE_KICK;
+	}
+
+	mIsBallSeenStable = true;
+
+	int pan = getBodyStatus().getPan();
+	int tilt = getBodyStatus().getTilt();
+
+	if(pan > mKickLeftTurnAngle && pan < mKickRightTurnAngle) {
+		if( tilt <= BALL_NEAR_TILT) {
+			return KICK_BALL;
+		} else {
+			int16_t fbStep, rlStep;
+			calculateWalkSteps( pan, tilt, rlStep, fbStep);
+			getBodyAction().setWalkerCommand(fbStep, 0, rlStep);
+			Debugger::DEBUG("Striker", "PrepareKick: forward %d, rotating %d", fbStep, rlStep);
+			//Debugger::INFO("Striker", "FOLLOW2 P:%.2f T:%.2f", pan, tilt);
+		}
+	} else {
+		int16_t rlStep;
+		calculateTurnWalkSteps( pan, rlStep);
+		getBodyAction().setWalkerCommand(mTurningXMovement, 0, rlStep);
+		Debugger::DEBUG("Striker", "PrepareKick: rotating %d", rlStep);
+	}
+
+	return PREPARE_KICK;
+}
+
+/**
+ * KickBall
+ */
+void BehaviorStriker::entryKickBall()
+{
+	getBodyAction().setPanTilt(mLastBallPan, mLastBallTilt);
+	mNumberOfKickTries = 0;
+	mMyInfo.data[ROBOT_CURRENT_ACTION] = ACTION_TRYING_TO_SCORE;
+	Debugger::announce("Kick");
+}
+
+int BehaviorStriker::processKickBall()
+{
+	Debugger::DEBUG("Striker", "State: Kick");
+
+	if( !processTracker(&getBall())) {
+		Debugger::INFO("Striker", "KickBall: Ball lost!");
+		mIsBallSeenStable = false;
+		return SEARCH_BALL;
+	}
+	if( !getBall().lastImageSeen) {
+		mIsBallSeenStable = false;
+		return KICK_BALL;
+	}
+	mIsBallSeenStable = true;
+
+	int tilt = getBodyStatus().getTilt();
+	if( tilt < mKickTilt) {
+	//if( getBall().lastVector.getLength() < mKickMaxBallDistance) {
+		getBodyAction().Stop();
+		mKickingBegun = getCurrentTime();
+
+#ifndef USE_CONST_POSITIONS
+		mBall.x = (int16_t)getBall().lastVector.getX();
+		mBall.y = (int16_t)getBall().lastVector.getY();
+		Debugger::INFO("Striker", "Kick to target !");
+		getBodyAction().KickToTarget(mBall, mTarget);
+#else
+
+			if(pan <= 0) {
+				Debugger::INFO("Striker", "Kick left");
+				mBall.y = -70;
+				mTarget.y = -70;
+				getBodyAction().KickToTarget(mBall, mTarget);
+			} else {
+				Debugger::INFO("Striker", "Kick right");
+				mBall.y = 70;
+				mTarget.y = 70;
+				getBodyAction().KickToTarget(mBall, mTarget);
+			}
+
+#endif
+		mNumberOfKickTries++;
+		return CHECK_KICK;
+	} else {
+		int pan = getBodyStatus().getPan();
+		int16_t fbStep, rlStep;
+		calculateFitWalkSteps( pan, rlStep, fbStep);
+		getBodyAction().setWalkerCommand(fbStep, 0, rlStep);
+		//Debugger::INFO("Striker", "FIT(P:%.2f T:%.2f>%.2f)", pan, tilt, KICK_TILT);
+		Debugger::DEBUG("Striker", "Kick: forward %d, rotating %d", fbStep, rlStep);
+	}
+	return KICK_BALL;
+}
+
+/**
+ * CheckKick
+ */
+void BehaviorStriker::entryCheckKick()
+{
+	getBodyAction().setPanTilt(mLastBallPan, mLastBallTilt);
+	mNumberOfKickTries = 0;
+	mMyInfo.data[ROBOT_CURRENT_ACTION] = ACTION_TRYING_TO_SCORE;
+	Debugger::announce("Check Kick");
+}
+
+int BehaviorStriker::processCheckKick()
+{
+	Debugger::DEBUG("Striker", "State: CheckKick");
+
+	processTracker(&getBall());
+	bool ballHasMoved = false;
+	if( getBall().lastImageSeen) {
+		mIsBallSeenStable = true;
+		int dx = (int)getBall().lastVector.getX() - (int)mBall.x;
+		int dy = (int)getBall().lastVector.getY() - (int)mBall.y;
+		ballHasMoved = ((dx*dx) + (dy*dy) > mMinKickBallRange);
+	} else {
+		mIsBallSeenStable = false;
+	}
+
+	if( ballHasMoved) {
+		// if ball is moved by other player, cancel kick
+		getBodyAction().CancelKick();
+		mIsKickOff = false;
+		mNumberOfKicks++;
+		mNumberOfKickTries = 0; // reset
+		return SEARCH_BALL;
+	} else {
+		uint64_t currentTime = getCurrentTime();
+		if (currentTime > (mKickingBegun + mKickingTryTimeout)) {
+			if( mNumberOfKickTries > mNumberOfKickTriesMax) {
+				mNumberOfKickTries = 0; // reset
+				return SEARCH_BALL;
+			} else { // try kick again
+				mKickTilt -= 1;
+				mKickMaxBallDistance -= 5;
+				Debugger::WARN("Striker", "CheckKick: Ball not hit => kickTilt: %d, maxDist: %d", mKickTilt, mKickMaxBallDistance);
+				return KICK_BALL;
+			}
+		}
+	}
+	return CHECK_KICK;
+}
+string BehaviorStriker::getStateName(int state){
+	switch(state){
+		case SEARCH_BALL: return "SEARCH_BALL";
+		case DELAY_LOOP: return "DELAY_LOOP";
+		case MOVE_TO_BALL: return "MOVE_TO_BALL";
+		case CIRCLE_TO_GOAL: return "CIRCLE_TO_GOAL";
+		case POSITION_NEAR_BALL: return "POSITION_NEAR_BALL";
+		case PREPARE_KICK: return "PREPARE_KICK";
+		case KICK_BALL: return "KICK_BALL";
+		case CHECK_KICK: return "CHECK_KICK";
+	}
+	return "UNKNOWN";
+}
+

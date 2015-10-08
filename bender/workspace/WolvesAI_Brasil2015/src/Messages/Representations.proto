@@ -1,0 +1,35 @@
+package protobuf;
+
+option java_package = "de.ostfalia.robocup.message";
+option java_outer_classname = "MsgRepresentations";
+option optimize_for = LITE_RUNTIME;
+
+message YUVImage {
+	required bytes data = 1;
+	optional int32 width = 2 [default=320];
+	optional int32 height = 3 [default=240];
+}
+
+message CameraSettings {
+	required int32 width = 1;
+	required int32 height = 2;
+	optional int32 frameIntervalNumerator = 3;
+	optional int32 frameIntervalDenominator = 4;
+	optional double brightness = 5;
+	optional double contrast = 6;
+	optional double saturation = 7;
+	optional double autohue = 8;
+	optional double hue = 9;
+	optional double autowhitebalance = 10;
+	optional double redbalance = 11;
+	optional double bluebalance = 12;
+	optional double gamma = 13;
+	optional double exposure = 14;
+	optional double autogain = 15;
+	optional double gain = 16;
+	optional double sharpness = 17;
+	optional double powerlinefreq = 18;
+	optional double whitebalancetemp = 19;
+	optional double backlightcompensation = 20;
+	optional double autoexposure = 21;
+}

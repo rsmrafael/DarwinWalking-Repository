@@ -1,0 +1,403 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project>
+	<configuration id="cdt.managedbuild.toolchain.gnu.macosx.base.1408715908.1150359776" name="Debug x86">
+		<extension point="org.eclipse.cdt.core.LanguageSettingsProvider">
+			<provider id="org.eclipse.cdt.managedbuilder.core.GCCBuildCommandParser">
+				<language id="org.eclipse.cdt.core.g++">
+					<resource project-relative-path="src/Modules/ImageSources/CaptureOpenCV.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Debugging/Services/FileService.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Representations/OpenCVImage.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/WolvesKI2.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Utils/Filter/Kalman/Kalman.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Representations/Line.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Representations/Object.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Messages/BodyStatus.pb.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Representations/Vector.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Modules/Vision/Scanlines.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Body/AbstractCommunicator.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Modules/ConfigurationProvider.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Modules/Support/MovementPredictor.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Messages/Vector2D.pb.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Representations/TestRepresentation.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Messages/Histogramm.pb.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Debugging/Services/BodyDataService.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Utils/Clustering/Ransac/Data/Matrix3x3.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Messages/OstreamOutputStream.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Modules/ImageSources/CaptureV4L2.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Modules/Behavior/AttackerBehavior.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Representations/PointCloud.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/ModuleManager/ThreadPool.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Modules/Vision/BallDetection.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Body/PanTiltUnit.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Debugging/Services/BotControlService.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Modules/ImageSources/PBFLoader.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Modules/Vision/VisionAnalyzer.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Messages/Representations.pb.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Modules/Vision/RobotDetection.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Modules/Vision/BallDetectionOpenCV.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Representations/YUVImage.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Representations/ServoStatus.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Representations/ObjectList.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/ModuleManager/ModuleManager.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Utils/Clustering/Ransac/Models/CircleModel.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Utils/Clustering/Ransac/Ransac.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Modules/Behavior/RemoteBehavior.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Representations/RobotConfiguration.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Modules/ImageSources/ConvertOpenCV.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Body/Communicator.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Blackboard/Blackboard.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Modules/Vision/GoalieDetection.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Messages/ProtoBufFrame.pb.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Debugging/Services/ImageService.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Representations/FieldLines.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Representations/Histogramm.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Representations/BehaviorStatus.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Messages/FieldLines.pb.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Debugging/Debugger.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Modules/ImageSources/PBImage.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/External/ini_manage.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Network/GameControllerServer.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Modules/Behavior/GoalieBehavior.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Modules/ImageSources/CaptureV4L1.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Modules/Support/HorizonDetection.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Messages/BodyAction.pb.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Modules/Localization/LocalModeling.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Messages/ServoStatus.pb.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Representations/Odometry.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Messages/Point.pb.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Debugging/DebugDrawer.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Body/Body.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/LEDs.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Representations/CameraSettings.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Messages/PointCloud.pb.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Utils/Clustering/DBSCAN/DBSCAN.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Messages/DebugDrawings.pb.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Config.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Utils/Filter/Kalman/Matrix.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Modules/Vision/FieldLineDetection.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Modules/Vision/ImageWriter.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Game.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Representations/Point.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Representations/BodyStatus.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Messages/Object.pb.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Messages/Blackboard.pb.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Messages/IstreamInputStream.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Messages/Line.pb.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Representations/DebugDrawings.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/ModuleManager/WorkerThread.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Network/Network.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Representations/BodyAction.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Network/HTTPServer.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Messages/BehaviorStatus.pb.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Modules/Vision/GoalDetection.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Representations/VisionSettings.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Representations/GameStatus.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Modules/Visualisation/VisionVisualisation.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Messages/ObjectList.pb.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Debugging/Services/BlackboardService.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Modules/Vision/MJPEGStreamer.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Modules/BodyController.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+					<resource project-relative-path="src/Thread.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="USE_OPENCV" value=""/>
+					</resource>
+				</language>
+			</provider>
+		</extension>
+	</configuration>
+	<configuration id="cdt.managedbuild.toolchain.gnu.macosx.base.1408715908.1150359776.96504223" name="Debug x86 Windows">
+		<extension point="org.eclipse.cdt.core.LanguageSettingsProvider">
+			<provider id="org.eclipse.cdt.managedbuilder.core.GCCBuildCommandParser">
+				<language id="org.eclipse.cdt.core.g++">
+					<resource project-relative-path="src/Network/HTTPServer.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="WIN32" value=""/>
+					</resource>
+					<resource project-relative-path="src/Thread.cpp">
+						<entry kind="macro" name="DEBUG_X86" value=""/>
+						<entry kind="macro" name="WIN32" value=""/>
+					</resource>
+				</language>
+			</provider>
+		</extension>
+	</configuration>
+</project>

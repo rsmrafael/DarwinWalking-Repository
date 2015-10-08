@@ -1,0 +1,16 @@
+#ifndef IMU_H_
+#define IMU_H_
+
+void IMU_Init(void);
+unsigned char IMU_Calibrate(void);
+void IMU_Update(void);
+
+int IMU_GetFBAccelAverage(void);
+int IMU_GetFBGyro(void);
+int IMU_GetRLGyro(void);
+int IMU_GetFBAccel(void);
+int IMU_GetRLAccel(void);
+
+double IMU_get_temp(void);
+
+#endif /*IMU_H_*/

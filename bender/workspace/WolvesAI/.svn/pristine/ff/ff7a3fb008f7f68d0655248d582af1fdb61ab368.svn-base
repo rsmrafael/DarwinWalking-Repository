@@ -1,0 +1,87 @@
+/*
+ * MovementPredictor.cpp
+ *
+ *  Created on: May 22, 2013
+ *      Author: CHO
+ */
+
+
+#include "MovementPredictor.h"
+#include "../../Debugging/Debugger.h"
+
+MovementPredictor::MovementPredictor() {
+	lastBall.type = Object::BALL;
+	lastBall.updateObject(0,0,0,0);
+	lastBall.lastImageSeen = false;
+	currentPan = 0;
+	currentTilt = 0;
+	lastPan = 0;
+	lastTilt = 0;
+
+	ballPredictX = 0;
+	ballPredictY = 0;
+	ballPredictSize = 0;
+}
+
+MovementPredictor::~MovementPredictor() {
+
+}
+
+bool MovementPredictor::execute() {
+
+	currentPan = getBodyStatus().getPan();
+	currentTilt = getBodyStatus().getTilt();
+
+	predictMovement( &getBall(), &lastBall, &getBallPredict());
+
+	if( getBallPredict().lastImageSeen) {
+		DRAW_CIRCLE("Ball", getBallPredict().lastImageTopLeftX, getBallPredict().lastImageTopLeftY,
+			getBallPredict().lastImageWidth,
+					DebugDrawer::BLACK);
+	}
+
+	/*DRAW_CIRCLE("BallDetection", ballPredictX, ballPredictY,
+				ballPredictSize, DebugDrawer::BLUE);
+
+	Debugger::INFO("MovementPredictor", "BallPredict: %d, %d; %d",
+			ballPredictX, ballPredictY, ballPredictSize);
+*/
+	lastPan = currentPan;
+	lastTilt = currentTilt;
+	return true;
+}
+
+void MovementPredictor::predictMovement(const Object *currentObj, Object *lastObj, Object *predictObj) {
+	int x = currentObj->lastImageTopLeftX;
+	int y = currentObj->lastImageTopLeftY;
+	int w = currentObj->lastImageWidth;
+	int h = currentObj->lastImageHeight;
+	Vector vec = currentObj->lastVector;
+
+	if(currentObj->lastImageSeen) {
+		if( lastObj->lastImageSeen) {
+			// TODO use pan / tilt for prediction
+			int newX = 2*x - lastObj->lastImageTopLeftX;
+			int newY = 2*y - lastObj->lastImageTopLeftY;
+			int newW = 2*w - lastObj->lastImageWidth;
+			int newH = 2*h - lastObj->lastImageHeight;
+			double angle = 2.0*vec.getAngle() - lastObj->lastVector.getAngle();
+			double length = 2.0*vec.getLength() - lastObj->lastVector.getLength();
+
+			predictObj->updateObject(newX, newY, newW, newH);
+			predictObj->lastVector.updateVector(angle, length);
+		} else {
+			predictObj->updateObject(x, y, w, h);
+			predictObj->lastVector = vec;
+			//predictObj->lastImageSeen = false;
+		}
+		lastObj->updateObject(x, y, w, h);
+	} else {
+		lastObj->notSeen();
+		predictObj->notSeen();
+	}
+}
+
+void MovementPredictor::configChanged() {
+
+}

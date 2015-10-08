@@ -1,0 +1,46 @@
+/*
+ * inverse_calc.h
+ *
+ *  Created on: 22.04.2011
+ *      Author: Stefan
+ */
+
+#ifndef INVERSE_CALC_H_
+#define INVERSE_CALC_H_
+
+#define INVERSE_SERVOS_MAX	6
+
+#define LEG_LENGTH			59.0f // mm
+#define ARM_LENGTH			57.0f // mm
+
+// Servos offsets in degree
+// When the servos are set to these values,
+// the leg has to be straight and the foot plate parallel
+// to the body
+// 80° = Displacement by upper knee bracket (arcsin(10 mm/59 mm))
+// 28° = Displacement by lower knee bracket (arcsin(28 mm/59 mm))
+// 62° = 90° - 28° to correct displacement by lower bracket
+//  9° = Displacement by elbow joint
+#define INVERSE_SERVO_OFFSETS				{	\
+	/*    0    1    2    3    4    5	*/		\
+		  0, -45,  80,  28, -62,  90,			\
+	/*    6    7    8    9   10   11	*/		\
+		  0,  45, -80, -28,  62, -90,			\
+	/*   12   13   14   15   16   17	*/		\
+		  0, -90,   9,   0,  90,  -9,			\
+	/*   18   19                        */		\
+		  0,   0								}
+
+struct vect3d {
+	signed short x;
+	signed short y;
+	signed short z;
+};
+
+enum body_extremity {
+	LEG_LEFT, LEG_RIGHT, ARM_LEFT, ARM_RIGHT
+};
+
+void inverse_calculateAngles(enum body_extremity ext, struct vect3d * target, signed short yaw, float servoAngles[]);
+
+#endif /* INVERSE_CALC_H_ */

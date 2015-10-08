@@ -1,0 +1,22 @@
+/*
+ * RobotData.h
+ *
+ *  Created on: 13.02.2014
+ *      Author: Oliver Krebs
+ */
+
+#ifndef ROBOTDATA_H_
+#define ROBOTDATA_H_
+
+#define SERVO_COUNT_MAX		21
+
+#define MIN_PAN_ANGLE       -135 //-90
+#define MAX_PAN_ANGLE		+135 //+90   // schwenken
+
+#define MIN_TILT_ANGLE 		  0
+#define MAX_TILT_ANGLE       90  //kippen
+
+#define CAMERA_HEIGHT 		455 //475 //400 //
+
+
+#endif /* ROBOTDATA_H_ */

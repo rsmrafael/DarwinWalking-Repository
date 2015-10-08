@@ -1,0 +1,77 @@
+/*
+ * ICommunicator.h
+ *
+ *  Created on: 07.03.2011
+ *      Author: Stefan
+ */
+
+#ifndef ICOMMUNICATOR_H_
+#define ICOMMUNICATOR_H_
+
+#include <stdint.h>
+#include <string>
+#include "../Utils/Geometry/Geometry.h"
+#include "../RobotData.h"
+
+
+class ICommunicator {
+
+public:
+	enum Motion { 	Stop 			= 0x00,
+					KickLeft 		= 0x06,
+					KickRight		= 0x07,
+					CancelKick		= 0x08,
+					GoaliMoveLeft 	= 0x0B,
+					GoaliMoveRight 	= 0x0C,
+					MoveHi			= 0x0E,
+					YeahGoal		= 0x0F,
+					RaiseLeftHand	= 0x20,
+					RaiseRightHand	= 0x21,
+					RaiseBothHands	= 0x22,
+					KickToTarget 	= 0x32,
+					KickBall 		= 0x33,
+					KickAdvanced 	= 0x34
+				};
+
+	struct servoData_t {
+		uint8_t maxPositionError;
+		uint8_t temperature;
+		uint8_t voltage;
+	} __attribute__((packed));
+
+	struct imuData_t {
+		int fb_accel;
+		int rl_accel;
+		int fb_gyro;
+		int rl_gyro;
+	} __attribute__((packed));
+
+	struct odometryData_t {
+		int16_t xPos;
+		int16_t yPos;
+		int16_t viewDirection;
+		uint8_t weight;
+	} __attribute__((packed));
+
+	struct statusMessage_t {
+		uint16_t voltage;
+		struct servoData_t servo_status[SERVO_COUNT_MAX];
+		struct imuData_t imu;
+		struct odometryData_t odometry;
+		uint16_t currentState;
+	} __attribute__((packed));
+
+    virtual ~ICommunicator() {};
+
+	virtual void RepeatedMovementCommand(Motion page, bool overwriteRunning, uint16_t repetitions) = 0;
+	virtual void StrengthDirectionMovementCommand(Motion page, bool overwriteRunning, uint16_t strength, uint16_t direction) = 0;
+	virtual void KickerCommand(vect3d_t ball) = 0;
+	virtual void KickerCommand(vect3d_t ball, vect3d_t target) = 0;
+	virtual void KickerCommand(vect3d_t ball, vect3d_t target, uint8_t kicktype) = 0;
+	virtual void PanTiltCommand(int16_t pan, int16_t tilt) = 0;
+	virtual void WalkerCommand(int8_t x, int8_t y, int8_t r, bool turningAim) = 0;
+
+	virtual const struct statusMessage_t* GetStatusMessage() = 0;
+};
+
+#endif /* ICOMMUNICATOR_H_ */

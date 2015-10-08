@@ -1,0 +1,104 @@
+/*
+ * HeadMovement.h
+ *
+ *  Created on: 24.04.2014
+ *      Author: Oliver Krebs
+ */
+
+#ifndef HEADMOVEMENT_H_
+#define HEADMOVEMENT_H_
+
+#include "../../ModuleManager/Module.h"
+#include "../../Representations/Object.h"
+#include "../../Representations/ObjectList.h"
+#include "../../Representations/RobotConfiguration.h"
+#include "../../Representations/YUVImage.h"
+#include "../../Representations/HeadAction.h"
+#include "../../Representations/VisionStatus.h"
+#include "../../Representations/BehaviorStatus.h"
+#include "../../Representations/FieldLines.h"
+#include "../../Representations/STLVector.h"
+
+BEGIN_DECLARE_MODULE(HeadMovement)
+	//REQUIRE(Object,BallPredict)
+	REQUIRE(Object,Ball)
+	REQUIRE(ObjectList,GoalPoles)
+	//REQUIRE(Object, BallRelative)
+	//REQUIRE(ObjectList,PolesRelative)
+	REQUIRE(Vector, BallVector)
+	REQUIRE(STLVector<Vector>, GoalPolesVectors)
+	REQUIRE(RobotConfiguration,RobotConfiguration)
+	REQUIRE(YUVImage, Image)
+	REQUIRE(BehaviorStatus,BehaviorStatus)
+	REQUIRE(FieldLines, FieldLines)
+	//------------------------------------------------
+	PROVIDE(HeadAction, HeadAction)
+	PROVIDE(VisionStatus, BallStatus)
+	PROVIDE(VisionStatus, GoalStatus)
+	PROVIDE(VisionStatus, GoalCrossBar)
+	//PROVIDE(VisionStatus, GoalPolesStatus)
+END_DECLARE_MODULE(HeadMovement)
+
+/**
+ * HeadMovement is the module for the handling of all movements of the head
+ */
+class HeadMovement : public HeadMovementBase {
+public:
+	/**
+	 * Constructor
+	 */
+	HeadMovement();
+
+	/**
+	 * Destructor
+	 */
+	virtual ~HeadMovement();
+
+	/**
+	 * execute
+	 * @see Module::execute
+	 */
+	bool execute();
+
+private:
+	/**
+	 * executes the search algorithm
+	 * @param minRow	minimal row, default 0
+	 * @param maxRow	maximal row, default 2
+	 * @return false after one loop
+	 */
+	bool searchObject(int minRow, int maxRow);
+
+	/**
+	 * executes object tracking
+	 * @param object	the object to be tracked
+	 */
+	bool processTracker(const Object& object) const;
+
+	void searchBall(); 			//!< search ball
+	void searchGoal(); 			//!< search goal
+	void searchGoalPoles();
+	void searchFieldLine(); 	//!< search fieldline
+	int getLineY(); 			//!<
+	void resetSearch(); 		//!< reset the search
+	Object* mergeTwoObjects(Object& one,Object& two);
+
+	static const int MAX_COUNTER;
+
+	int mSearchObjectRow; 		//!< the current searching row (0..2)
+	int mSearchObjectPan; 		//!< the current pan of head in degree
+	int mSearchObjectTilt; 		//!< the current tilt of head in degree
+	int mSearchObjectPanDir;  	//!< the direction for pan (+1/-1)
+	int mSearchObjectTiltDir; 	//!< the direction for tilt (+1/-1)
+	int mSearchObjectLoopPoint;	//!< the current loop position
+	int mSearchObjectUpdateCnt;	//!< the counter for the current position
+
+	int mFoundCounter; 			//!< how many times the searched object was seen
+	int mNotFoundCounter; 		//!< how many times the searched object was not seen
+	int mLostCounter; 			//!< how many times the object was lost
+	int mCountLeftRight;
+
+	Object::ObjectType mLastSearchObjectType;
+};
+
+#endif /* HEADMOVEMENT_H_ */

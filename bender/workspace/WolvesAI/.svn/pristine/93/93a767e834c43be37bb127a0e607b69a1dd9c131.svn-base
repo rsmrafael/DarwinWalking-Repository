@@ -1,0 +1,466 @@
+/*
+ * HeadMovement.cpp
+ *
+ *  Created on: 24.04.2014
+ *      Author: Oliver Krebs
+ */
+
+#include "HeadMovement.h"
+#include "../Behavior/BehaviorConstants.h"
+#include "../../Communication/MitecomData.h"
+#include <cmath>
+
+const int HeadMovement::MAX_COUNTER = 1000000;
+
+HeadMovement::HeadMovement()
+:	mSearchObjectRow(0),
+	mSearchObjectPan(0),
+	mSearchObjectTilt(0),
+	mSearchObjectPanDir(0),
+	mSearchObjectTiltDir(0),
+	mSearchObjectLoopPoint(-1),
+	mSearchObjectUpdateCnt(0),
+	mFoundCounter(0),
+	mNotFoundCounter(0),
+	mLostCounter(0),
+	mCountLeftRight(0),
+	mLastSearchObjectType(Object::UNKNOWN)
+{
+}
+
+HeadMovement::~HeadMovement() {
+
+}
+
+bool HeadMovement::execute() {
+	// check if remote behavior is active
+	if( getBehaviorStatus().getActualRole() == ROLE_REMOTE) {
+		return true;
+	}
+
+	Object::ObjectType type = getHeadAction().getSearchObjectType();
+	if( type != mLastSearchObjectType) {
+		Debugger::DEBUG("HeadMovement", "New search object: %d", type);
+		if( getHeadAction().getResetSearch()) {
+			resetSearch();
+		} else {
+			Vector vec;
+			if( type == Object::BALL) {
+				vec = getBallVector();
+			} else /*if( type == Object::GOAL_POLE_YELLOW)*/ {
+				vec = *getGoalPolesVectors().get().begin();
+			}
+			RobotConfiguration roboConfig = getRobotConfiguration();
+			mSearchObjectPan = (int)(RADIAN_TO_DEGREE * vec.getAngle());
+			mSearchObjectTilt = (int)(RADIAN_TO_DEGREE * atan2(roboConfig.cameraHeight, vec.getLength()));
+			getHeadAction().setPanTilt(mSearchObjectPan, mSearchObjectTilt);
+			//sleep(1);
+		}
+		mLastSearchObjectType = type;
+		switch( type) {
+		case Object::BALL:
+			getBallStatus().setObjectStatus(VisionStatus::OBJECT_SEARCHING);
+			break;
+		case Object::GOAL_POLE_YELLOW:
+			getGoalStatus().setObjectStatus(VisionStatus::OBJECT_SEARCHING);
+			break;
+		case Object::GOAL_YELLOW_CROSSBAR:
+			getGoalCrossBar().setObjectStatus(VisionStatus::OBJECT_SEARCHING);
+			break;
+		//case Object::GOAL:
+	//		getGoalPolesStatus().setObjectStatus(VisionStatus::OBJECT_SEARCHING);
+			break;
+		case Object::UNKNOWN:
+		default:
+			break;
+		}
+		return true;
+	}
+	switch( type) {
+	case Object::BALL:
+		searchBall();
+		break;
+	case Object::GOAL_POLE_YELLOW:
+		searchGoal();
+		break;
+	case Object::FIELD_LINE:
+		searchFieldLine();
+		break;
+	//case Object::GOAL:
+		//searchGoalPoles();
+		//break;
+	case Object::UNKNOWN:
+		searchObject(TOP_ROW, TOP_ROW);
+		break;
+	default:
+		break;
+	}
+	return true;
+}
+
+void HeadMovement::resetSearch() {
+	Debugger::DEBUG("HeadMovement", "Reset");
+	mSearchObjectLoopPoint = -1;
+	mFoundCounter = 0;
+	mNotFoundCounter = 0;
+	mLostCounter = 0;
+}
+
+void HeadMovement::searchBall() {
+	if (getBall().lastImageSeen) {
+		processTracker(getBall()); //getBallPredict
+		mFoundCounter++;
+		if (mFoundCounter >= BALL_FOUND_THRESHOLD) {
+			// avoid overflow
+			if( mFoundCounter > MAX_COUNTER) {
+				mFoundCounter = MAX_COUNTER;
+			}
+			mLostCounter = 0;
+			mNotFoundCounter = 0;//new
+			Debugger::DEBUG("HeadMovement", "Ball found stable");
+			getBallStatus().setObjectStatus(VisionStatus::OBJECT_FOUND_STABLE);
+		} else {
+			Debugger::DEBUG("HeadMovement", "Ball seen");
+			getBallStatus().setObjectStatus(VisionStatus::OBJECT_SEEN);
+		}
+	} else if (mFoundCounter == 0) {
+		Debugger::DEBUG("HeadMovement", "Ball not found, looking for it");
+		if( !searchObject(TOP_ROW, BOT_ROW)) {
+			getHeadAction().setPanTilt(mSearchObjectPan, mSearchObjectTilt);
+			getBallStatus().setObjectStatus(VisionStatus::OBJECT_NOT_FOUND);
+		} else {
+			Debugger::DEBUG("HeadMovement", "Pan %d, Tilt: %d", mSearchObjectPan, mSearchObjectTilt);
+			getHeadAction().setPanTilt(mSearchObjectPan, mSearchObjectTilt);
+			getBallStatus().setObjectStatus(VisionStatus::OBJECT_SEARCHING);
+		}
+	} else {
+		mNotFoundCounter++;
+		if (mNotFoundCounter >= OBJECT_LOST_THRESHOLD) {
+			Debugger::DEBUG("HeadMovement", "Ball lost!");
+			mFoundCounter = 0;
+			mNotFoundCounter = 0;
+			mLostCounter++;
+			if( mLostCounter > MAX_LOST_COUNTER) {
+				mLostCounter = 0;
+				mSearchObjectLoopPoint = -1;
+				searchObject(TOP_ROW, BOT_ROW);
+				getHeadAction().setPanTilt(mSearchObjectPan, mSearchObjectTilt);
+				getBallStatus().setObjectStatus(VisionStatus::OBJECT_LOST);
+			} else {
+				getBallStatus().setObjectStatus(VisionStatus::OBJECT_SEARCHING);
+			}
+		} else {
+			Debugger::DEBUG("HeadMovement", "Ball not seen!");
+			processTracker(getBall()); //new
+			getBallStatus().setObjectStatus(VisionStatus::OBJECT_SEEN);
+		}
+	}
+}
+
+void HeadMovement::searchFieldLine(){
+	/*int objY = getLineY(); // bottom
+	double offsetY = (double)(objY - (int)(getImage().getHeight() / 2));
+	offsetY = -offsetY; // Inverse Y
+	offsetY *= (2.0*getRobotConfiguration().cameraOpeningVertical / (double)getImage().getHeight()); // pixel per angle
+	Debugger::DEBUG("processTracker", "offsetX: %f, offsetY: %f", 0, offsetY);
+	getHeadAction().PanTiltTracking(0, offsetY, false);
+	*/
+}
+
+int HeadMovement::getLineY(){
+	int edgeSize = getFieldLines().getEdgePoints()->size();
+	if(edgeSize < 2){
+		return -1;
+	}
+	int biggestY = 0;
+	for(_List_const_iterator<Point> it=getFieldLines().getEdgePoints()->begin();
+		it!=getFieldLines().getEdgePoints()->end();it++) {
+		if(it->getY() > biggestY) {
+			biggestY=it->getY();
+		}
+	}
+	return biggestY;
+}
+
+void HeadMovement::searchGoal() {
+	const Object& goal = getGoalPoles().getLargestObject();
+	if (goal.lastImageSeen) {
+		Debugger::DEBUG("HeadMovement", "Goal found, tracking");
+		processTracker(goal);
+		mFoundCounter++;
+		if (mFoundCounter >= GOAL_FOUND_THRESHOLD) {
+			// avoid overflow
+			if( mFoundCounter > MAX_COUNTER) {
+				mFoundCounter = MAX_COUNTER;
+			}
+			mLostCounter = 0;
+			getGoalStatus().setObjectStatus(VisionStatus::OBJECT_FOUND_STABLE);
+		} else {
+			getGoalStatus().setObjectStatus(VisionStatus::OBJECT_SEEN);
+		}
+	} else if (mFoundCounter == 0) {
+		Debugger::DEBUG("HeadMovement", "Goal not seen, looking for it");
+		if( !searchObject(TOP_ROW, TOP_ROW)) {
+			Debugger::DEBUG("HeadMovement", "Goal not found");
+			getHeadAction().setPanTilt(mSearchObjectPan, mSearchObjectTilt);
+			getGoalStatus().setObjectStatus(VisionStatus::OBJECT_NOT_FOUND);
+		} else {
+			Debugger::DEBUG("HeadMovement", "Pan %d, Tilt: %d", mSearchObjectPan, mSearchObjectTilt);
+			getHeadAction().setPanTilt(mSearchObjectPan, mSearchObjectTilt);
+			getGoalStatus().setObjectStatus(VisionStatus::OBJECT_SEARCHING);
+		}
+	} else {
+		mNotFoundCounter++;
+		if (mNotFoundCounter >= OBJECT_LOST_THRESHOLD) {
+			Debugger::DEBUG("HeadMovement", "Goal lost!");
+			mFoundCounter = 0;
+			mNotFoundCounter = 0;
+			mLostCounter++;
+			if( mLostCounter > MAX_LOST_COUNTER) {
+				mLostCounter = 0;
+				mSearchObjectLoopPoint = -1;
+				searchObject(TOP_ROW, TOP_ROW);
+				getHeadAction().setPanTilt(mSearchObjectPan, mSearchObjectTilt);
+				getGoalStatus().setObjectStatus(VisionStatus::OBJECT_LOST);
+			} else {
+				getGoalStatus().setObjectStatus(VisionStatus::OBJECT_SEARCHING);
+			}
+		} else {
+			Debugger::DEBUG("HeadMovement", "Goal not seen, retrying");
+			getGoalStatus().setObjectStatus(VisionStatus::OBJECT_SEARCHING);
+		}
+	}
+}
+
+bool HeadMovement::searchObject(int minRow, int maxRow) {
+
+	//assert(minRow >= TOP_ROW && minRow <= BOT_ROW);
+	//assert(maxRow >= TOP_ROW && maxRow <= BOT_ROW);
+	//assert(minRow <= maxRow);
+
+	if( mSearchObjectLoopPoint < 0) {
+		Debugger::DEBUG("HeadMovement", "searchObject start loop");
+		mSearchObjectPan = PAN_SEARCH_MIN[0];
+		mSearchObjectPanDir = +1;
+		mSearchObjectTilt = TILT_SEARCH_MAX;
+		mSearchObjectTiltDir = +1;
+		mSearchObjectRow = 0;
+		mSearchObjectLoopPoint = 0;
+		mSearchObjectUpdateCnt = 0;
+	}
+
+	mSearchObjectUpdateCnt++;
+	if (mSearchObjectUpdateCnt >= UPDATES_PER_POINT) {
+		mSearchObjectUpdateCnt = 0;
+
+		mSearchObjectPan += mSearchObjectPanDir * PAN_SEARCH_STEP;
+		if( mSearchObjectPan <= PAN_SEARCH_MIN[mSearchObjectRow]
+		    || mSearchObjectPan >= PAN_SEARCH_MAX[mSearchObjectRow]) {
+			mSearchObjectPanDir = -mSearchObjectPanDir;
+			bool panMin = false;
+			if( mSearchObjectPan <= PAN_SEARCH_MIN[mSearchObjectRow]) {
+				panMin = true;
+			}
+			if( mSearchObjectTilt == TILT_SEARCH_MIN || mSearchObjectTilt == TILT_SEARCH_MAX) {
+				mSearchObjectTiltDir = -mSearchObjectTiltDir;
+			}
+			//mSearchObjectTilt += mSearchObjectTiltDir * TILT_SEARCH_STEP;
+			//mSearchObjectRow = abs(mSearchObjectTilt - TILT_SEARCH_MAX) / TILT_SEARCH_STEP;
+			mSearchObjectRow += mSearchObjectTiltDir;
+			if( panMin) {
+				mSearchObjectPan = PAN_SEARCH_MIN[mSearchObjectRow];
+			} else {
+				mSearchObjectPan = PAN_SEARCH_MAX[mSearchObjectRow];
+			}
+			mSearchObjectLoopPoint++;
+		}
+
+		if( mSearchObjectRow < minRow) {
+			mSearchObjectRow = minRow;
+		} else if( mSearchObjectRow > maxRow) {
+			mSearchObjectRow = maxRow;
+		}
+		mSearchObjectTilt = TILT_SEARCH_MIN + (mSearchObjectRow * TILT_SEARCH_STEP);
+
+		if (mSearchObjectLoopPoint > MAX_LOOP_POINTS) {
+			mSearchObjectLoopPoint = -1;
+			return false;
+		}
+	}
+	return true;
+}
+/*bool HeadMovement::searchObject(int minRow, int maxRow) {
+
+	//assert(minRow >= TOP_ROW && minRow <= BOT_ROW);
+	//assert(maxRow >= TOP_ROW && maxRow <= BOT_ROW);
+	//assert(minRow <= maxRow);
+
+	if( mSearchObjectLoopPoint < 0) {
+		Debugger::DEBUG("HeadMovement", "searchObject start loop");
+		mSearchObjectPan = PAN_SEARCH_MIN[0];
+		mSearchObjectPanDir = +1;
+		mSearchObjectTilt = TILT_SEARCH_MAX;
+		mSearchObjectTiltDir = +1;
+		mSearchObjectRow = 0;
+		mSearchObjectLoopPoint = 0;
+		mSearchObjectUpdateCnt = 0;
+	}
+
+	mSearchObjectUpdateCnt++;
+	if (mSearchObjectUpdateCnt >= UPDATES_PER_POINT) {
+		mSearchObjectUpdateCnt = 0;
+
+		mSearchObjectPan += mSearchObjectPanDir * PAN_SEARCH_STEP;
+		Debugger::DEBUG("HeadMovement","Pan=%d",mSearchObjectPan);
+		if( mSearchObjectPan <= PAN_SEARCH_MIN[0]
+		    || mSearchObjectPan >= PAN_SEARCH_MAX[0]) {
+			mSearchObjectPanDir = -mSearchObjectPanDir;
+			bool panMin = false;
+			if( mSearchObjectPan <= PAN_SEARCH_MIN[0]) {
+				panMin = true;
+			}
+			if( mSearchObjectTilt == TILT_SEARCH_MIN || mSearchObjectTilt == TILT_SEARCH_MAX) {
+				Debugger::DEBUG("HeadMovement","TiltReverse");
+				mSearchObjectTiltDir = -mSearchObjectTiltDir;
+			}
+			//mSearchObjectTilt += mSearchObjectTiltDir * TILT_SEARCH_STEP;
+			//mSearchObjectRow = abs(mSearchObjectTilt - TILT_SEARCH_MAX) / TILT_SEARCH_STEP;
+			mSearchObjectRow += mSearchObjectTiltDir;
+			if( panMin) {
+				Debugger::DEBUG("HeadMovement","MinPan");
+				mSearchObjectPan = PAN_SEARCH_MIN[0];
+			} else {
+				Debugger::DEBUG("HeadMovement","MaxPan");
+				mSearchObjectPan = PAN_SEARCH_MAX[0];
+			}
+			mSearchObjectLoopPoint++;
+		}
+
+		if( mSearchObjectRow < minRow) {
+			Debugger::DEBUG("HeadMovement","MINROW");
+			mSearchObjectRow = minRow;
+		} else if( mSearchObjectRow > maxRow) {
+			Debugger::DEBUG("HeadMovement","MAXROW");
+			mSearchObjectRow = maxRow;
+		}
+		mSearchObjectTilt = TILT_SEARCH_MIN + (mSearchObjectRow * TILT_SEARCH_STEP);
+
+		if (mSearchObjectLoopPoint > MAX_LOOP_POINTS) {
+			Debugger::DEBUG("HeadMovement","MSearchLoopReset");
+			mSearchObjectLoopPoint = -1;
+			return false;
+		}
+	}
+	return true;
+}*/
+
+bool HeadMovement::processTracker(const Object& object) const {
+	static int NoObjectCount = 0;
+
+	if (!object.lastImageSeen) { // No object found
+		if (NoObjectCount < NO_OBJECT_MAX_COUNT) {
+			getHeadAction().PanTiltTracking(false);
+			NoObjectCount++;
+			return true;
+		} else {
+			return false;
+		}
+	} else {
+		NoObjectCount = 0;
+		int objX = object.lastImageX; // horizontal center
+		int objY = object.lastImageTopLeftY + object.lastImageHeight; // bottom
+		double offsetX = (double)(objX - (int)(getImage().getWidth() / 2));
+		double offsetY = (double)(objY - (int)(getImage().getHeight() / 2));
+		offsetY = -offsetY; // Inverse Y
+		offsetX *= (2.0*getRobotConfiguration().cameraOpeningHorizontal / (double)getImage().getWidth()); // pixel per angle
+		offsetY *= (2.0*getRobotConfiguration().cameraOpeningVertical / (double)getImage().getHeight()); // pixel per angle
+//		Debugger::DEBUG("processTracker", "offsetX: %f, offsetY: %f", offsetX, offsetY);
+		getHeadAction().PanTiltTracking(offsetX, offsetY, false);
+		return true;
+	}
+}
+void HeadMovement::searchGoalPoles(){
+	Debugger::DEBUG("HeadMovement", "SearchForGoal");
+	vector<Object> goals =getGoalPoles().getObjects();
+	if (goals.size()>=1&&goals.at(0).lastImageSeen) {
+		if(goals.size()>1&&goals.at(1).lastImageSeen){
+			mCountLeftRight=0;
+			Debugger::DEBUG("HeadMovement", "Cross Found, tracking");
+			Object* goalCross=mergeTwoObjects(goals.at(0),goals.at(1));
+			processTracker(goalCross);
+			mFoundCounter++;
+			if (mFoundCounter >= GOAL_FOUND_THRESHOLD) {
+				// avoid overflow
+				if( mFoundCounter > MAX_COUNTER) {
+					mFoundCounter = MAX_COUNTER;
+				}
+				mLostCounter = 0;
+				getGoalStatus().setObjectStatus(VisionStatus::OBJECT_FOUND_STABLE);
+			} else {
+				getGoalStatus().setObjectStatus(VisionStatus::OBJECT_SEEN);
+			}
+		}else{
+			//Now we try to find the Other Goal
+			mCountLeftRight++;
+			if(((int)(mCountLeftRight/5))%2){
+				Debugger::DEBUG("HeadMovement", "Look on the Right");
+				getHeadAction().PanTiltTracking(10*(mCountLeftRight%5), 0, false);
+			}else{
+				Debugger::DEBUG("HeadMovement", "Look on the Left");
+				getHeadAction().PanTiltTracking(-10*(mCountLeftRight%5), 0, false);
+			}
+			if(mCountLeftRight>100){
+				mCountLeftRight=0;
+			}
+		}
+
+	} else if (mFoundCounter == 0) {
+		Debugger::DEBUG("HeadMovement", "Goal not seen, looking for it");
+		if( !searchObject(2, 2)) {
+			Debugger::DEBUG("HeadMovement", "Goal not found");
+			getHeadAction().setPanTilt(mSearchObjectPan, mSearchObjectTilt);
+			getGoalStatus().setObjectStatus(VisionStatus::OBJECT_NOT_FOUND);
+		} else {
+			Debugger::DEBUG("HeadMovement", "Pan %d, Tilt: %d", mSearchObjectPan, mSearchObjectTilt);
+			getHeadAction().setPanTilt(mSearchObjectPan, mSearchObjectTilt);
+			getGoalStatus().setObjectStatus(VisionStatus::OBJECT_SEARCHING);
+		}
+	} else {
+		mNotFoundCounter++;
+		if (mNotFoundCounter >= OBJECT_LOST_THRESHOLD) {
+			Debugger::DEBUG("HeadMovement", "Goal lost!");
+			mFoundCounter = 0;
+			mNotFoundCounter = 0;
+			mLostCounter++;
+			if( mLostCounter > MAX_LOST_COUNTER) {
+				mLostCounter = 0;
+				mSearchObjectLoopPoint = -1;
+				searchObject(2, 2);
+				getHeadAction().setPanTilt(mSearchObjectPan, mSearchObjectTilt);
+				getGoalStatus().setObjectStatus(VisionStatus::OBJECT_LOST);
+			} else {
+				getGoalStatus().setObjectStatus(VisionStatus::OBJECT_SEARCHING);
+			}
+		} else {
+			Debugger::DEBUG("HeadMovement", "Goal not seen, retrying");
+			getGoalStatus().setObjectStatus(VisionStatus::OBJECT_SEARCHING);
+		}
+	}
+
+
+}
+Object* HeadMovement::mergeTwoObjects(Object& one,Object& two){
+	Object* aus = new Object();
+	aus->lastImageHeight = (one.lastImageHeight+two.lastImageHeight)/2;
+	aus->lastImageSeen = one.lastImageSeen&&two.lastImageSeen;
+	aus->lastImageTopLeftX=one.lastImageTopLeftX;
+	aus->lastImageTopLeftY=(one.lastImageTopLeftY+two.lastImageTopLeftY)/2;
+	aus->lastImageWidth=one.lastImageWidth+two.lastImageWidth;
+	aus->lastImageX = (one.lastImageX+two.lastImageX)/2;
+	aus->lastSeenCounter = one.lastSeenCounter +two.lastSeenCounter;
+	//aus->lastVector = one.lastVector;
+	aus->matched = one.matched&&two.matched;
+	aus->originalHeight = (one.originalHeight +two.originalHeight)/2;
+	aus->originalWidth = (one.originalWidth +two.originalWidth)/2;
+	return aus;
+}

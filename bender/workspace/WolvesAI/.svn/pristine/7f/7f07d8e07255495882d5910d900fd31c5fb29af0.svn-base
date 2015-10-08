@@ -1,0 +1,35 @@
+package protobuf;
+
+option java_package = "de.ostfalia.robocup.message";
+option java_outer_classname = "MsgBodyAction";
+option optimize_for = LITE_RUNTIME;
+
+import "Point3D.proto";
+
+message BodyAction {
+	enum StaticMotion {
+		Stop 			= 0x00;
+		KickLeft 		= 0x06;
+		KickRight 		= 0x07;
+		CancelKick 		= 0x08;
+		GoaliMoveLeft 	= 0x0B;
+		GoaliMoveRight 	= 0x0C;
+		MoveHi 			= 0x0E;
+		YeahGoal 		= 0x0F;
+		RaiseLeftHand	= 0x20;
+		RaiseRightHand	= 0x21;
+		RaiseBothHands	= 0x22;
+		KickToTarget 	= 0x32;
+		KickBall 		= 0x33;
+		KickAdvanced 	= 0x34;
+	}
+
+	required bool WalkerCommand = 1;
+	optional sint32 WalkerX = 2;
+	optional sint32 WalkerY = 3;
+	optional sint32 WalkerR = 4;
+	optional bool WalkerTurningAim = 5;
+	optional StaticMotion Motion = 6;
+	optional Point3D Ball = 7;
+	optional Point3D Target = 8;
+}

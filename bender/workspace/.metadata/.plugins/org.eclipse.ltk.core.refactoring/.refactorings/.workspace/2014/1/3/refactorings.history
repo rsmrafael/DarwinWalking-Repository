@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Delete 4 resources" deleteContents="false" description="Delete 4 resources" element1="/WolvesKI2/src/Body/PanTiltUnit.h.edited" element2="/WolvesKI2/src/Body/PanTiltUnit.h.mine" element3="/WolvesKI2/src/Body/PanTiltUnit.h.r7427" element4="/WolvesKI2/src/Body/PanTiltUnit.h.r7553" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="4" stamp="1389975070066"/>
+</session>

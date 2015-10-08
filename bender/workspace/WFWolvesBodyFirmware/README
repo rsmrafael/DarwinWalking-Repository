@@ -1,0 +1,26 @@
+  REQUIREMENTS
+-=-=-=-=-=-=-=-=-
+
+-- For compiling you need arm-elf-gcc with support for arm7tdmi. Look for the
+GNUARM toolchain at <http://www.gnuarm.com>. This supports Linux, Mac OS and
+Windows via Cygwin.
+
+-- For uploading the firmware via USB cable you will need to install the SAM-BA
+uploader. Linux users can download one such uploader from the following link:
+<ftp://ftp.linux4sam.org/devel/tools/sam-ba_cdc_2.7.linux_01.zip>
+Mac users can use this one:
+<http://ghostwood.org/software/macSamba.html>
+Windows users can use the official tool provided by ATMEL in their website.
+<http://www.atmel.com/dyn/products/tools_card.asp?tool_id=3883>
+
+-- For uploading the firmware via JTAG you need a JTAG programmer cable or
+adapter. You can use OpenOCD: <http://www.yagarto.de/>
+
+
+
+  COMPILING
+-=-=-=-=-=-=-
+
+If you already have everything in place just type make. This will compile and
+link the firmware and generate a file named main.bin which should be uploaded
+to the robot controller.

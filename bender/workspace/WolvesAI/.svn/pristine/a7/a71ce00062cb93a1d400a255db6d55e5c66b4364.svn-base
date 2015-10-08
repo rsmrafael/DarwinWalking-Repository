@@ -1,0 +1,63 @@
+/*
+ * Config.h
+ *
+ *  Created on: 01.07.2009
+ *      Author: Stefan
+ */
+
+#ifndef CONFIG_H_
+#define CONFIG_H_
+
+#include <string>
+#include <list>
+#include "ConfigChangeListener.h"
+
+using namespace std;
+
+#ifndef JENKINS
+	#define CONFIG_FILE_ACCESS
+#endif
+
+#define CONFIG_FILE		"/mnt/sdcard/config.ini"
+
+class Config {
+public:
+    static Config* GetInstance();
+    void saveConfig() const;
+    void shutdown() const;
+    string getConfigAsString() const;
+
+    void registerConfigChangeHandler(ConfigChangeListener* handler);
+    void removeConfigChangeHandler(ConfigChangeListener* handler);
+    void setDisableChangeListeners(bool state);
+
+    static bool GetBoolean(string Section, string Setting, bool Default);
+    static bool SetBoolean(string Section, string Setting, bool Value);
+    static string GetString(string Section, string Setting, string Default);
+    static bool SetString(string Section, string Setting, string Value);
+    static int GetInt(string Section, string Setting, int Default);
+    static bool SetInt(string Section, string Setting, int Value);
+    static double GetDouble(string Section, string Setting, double Default);
+    static bool SetDouble(string Section, string Setting, double Value);
+
+protected:
+	Config();
+	~Config();
+
+private:
+	//lint -e(1704)
+	Config(const Config& cSource);
+	Config& operator=(const Config& cSource);
+
+#ifdef CONFIG_FILE_ACCESS
+	void notifyChangeHandlers();
+#endif
+
+    static Config* mInstance;
+    bool mNoSaveMode;
+
+	list<ConfigChangeListener*>* mListeners;
+	bool mDisableChangeListeners;
+};
+
+#endif /* CONFIG_H_ */

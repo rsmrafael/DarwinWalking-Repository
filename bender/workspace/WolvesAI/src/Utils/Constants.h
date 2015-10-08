@@ -1,0 +1,19 @@
+/*
+ * Constants.h
+ *
+ *  Created on: 13.02.2014
+ *      Author: Oliver Krebs
+ */
+
+#ifndef CONSTANTS_H_
+#define CONSTANTS_H_
+
+const double PI = 3.1415926535897932384626433832795; 		// PI
+const double TWICE_PI = 6.283185307179586476925286766559; 	// 2 * PI
+const double PI_2 = 1.5707963267948966192313216916398; 		// PI / 2
+const double DEGREE_TO_RADIAN = 0.01745329251994329576923690768489; // PI / 180
+const double RADIAN_TO_DEGREE = 57.295779513082320876798154814105;  // 180 / PI
+
+const int SERVO_COUNT_MAX = 21;
+
+#endif /* CONSTANTS_H_ */

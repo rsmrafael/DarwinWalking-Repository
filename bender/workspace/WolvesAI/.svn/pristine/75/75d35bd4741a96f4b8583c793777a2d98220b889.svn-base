@@ -1,0 +1,138 @@
+/*
+ * BlackboardService.cpp
+ *
+ *  Created on: 12.04.2010
+ *      Author: Stefan
+ */
+
+#include <iostream>
+#include <sstream>
+#include <ios>
+#include <iomanip>
+#include "BlackboardService.h"
+#include "../Debugger.h"
+#include "../../ModuleManager/ModuleManager.h"
+#include "../../Blackboard/Blackboard.h"
+
+using namespace std;
+
+#define BLACKBOARD_FILE	"/mnt/sdcard/blackboard.msg"
+#define MAX_DIRECT_PACKET_SIZE		(65535 - 4)
+
+BlackboardService::BlackboardService() {
+	mBroadcasts.push_back(BlackboardBroadcast("DebugDrawings", 1));
+	mBroadcasts.push_back(BlackboardBroadcast("BodyStatus", 10));
+	mBroadcasts.push_back(BlackboardBroadcast("BodyAction", 5));
+	mBroadcasts.push_back(BlackboardBroadcast("LocalModel", 5));
+	mBroadcasts.push_back(BlackboardBroadcast("BehaviorStatus", 10));
+}
+
+BlackboardService::~BlackboardService() {
+	mBroadcasts.clear();
+}
+
+void BlackboardService::sendPartialBlackboard() {
+	Blackboard* bb = ModuleManager::GetInstance()->getBlackboardDirect(true);
+	ostringstream data;
+	if (bb != NULL) {
+		vector<string> items;
+
+		for (vector<BlackboardBroadcast>::iterator it = mBroadcasts.begin(); it != mBroadcasts.end(); ++it) {
+			(*it).remainingCycles--;
+			if ((*it).remainingCycles <= 0) {
+				items.push_back((*it).name);
+				(*it).remainingCycles = (*it).repeatCycles;
+			}
+		}
+		bb->serialize(data, false, items);
+	}
+
+	// Send direct
+	string replyp = data.str();
+	Debugger::GetInstance()->sendPacket("BBB", replyp.c_str(), replyp.length());
+}
+
+void BlackboardService::Tokenize(const string& str, vector<string>& tokens, const string& delimiters = " ") {
+    // Skip delimiters at beginning.
+    string::size_type lastPos = str.find_first_not_of(delimiters, (size_t)0);
+    // Find first "non-delimiter".
+    string::size_type pos     = str.find_first_of(delimiters, lastPos);
+
+    while (string::npos != pos || string::npos != lastPos) {
+        // Found a token, add it to the vector.
+        tokens.push_back(str.substr(lastPos, pos - lastPos));
+        // Skip delimiters.  Note the "not_of"
+        lastPos = str.find_first_not_of(delimiters, pos);
+        // Find next "non-delimiter"
+        pos = str.find_first_of(delimiters, lastPos);
+    }
+}
+
+void BlackboardService::newPacket(uint8_t* packet, size_t size) {
+	string request = (char*)(packet);
+	Debugger::DEBUG("BlackboardService", "New packet: %s", request.c_str());
+
+	if (request.substr((size_t)0, (size_t)4) == "GET ") {
+		string itemList = request.substr((size_t)4);
+
+		ModuleManager::GetInstance()->pauseExecutionAfterIteration();
+
+		Blackboard* bb = ModuleManager::GetInstance()->getBlackboardDirect(true);
+		ostringstream data;
+		if (bb != NULL) {
+
+			if (itemList == "ALL") {
+				bb->serialize(data, false);
+			} else {
+				vector<string> items;
+				Tokenize(itemList, items, ",");
+				bb->serialize(data, false, items);
+			}
+		}
+
+		ModuleManager::GetInstance()->continueExecution();
+
+		if (itemList == "ALL" || data.tellp() > MAX_DIRECT_PACKET_SIZE) {
+			// Save as file, send filename
+			ofstream outputFile(BLACKBOARD_FILE, fstream::out | fstream::binary);
+			outputFile << data.str();
+			outputFile.close();
+
+			ostringstream reply;
+			reply << "FILE " << BLACKBOARD_FILE;
+
+			string replyp = reply.str();
+			Debugger::GetInstance()->sendPacket(getPacketID(), replyp.c_str(), replyp.length());
+		} else {
+			// Send direct
+			string replyp = data.str();
+			Debugger::GetInstance()->sendPacket(getPacketID(), replyp.c_str(), replyp.length());
+		}
+	} else if (request.substr((size_t)0, (size_t)4) == "SET ") {
+		size_t delim = request.find(' ', (size_t)4);
+		string name = request.substr((size_t)4, delim - (size_t)4);
+		size_t len = size - (5 + name.length());
+		istringstream data(string((char*)(&packet[5 + name.length()]), len));
+		Debugger::INFO("BlackboardService", "Got new data for Blackboard entry '%s'", name.c_str());
+
+		Blackboard* bb = ModuleManager::GetInstance()->getBlackboardDirect(true);
+		if (bb != NULL) {
+			bb->deserialize(name, data);
+		}
+
+		string replyp = "OK";
+		Debugger::GetInstance()->sendPacket(getPacketID(), replyp.c_str(), replyp.length());
+	} else if (request.substr((size_t)0, (size_t)3) == "LST") {
+		Blackboard* bb = ModuleManager::GetInstance()->getBlackboardDirect(true);
+		if (bb != NULL) {
+			ostringstream reply;
+			bb->serialize(reply, true);
+			string replyp = reply.str();
+			Debugger::GetInstance()->sendPacket(getPacketID(), replyp.c_str(), replyp.length());
+		}
+	}
+}
+
+string BlackboardService::getPacketID() {
+	return "BLK";
+}

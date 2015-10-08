@@ -1,0 +1,3 @@
+Debug_x86_Windows/src/Thread.o: src/Thread.cpp src/Thread.h
+
+src/Thread.h:

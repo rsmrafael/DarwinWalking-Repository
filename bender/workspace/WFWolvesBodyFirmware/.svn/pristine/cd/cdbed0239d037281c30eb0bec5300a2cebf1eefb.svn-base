@@ -1,0 +1,969 @@
+/*
+ * walktuner.c
+ *
+ *  Created on: 01.10.2011
+ *      Author: Stefan
+ */
+
+#include "dbgu/dbgu.h"
+#include "walker/walker.h"
+#include "tc/tc.h"
+#include "ui/ui.h"
+#include "servo/servo.h"
+#include "imu/imu.h"
+#include "eeprom/eeprom.h"
+#include <string.h>
+#ifdef WIN32
+#include <windows.h>
+#endif
+
+#ifdef DEBUG_X86
+#define MAIN_LOOP_DURATION			24 // ms
+#else
+#define MAIN_LOOP_DURATION			8 // ms
+#endif
+
+#define SCREEN_COL		35
+// Position of Column
+#define CMD_COL			2
+#define PARAM_COL		27
+
+// Position of Row
+enum {
+    WALKING_MODE_ROW,
+    X_OFFSET_ROW,
+    Y_OFFSET_ROW,
+    Z_OFFSET_ROW,
+    ROLL_OFFSET_ROW,
+    PITCH_OFFSET_ROW,
+    YAW_OFFSET_ROW,
+    HIP_PITCH_OFFSET_ROW,
+    AUTO_BALANCE_ROW,
+    PERIOD_TIME_ROW,
+    DSP_RATIO_ROW,
+    STEP_FORWARDBACK_RATIO_ROW,
+    STEP_FORWARDBACK_ROW,
+    STEP_RIGHTLEFT_ROW,
+    STEP_DIRECTION_ROW,
+    TURNING_AIM_ROW,
+    FOOT_HEIGHT_ROW,
+    SWING_RIGHTLEFT_ROW,
+    SWING_TOPDOWN_ROW,
+    PELVIS_OFFSET_ROW,
+    ARM_SWING_GAIN_ROW,
+    BAL_KNEE_GAIN_ROW,
+    BAL_ANKLE_PITCH_GAIN_ROW,
+    BAL_HIP_ROLL_GAIN_ROW,
+    BAL_ANKLE_ROLL_GAIN_ROW,
+    P_GAIN_ROW,
+    I_GAIN_ROW,
+    D_GAIN_ROW,
+    CMD_ROW,
+    SCREEN_ROW
+};
+
+int Col = PARAM_COL;
+int Row = WALKING_MODE_ROW;
+int Old_Col;
+int Old_Row;
+unsigned char bBeginCommandMode = 0;
+unsigned char bEdited = 0;
+
+void ClearScreen(void) {
+#ifdef WIN32
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	COORD coord = {0, 0};
+	DWORD dw;
+	CONSOLE_SCREEN_BUFFER_INFO csbi;
+	DWORD dwSize;
+	GetConsoleScreenBufferInfo(hConsole, &csbi);
+	dwSize = csbi.dwSize.X * csbi.dwSize.Y;
+	FillConsoleOutputCharacter(hConsole, ' ', dwSize, coord, &dw);
+	FillConsoleOutputAttribute(hConsole, csbi.wAttributes, dwSize, coord, &dw);
+	SetConsoleCursorPosition(hConsole, coord);
+#else
+	dbgu_printf("\x1B[2J");
+#endif
+}
+
+void GoToCursor(int col, int row) {
+#ifdef WIN32
+	HANDLE screen_buffer_handle = GetStdHandle(STD_OUTPUT_HANDLE);
+	COORD coord;
+	coord.X = col;
+	coord.Y = row;
+	SetConsoleCursorPosition(screen_buffer_handle, coord);
+#else
+	dbgu_printf("\x1B[%d;%dH", row + 1, col);
+#endif
+	Col = col;
+	Row = row;
+}
+
+void PrintCmd(const char *message) {
+	int len = strlen(message);
+	GoToCursor(0, CMD_ROW);
+
+	dbgu_printf("] %s", message);
+	for(int i = 0; i < (SCREEN_COL - (len + 2)); i++)
+		dbgu_printf(" ");
+
+	GoToCursor(len + 2, CMD_ROW);
+}
+
+void ClearCmd() {
+	PrintCmd("");
+}
+
+void MoveUpCursor() {
+	if(Col == PARAM_COL) {
+		if(Row > 0)
+			GoToCursor(Col, Row-1);
+	}
+}
+
+void MoveDownCursor() {
+	if(Col == PARAM_COL) {
+		if(Row < CMD_ROW - 1)
+			GoToCursor(Col, Row+1);
+	}
+}
+
+void MoveLeftCursor() {
+}
+
+void MoveRightCursor() {
+}
+
+void IncreaseValue(unsigned char large) {
+	int col;
+	int row;
+	if(bBeginCommandMode == 1) {
+		col = Old_Col;
+		row = Old_Row;
+	} else {
+		col = Col;
+		row = Row;
+	}
+
+	if(col != PARAM_COL)
+		return;
+
+	GoToCursor(col, row);
+
+	unsigned char old_edited = bEdited;
+	bEdited = 1;
+
+	switch(row) {
+	case WALKING_MODE_ROW:
+		Walker_Start();
+		dbgu_printf("ON    ");
+		bEdited = old_edited;
+		break;
+
+	case X_OFFSET_ROW:
+		if(large == 1)
+			Walker_Params.X_OFFSET += 10;
+		else
+			Walker_Params.X_OFFSET += 1;
+		dbgu_printf("%d    ", (int)Walker_Params.X_OFFSET);
+		break;
+
+	case Y_OFFSET_ROW:
+		if(large == 1)
+			Walker_Params.Y_OFFSET += 10;
+		else
+			Walker_Params.Y_OFFSET += 1;
+		dbgu_printf("%d    ", (int)Walker_Params.Y_OFFSET);
+		break;
+
+	case Z_OFFSET_ROW:
+		if(large == 1)
+			Walker_Params.Z_OFFSET += 10;
+		else
+			Walker_Params.Z_OFFSET += 1;
+		dbgu_printf("%d    ", (int)Walker_Params.Z_OFFSET);
+		break;
+
+	case ROLL_OFFSET_ROW:
+		if(large == 1)
+			Walker_Params.R_OFFSET += 1.0;
+		else
+			Walker_Params.R_OFFSET += 0.1;
+		dbgu_printf("%.1f    ", Walker_Params.R_OFFSET);
+		break;
+
+	case PITCH_OFFSET_ROW:
+		if(large == 1)
+			Walker_Params.P_OFFSET += 1.0;
+		else
+			Walker_Params.P_OFFSET += 0.1;
+		dbgu_printf("%.1f    ", Walker_Params.P_OFFSET);
+		break;
+
+	case YAW_OFFSET_ROW:
+		if(large == 1)
+			Walker_Params.Y_OFFSET += 1.0;
+		else
+			Walker_Params.Y_OFFSET += 0.1;
+		dbgu_printf("%.1f    ", Walker_Params.Y_OFFSET);
+		break;
+
+	case HIP_PITCH_OFFSET_ROW:
+		if(large == 1)
+			Walker_Params.HIP_PITCH_OFFSET += 1.0;
+		else
+			Walker_Params.HIP_PITCH_OFFSET += 0.1;
+		dbgu_printf("%.1f    ", Walker_Params.HIP_PITCH_OFFSET);
+		break;
+
+	case AUTO_BALANCE_ROW:
+		Walker_Params.BALANCE_ENABLE = 1;
+		dbgu_printf("ON    ");
+		bEdited = old_edited;
+		break;
+
+	case PERIOD_TIME_ROW:
+		if(large == 1)
+			Walker_Params.PERIOD_TIME += 10;
+		else
+			Walker_Params.PERIOD_TIME += 1;
+		dbgu_printf("%d    ", (int)Walker_Params.PERIOD_TIME);
+		break;
+
+	case DSP_RATIO_ROW:
+		if(large == 1)
+			Walker_Params.DSP_RATIO += 0.1;
+		else
+			Walker_Params.DSP_RATIO += 0.01;
+		dbgu_printf("%.2f    ", Walker_Params.DSP_RATIO);
+		break;
+
+    case STEP_FORWARDBACK_RATIO_ROW:
+        if(large == 1)
+            Walker_Params.STEP_FB_RATIO += 0.1;
+        else
+            Walker_Params.STEP_FB_RATIO += 0.01;
+        dbgu_printf("%.2f    ", Walker_Params.STEP_FB_RATIO);
+        break;
+
+	case STEP_FORWARDBACK_ROW:
+		if(large == 1)
+			Walker_X_MOVE_AMPLITUDE += 10;
+		else
+			Walker_X_MOVE_AMPLITUDE += 1;
+		dbgu_printf("%d    ", (int)Walker_X_MOVE_AMPLITUDE);
+		bEdited = old_edited;
+		break;
+
+	case STEP_RIGHTLEFT_ROW:
+		if(large == 1)
+			Walker_Y_MOVE_AMPLITUDE += 10;
+		else
+			Walker_Y_MOVE_AMPLITUDE += 1;
+		dbgu_printf("%d    ", (int)Walker_Y_MOVE_AMPLITUDE);
+		bEdited = old_edited;
+		break;
+
+	case STEP_DIRECTION_ROW:
+		if(large == 1)
+			Walker_A_MOVE_AMPLITUDE += 10;
+		else
+			Walker_A_MOVE_AMPLITUDE += 1;
+		dbgu_printf("%d    ", (int)Walker_A_MOVE_AMPLITUDE);
+		bEdited = old_edited;
+		break;
+
+	case TURNING_AIM_ROW:
+		Walker_A_MOVE_AIM_ON = 1;
+		dbgu_printf("ON   ");
+		bEdited = old_edited;
+		break;
+
+	case FOOT_HEIGHT_ROW:
+		if(large == 1)
+			Walker_Params.Z_MOVE_AMPLITUDE += 10;
+		else
+			Walker_Params.Z_MOVE_AMPLITUDE += 1;
+		dbgu_printf("%d    ", (int)Walker_Params.Z_MOVE_AMPLITUDE);
+		break;
+
+	case SWING_RIGHTLEFT_ROW:
+		if(large == 1)
+			Walker_Params.Y_SWAP_AMPLITUDE += 0.10;
+		else
+			Walker_Params.Y_SWAP_AMPLITUDE += 0.1;
+		dbgu_printf("%.1f    ", Walker_Params.Y_SWAP_AMPLITUDE);
+		break;
+
+	case SWING_TOPDOWN_ROW:
+		if(large == 1)
+			Walker_Params.Z_SWAP_AMPLITUDE += 10;
+		else
+			Walker_Params.Z_SWAP_AMPLITUDE += 1;
+		dbgu_printf("%d    ", (int)Walker_Params.Z_SWAP_AMPLITUDE);
+		break;
+
+	case PELVIS_OFFSET_ROW:
+		if(large == 1)
+			Walker_Params.PELVIS_OFFSET += 1.0;
+		else
+			Walker_Params.PELVIS_OFFSET += 0.1;
+		dbgu_printf("%.1f    ", Walker_Params.PELVIS_OFFSET);
+		break;
+
+	case ARM_SWING_GAIN_ROW:
+		if(large == 1)
+			Walker_Params.ARM_SWING_GAIN += 0.10;
+		else
+			Walker_Params.ARM_SWING_GAIN += 0.1;
+		dbgu_printf("%.1f    ", Walker_Params.ARM_SWING_GAIN);
+		break;
+
+	case BAL_KNEE_GAIN_ROW:
+		if(large == 1)
+			Walker_Params.BALANCE_KNEE_GAIN += 0.1;
+		else
+			Walker_Params.BALANCE_KNEE_GAIN += 0.01;
+		dbgu_printf("%.2f    ", Walker_Params.BALANCE_KNEE_GAIN);
+		break;
+
+	case BAL_ANKLE_PITCH_GAIN_ROW:
+		if(large == 1)
+			Walker_Params.BALANCE_ANKLE_PITCH_GAIN += 0.1;
+		else
+			Walker_Params.BALANCE_ANKLE_PITCH_GAIN += 0.01;
+		dbgu_printf("%.2f    ", Walker_Params.BALANCE_ANKLE_PITCH_GAIN);
+		break;
+
+	case BAL_HIP_ROLL_GAIN_ROW:
+		if(large == 1)
+			Walker_Params.BALANCE_HIP_ROLL_GAIN += 0.1;
+		else
+			Walker_Params.BALANCE_HIP_ROLL_GAIN += 0.01;
+		dbgu_printf("%.2f    ", Walker_Params.BALANCE_HIP_ROLL_GAIN);
+		break;
+
+	case BAL_ANKLE_ROLL_GAIN_ROW:
+		if(large == 1)
+			Walker_Params.BALANCE_ANKLE_ROLL_GAIN += 0.1;
+		else
+			Walker_Params.BALANCE_ANKLE_ROLL_GAIN += 0.01;
+		dbgu_printf("%.2f    ", Walker_Params.BALANCE_ANKLE_ROLL_GAIN);
+		break;
+
+	case P_GAIN_ROW:
+        if(large == 1)
+            Walker_ServoSettings.Pgain += 10;
+        else
+        	Walker_ServoSettings.Pgain += 1;
+        dbgu_printf("%d    ", Walker_ServoSettings.Pgain);
+        if(Walker_IsRunning() == 1) {
+        	Walker_Start(); // Used to update PID settings in servos
+        }
+        break;
+
+    case I_GAIN_ROW:
+        if(large == 1)
+        	Walker_ServoSettings.Igain += 2;
+        else
+        	Walker_ServoSettings.Igain += 1;
+        dbgu_printf("%d    ", Walker_ServoSettings.Igain);
+        if(Walker_IsRunning() == 1) {
+        	Walker_Start(); // Used to update PID settings in servos
+        }
+        break;
+
+    case D_GAIN_ROW:
+        if(large == 1)
+        	Walker_ServoSettings.Dgain += 10;
+        else
+        	Walker_ServoSettings.Dgain += 1;
+        dbgu_printf("%d    ", Walker_ServoSettings.Dgain);
+        if(Walker_IsRunning() == 1) {
+        	Walker_Start(); // Used to update PID settings in servos
+        }
+        break;
+	}
+
+	GoToCursor(col, row);
+}
+
+void DecreaseValue(unsigned char large) {
+	int col;
+	int row;
+	if(bBeginCommandMode == 1) {
+		col = Old_Col;
+		row = Old_Row;
+	} else {
+		col = Col;
+		row = Row;
+	}
+
+	if(col != PARAM_COL)
+		return;
+
+	GoToCursor(col, row);
+
+	unsigned char old_edited = bEdited;
+	bEdited = 1;
+
+	switch(row){
+	case WALKING_MODE_ROW:
+		Walker_Stop();
+		dbgu_printf("OFF");
+		GoToCursor(PARAM_COL, STEP_FORWARDBACK_ROW);
+		Walker_X_MOVE_AMPLITUDE = 0;
+		dbgu_printf("%d    ", (int)Walker_X_MOVE_AMPLITUDE);
+		GoToCursor(PARAM_COL, STEP_RIGHTLEFT_ROW);
+		Walker_Y_MOVE_AMPLITUDE = 0;
+		dbgu_printf("%d    ", (int)Walker_Y_MOVE_AMPLITUDE);
+		GoToCursor(PARAM_COL, STEP_DIRECTION_ROW);
+		Walker_A_MOVE_AMPLITUDE = 0;
+		dbgu_printf("%.1f    ", Walker_A_MOVE_AMPLITUDE);
+		bEdited = old_edited;
+		break;
+
+	case X_OFFSET_ROW:
+		if(large == 1)
+			Walker_Params.X_OFFSET -= 10;
+		else
+			Walker_Params.X_OFFSET -= 1;
+		dbgu_printf("%d    ", (int)Walker_Params.X_OFFSET);
+		break;
+
+	case Y_OFFSET_ROW:
+		if(large == 1)
+			Walker_Params.Y_OFFSET -= 10;
+		else
+			Walker_Params.Y_OFFSET -= 1;
+		dbgu_printf("%d    ", (int)Walker_Params.Y_OFFSET);
+		break;
+
+	case Z_OFFSET_ROW:
+		if(large == 1)
+			Walker_Params.Z_OFFSET -= 10;
+		else
+			Walker_Params.Z_OFFSET -= 1;
+		dbgu_printf("%d    ", (int)Walker_Params.Z_OFFSET);
+		break;
+
+	case ROLL_OFFSET_ROW:
+		if(large == 1)
+			Walker_Params.R_OFFSET -= 1.0;
+		else
+			Walker_Params.R_OFFSET -= 0.1;
+		dbgu_printf("%.1f    ", Walker_Params.R_OFFSET);
+		break;
+
+	case PITCH_OFFSET_ROW:
+		if(large == 1)
+			Walker_Params.P_OFFSET -= 1.0;
+		else
+			Walker_Params.P_OFFSET -= 0.1;
+		dbgu_printf("%.1f    ", Walker_Params.P_OFFSET);
+		break;
+
+	case YAW_OFFSET_ROW:
+		if(large == 1)
+			Walker_Params.Y_OFFSET -= 1.0;
+		else
+			Walker_Params.Y_OFFSET -= 0.1;
+		dbgu_printf("%.1f    ", Walker_Params.Y_OFFSET);
+		break;
+
+	case HIP_PITCH_OFFSET_ROW:
+		if(large == 1)
+			Walker_Params.HIP_PITCH_OFFSET -= 1.0;
+		else
+			Walker_Params.HIP_PITCH_OFFSET -= 0.1;
+		dbgu_printf("%.1f    ", Walker_Params.HIP_PITCH_OFFSET);
+		break;
+
+	case AUTO_BALANCE_ROW:
+		Walker_Params.BALANCE_ENABLE = 0;
+		dbgu_printf("OFF   ");
+		bEdited = old_edited;
+		break;
+
+	case PERIOD_TIME_ROW:
+		if(large == 1)
+			Walker_Params.PERIOD_TIME -= 10;
+		else
+			Walker_Params.PERIOD_TIME -= 1;
+		dbgu_printf("%d    ", (int)Walker_Params.PERIOD_TIME);
+		break;
+
+	case DSP_RATIO_ROW:
+		if(large == 1)
+			Walker_Params.DSP_RATIO -= 0.1;
+		else
+			Walker_Params.DSP_RATIO -= 0.01;
+		dbgu_printf("%.2f    ", Walker_Params.DSP_RATIO);
+		break;
+
+    case STEP_FORWARDBACK_RATIO_ROW:
+        if(large == 1)
+            Walker_Params.STEP_FB_RATIO -= 0.1;
+        else
+            Walker_Params.STEP_FB_RATIO -= 0.01;
+        dbgu_printf("%.2f    ", Walker_Params.STEP_FB_RATIO);
+        break;
+
+	case STEP_FORWARDBACK_ROW:
+		if(large == 1)
+			Walker_X_MOVE_AMPLITUDE -= 10;
+		else
+			Walker_X_MOVE_AMPLITUDE -= 1;
+		dbgu_printf("%d    ", (int)Walker_X_MOVE_AMPLITUDE);
+		bEdited = old_edited;
+		break;
+
+	case STEP_RIGHTLEFT_ROW:
+		if(large == 1)
+			Walker_Y_MOVE_AMPLITUDE -= 10;
+		else
+			Walker_Y_MOVE_AMPLITUDE -= 1;
+		dbgu_printf("%d    ", (int)Walker_Y_MOVE_AMPLITUDE);
+		bEdited = old_edited;
+		break;
+
+	case STEP_DIRECTION_ROW:
+		if(large == 1)
+			Walker_A_MOVE_AMPLITUDE -= 10;
+		else
+			Walker_A_MOVE_AMPLITUDE -= 1;
+		dbgu_printf("%d    ", (int)Walker_A_MOVE_AMPLITUDE);
+		bEdited = old_edited;
+		break;
+
+	case TURNING_AIM_ROW:
+		Walker_A_MOVE_AIM_ON = 0;
+		dbgu_printf("OFF   ");
+		bEdited = old_edited;
+		break;
+
+	case FOOT_HEIGHT_ROW:
+		if(large == 1)
+			Walker_Params.Z_MOVE_AMPLITUDE -= 10;
+		else
+			Walker_Params.Z_MOVE_AMPLITUDE -= 1;
+		dbgu_printf("%d    ", (int)Walker_Params.Z_MOVE_AMPLITUDE);
+		break;
+
+	case SWING_RIGHTLEFT_ROW:
+		if(large == 1)
+			Walker_Params.Y_SWAP_AMPLITUDE -= 1.0;
+		else
+			Walker_Params.Y_SWAP_AMPLITUDE -= 0.1;
+		dbgu_printf("%.1f    ", Walker_Params.Y_SWAP_AMPLITUDE);
+		break;
+
+	case SWING_TOPDOWN_ROW:
+		if(large == 1)
+			Walker_Params.Z_SWAP_AMPLITUDE -= 10;
+		else
+			Walker_Params.Z_SWAP_AMPLITUDE -= 1;
+		dbgu_printf("%d    ", (int)Walker_Params.Z_SWAP_AMPLITUDE);
+		break;
+
+	case PELVIS_OFFSET_ROW:
+		if(large == 1)
+			Walker_Params.PELVIS_OFFSET -= 1.0;
+		else
+			Walker_Params.PELVIS_OFFSET -= 0.1;
+		dbgu_printf("%.1f    ", Walker_Params.PELVIS_OFFSET);
+		break;
+
+	case ARM_SWING_GAIN_ROW:
+		if(large == 1)
+			Walker_Params.ARM_SWING_GAIN -= 1.0;
+		else
+			Walker_Params.ARM_SWING_GAIN -= 0.1;
+		dbgu_printf("%.1f    ", Walker_Params.ARM_SWING_GAIN);
+		break;
+
+	case BAL_KNEE_GAIN_ROW:
+		if(large == 1)
+			Walker_Params.BALANCE_KNEE_GAIN -= 0.1;
+		else
+			Walker_Params.BALANCE_KNEE_GAIN -= 0.01;
+		dbgu_printf("%.2f    ", Walker_Params.BALANCE_KNEE_GAIN);
+		break;
+
+	case BAL_ANKLE_PITCH_GAIN_ROW:
+		if(large == 1)
+			Walker_Params.BALANCE_ANKLE_PITCH_GAIN -= 0.1;
+		else
+			Walker_Params.BALANCE_ANKLE_PITCH_GAIN -= 0.01;
+		dbgu_printf("%.2f    ", Walker_Params.BALANCE_ANKLE_PITCH_GAIN);
+		break;
+
+	case BAL_HIP_ROLL_GAIN_ROW:
+		if(large == 1)
+			Walker_Params.BALANCE_HIP_ROLL_GAIN -= 0.1;
+		else
+			Walker_Params.BALANCE_HIP_ROLL_GAIN -= 0.01;
+		dbgu_printf("%.2f    ", Walker_Params.BALANCE_HIP_ROLL_GAIN);
+		break;
+
+	case BAL_ANKLE_ROLL_GAIN_ROW:
+		if(large == 1)
+			Walker_Params.BALANCE_ANKLE_ROLL_GAIN -= 0.1;
+		else
+			Walker_Params.BALANCE_ANKLE_ROLL_GAIN -= 0.01;
+		dbgu_printf("%.2f    ", Walker_Params.BALANCE_ANKLE_ROLL_GAIN);
+		break;
+
+	case P_GAIN_ROW:
+	    if(large == 1)
+	        Walker_ServoSettings.Pgain -= 10;
+	    else
+	    	Walker_ServoSettings.Pgain -= 1;
+	    dbgu_printf("%d    ", Walker_ServoSettings.Pgain);
+        if(Walker_IsRunning() == 1) {
+        	Walker_Start(); // Used to update PID settings in servos
+        }
+	    break;
+
+    case I_GAIN_ROW:
+        if(large == 1)
+        	Walker_ServoSettings.Igain -= 2;
+        else
+        	Walker_ServoSettings.Igain -= 1;
+        dbgu_printf("%d    ", Walker_ServoSettings.Igain);
+        if(Walker_IsRunning() == 1) {
+        	Walker_Start(); // Used to update PID settings in servos
+        }
+        break;
+
+    case D_GAIN_ROW:
+        if(large == 1)
+        	Walker_ServoSettings.Dgain -= 10;
+        else
+        	Walker_ServoSettings.Dgain -= 1;
+        dbgu_printf("%d    ", Walker_ServoSettings.Dgain);
+        if(Walker_IsRunning() == 1) {
+        	Walker_Start(); // Used to update PID settings in servos
+        }
+        break;
+	}
+
+	GoToCursor(col, row);
+}
+
+void DrawScreen(void) {
+	int old_col = Col;
+	int old_row = Row;
+
+	ClearScreen();
+	GoToCursor(0, 0);
+
+	// Display menu
+	//           01234567890123456789012345678901234  Total:35x29
+	dbgu_printf("Walking Mode(on/off)      \r\n"); // 0
+	dbgu_printf("X offset(mm)              \r\n"); // 1
+	dbgu_printf("Y offset(mm)              \r\n"); // 2
+	dbgu_printf("Z offset(mm)              \r\n"); // 3
+	dbgu_printf("Roll(x) offset(degree)    \r\n"); // 4
+	dbgu_printf("Pitch(y) offset(degree)   \r\n"); // 5
+	dbgu_printf("Yaw(z) offset(degree)     \r\n"); // 6
+	dbgu_printf("Hip pitch offset(degree)  \r\n"); // 7
+	dbgu_printf("Auto balance(on/off)      \r\n"); // 8
+	dbgu_printf("Period time(msec)         \r\n"); // 9
+	dbgu_printf("DSP ratio                 \r\n"); // 0
+    dbgu_printf("Step forward/back ratio   \r\n"); // 1
+	dbgu_printf("Step forward/back(mm)     \r\n"); // 2
+	dbgu_printf("Step right/left(mm)       \r\n"); // 3
+	dbgu_printf("Step direction(degree)    \r\n"); // 4
+	dbgu_printf("Turning aim(on/off)       \r\n"); // 5
+	dbgu_printf("Foot height(mm)           \r\n"); // 6
+	dbgu_printf("Swing right/left(mm)      \r\n"); // 7
+	dbgu_printf("Swing top/down(mm)        \r\n"); // 8
+	dbgu_printf("Pelvis offset(degree)     \r\n"); // 9
+	dbgu_printf("Arm swing gain            \r\n"); // 0
+	dbgu_printf("Balance knee gain         \r\n"); // 1
+	dbgu_printf("Balance ankle pitch gain  \r\n"); // 2
+	dbgu_printf("Balance hip roll gain     \r\n"); // 3
+	dbgu_printf("Balance ankle roll gain   \r\n"); // 4
+	dbgu_printf("P gain                    \r\n"); // 5
+	dbgu_printf("I gain                    \r\n"); // 6
+	dbgu_printf("D gain                    \r\n"); // 7
+    ClearCmd(); // 8
+
+	GoToCursor(PARAM_COL, WALKING_MODE_ROW);
+	if(Walker_IsRunning() == 1)
+		dbgu_printf("ON     ");
+	else
+		dbgu_printf("OFF    ");
+
+	GoToCursor(PARAM_COL, X_OFFSET_ROW);
+	dbgu_printf("%d    ", (int)Walker_Params.X_OFFSET);
+
+	GoToCursor(PARAM_COL, Y_OFFSET_ROW);
+	dbgu_printf("%d    ", (int)Walker_Params.Y_OFFSET);
+
+	GoToCursor(PARAM_COL, Z_OFFSET_ROW);
+	dbgu_printf("%d    ", (int)Walker_Params.Z_OFFSET);
+
+	GoToCursor(PARAM_COL, ROLL_OFFSET_ROW);
+	dbgu_printf("%.1f    ", Walker_Params.R_OFFSET);
+
+	GoToCursor(PARAM_COL, PITCH_OFFSET_ROW);
+	dbgu_printf("%.1f    ", Walker_Params.P_OFFSET);
+
+	GoToCursor(PARAM_COL, YAW_OFFSET_ROW);
+	dbgu_printf("%.1f    ", Walker_Params.A_OFFSET);
+
+	GoToCursor(PARAM_COL, HIP_PITCH_OFFSET_ROW);
+	dbgu_printf("%.1f    ", Walker_Params.HIP_PITCH_OFFSET);
+
+	GoToCursor(PARAM_COL, AUTO_BALANCE_ROW);
+	if(Walker_Params.BALANCE_ENABLE == 1)
+		dbgu_printf("ON     ");
+	else
+		dbgu_printf("OFF    ");
+
+	GoToCursor(PARAM_COL, PERIOD_TIME_ROW);
+	dbgu_printf("%d    ", (int)Walker_Params.PERIOD_TIME);
+
+	GoToCursor(PARAM_COL, DSP_RATIO_ROW);
+	dbgu_printf("%.2f    ", Walker_Params.DSP_RATIO);
+
+    GoToCursor(PARAM_COL, STEP_FORWARDBACK_RATIO_ROW);
+    dbgu_printf("%.2f    ", Walker_Params.STEP_FB_RATIO);
+
+	GoToCursor(PARAM_COL, STEP_FORWARDBACK_ROW);
+	dbgu_printf("%d    ", (int)Walker_X_MOVE_AMPLITUDE);
+
+	GoToCursor(PARAM_COL, STEP_RIGHTLEFT_ROW);
+	dbgu_printf("%d    ", (int)Walker_Y_MOVE_AMPLITUDE);
+
+	GoToCursor(PARAM_COL, STEP_DIRECTION_ROW);
+	dbgu_printf("%d    ", (int)Walker_A_MOVE_AMPLITUDE);
+
+	GoToCursor(PARAM_COL, TURNING_AIM_ROW);
+	if(Walker_A_MOVE_AIM_ON == 1)
+		dbgu_printf("ON     ");
+	else
+		dbgu_printf("OFF    ");
+
+	GoToCursor(PARAM_COL, FOOT_HEIGHT_ROW);
+	dbgu_printf("%d    ", (int)Walker_Params.Z_MOVE_AMPLITUDE);
+
+	GoToCursor(PARAM_COL, SWING_RIGHTLEFT_ROW);
+	dbgu_printf("%.1f    ", Walker_Params.Y_SWAP_AMPLITUDE);
+
+	GoToCursor(PARAM_COL, SWING_TOPDOWN_ROW);
+	dbgu_printf("%d    ", (int)Walker_Params.Z_SWAP_AMPLITUDE);
+
+	GoToCursor(PARAM_COL, PELVIS_OFFSET_ROW);
+	dbgu_printf("%.1f    ", Walker_Params.PELVIS_OFFSET);
+
+	GoToCursor(PARAM_COL, ARM_SWING_GAIN_ROW);
+	dbgu_printf("%.1f    ", Walker_Params.ARM_SWING_GAIN);
+
+	GoToCursor(PARAM_COL, BAL_KNEE_GAIN_ROW);
+	dbgu_printf("%.2f    ", Walker_Params.BALANCE_KNEE_GAIN);
+
+	GoToCursor(PARAM_COL, BAL_ANKLE_PITCH_GAIN_ROW);
+	dbgu_printf("%.2f    ", Walker_Params.BALANCE_ANKLE_PITCH_GAIN);
+
+	GoToCursor(PARAM_COL, BAL_HIP_ROLL_GAIN_ROW);
+	dbgu_printf("%.2f    ", Walker_Params.BALANCE_HIP_ROLL_GAIN);
+
+	GoToCursor(PARAM_COL, BAL_ANKLE_ROLL_GAIN_ROW);
+	dbgu_printf("%.2f    ", Walker_Params.BALANCE_ANKLE_ROLL_GAIN);
+
+    GoToCursor(PARAM_COL, P_GAIN_ROW);
+    dbgu_printf("%d    ", Walker_ServoSettings.Pgain);
+
+    GoToCursor(PARAM_COL, I_GAIN_ROW);
+    dbgu_printf("%d    ", Walker_ServoSettings.Igain);
+
+    GoToCursor(PARAM_COL, D_GAIN_ROW);
+    dbgu_printf("%d    ", Walker_ServoSettings.Dgain);
+
+	GoToCursor(old_col, old_row);
+}
+
+void BeginCommandMode() {
+	Old_Col = Col;
+	Old_Row = Row;
+	ClearCmd();
+	GoToCursor(CMD_COL, CMD_ROW);
+	bBeginCommandMode = 1;
+}
+
+void EndCommandMode() {
+	GoToCursor(Old_Col, Old_Row);
+	bBeginCommandMode = 0;
+}
+
+void HelpCmd() {
+	ClearScreen();
+	dbgu_printf("\r\n");
+	dbgu_printf(" exit: Exits the program\r\n");
+	dbgu_printf(" re: Refreshes the screen\r\n");
+	dbgu_printf(" save: Saves any changes made\r\n");
+	//dbgu_printf(" mon: Monitoring sensor\r\n");
+	dbgu_printf(" reset: Restore default walker parameters\r\n");
+	dbgu_printf("\r\n");
+	dbgu_printf(" Press any key to continue...");
+	dbgu_get_char();
+
+	DrawScreen();
+}
+
+unsigned char AskSave() {
+	if(bEdited == 1) {
+		PrintCmd("Are you sure? (y/n)");
+		if(dbgu_get_char() != 'y') {
+			ClearCmd();
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+void SaveCmd() {
+	bEdited = 0;
+}
+
+void WalkTuner_Main(void) {
+	Col = PARAM_COL;
+	Row = WALKING_MODE_ROW;
+	Old_Col = Col;
+	Old_Row = Row;
+
+	DrawScreen();
+
+    while(1) {
+		unsigned long loopStartTime = TC_GetSystemTicks();
+
+		UI_ToggleLED(0);
+		IMU_Update();
+
+		//int tmp_col = Col;
+		//int tmp_row = Row;
+		//GoToCursor(0, CMD_ROW + 1);
+		Walker_Process();
+		Servo_SendPositions();
+		//GoToCursor(tmp_col, tmp_row);
+
+		if (dbgu_char_available() == 1) {
+			int ch = dbgu_get_char();
+			//dbgu_printf("Char1: %x ", ch);
+			if(ch == 0xe0 || ch == 0x1b) {
+				if (ch == 0x1b) {
+					ch = dbgu_get_char();
+					//dbgu_printf("Char2: %x ", ch);
+				}
+				//if(ch == 0x5b) {
+					ch = dbgu_get_char();
+					//dbgu_printf("Char3: %x ", ch);
+					if(ch == 0x48) // Up arrow key
+						MoveUpCursor();
+					else if(ch == 0x50) // Down arrow key
+						MoveDownCursor();
+					else if(ch == 0x4b) // Left arrow key
+						MoveLeftCursor();
+					else if(ch == 0x4d)
+						MoveRightCursor();
+				//}
+			}
+			else if( ch == ',' )
+				MoveUpCursor();
+			else if( ch == '.' )
+				MoveDownCursor();
+			else if( ch == '-' )
+				DecreaseValue(0);
+			else if( ch == '+' )
+				IncreaseValue(0);
+			else if( ch == '_' )
+				DecreaseValue(1);
+			else if( ch == '*' )
+				IncreaseValue(1);
+			else if( ch >= 'A' && ch <= 'z' ) {
+				char input[128] = {0,};
+				char *token;
+				int input_len;
+				char cmd[80];
+				char strParam[20][30];
+
+				int idx = 0;
+
+				BeginCommandMode();
+
+				dbgu_printf("%c", ch);
+				input[idx++] = (char)ch;
+
+				while(1) {
+					ch = dbgu_get_char();
+					if( ch == 0x0D || ch == 0x0A )
+						break;
+					else if (ch == 0x08 || ch == 0x7F) {
+						if(idx > 0) {
+							ch = 0x08;
+							dbgu_printf("%c", ch);
+							ch = ' ';
+							dbgu_printf("%c", ch);
+							ch = 0x08;
+							dbgu_printf("%c", ch);
+							input[--idx] = 0;
+						}
+					} else if( ch >= 'A' && ch <= 'z' ) {
+						if(idx < 127) {
+							dbgu_printf("%c", ch);
+							input[idx++] = (char)ch;
+						}
+					}
+				}
+
+				//fflush(stdin);
+				input_len = strlen(input);
+				if(input_len > 0) {
+					token = strtok( input, " " );
+					if(token != 0) {
+						strcpy( cmd, token );
+						token = strtok( 0, " " );
+						int num_param = 0;
+						while(token != 0) {
+							strcpy(strParam[num_param++], token);
+							token = strtok( 0, " " );
+						}
+
+						if(strcmp(cmd, "exit") == 0) {
+							if(AskSave() == 0)
+								break;
+						}
+						if(strcmp(cmd, "re") == 0)
+							DrawScreen();
+						else if(strcmp(cmd, "save") == 0) {
+							eeprom_write("WALKER", &Walker_Params, sizeof(Walker_Params));
+							eeprom_write("WALKER_SERVO", &Walker_ServoSettings, sizeof(Walker_ServoSettings));
+							SaveCmd();
+						} else if(strcmp(cmd, "mon") == 0) {
+							//MonitorCmd();
+						} else if(strcmp(cmd, "help") == 0) {
+							HelpCmd();
+						} else if(strcmp(cmd, "reset") == 0) {
+								Walker_ResetParameters();
+								DrawScreen();
+						} else
+							PrintCmd("Bad command! please input 'help'");
+					}
+				}
+
+				EndCommandMode();
+			}
+		}
+
+		// Waste remaining loop time
+		//if (TC_GetMsSinceTick(loopStartTime) > MAIN_LOOP_DURATION) {
+		//	dbgu_printf("[Main] WARNING: Main loop has taken too long: %d ms instead of %d ms!\r\n", TC_GetMsSinceTick(loopStartTime), MAIN_LOOP_DURATION);
+		//}
+		while (TC_GetMsSinceTick(loopStartTime) < MAIN_LOOP_DURATION);
+    }
+}

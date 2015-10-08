@@ -1,0 +1,44 @@
+/*
+ * STLVector.h
+ *
+ *  Created on: 01.07.2014
+ *      Author: gabel
+ */
+
+#ifndef STLVECTOR_H_
+#define STLVECTOR_H_
+
+#include <vector>
+
+/**
+ * Represents a STL-Vector from std::vector of the generic type T
+ * as possible blackboard object. Needed because std::vector is not polymorphic,
+ * which is needed by the blackboard representation data holder.
+ */
+template<class T>
+class STLVector {
+private:
+	std::vector<T> mData;
+public:
+	STLVector() {
+	}
+
+	/**
+	 * Returns a pointer to the vector to access the underlying data in a writable manner.
+	 */
+	inline std::vector<T>* get() {
+		return &mData;
+	}
+
+	/**
+	 * Returns a const reference to the vector to access the underlying data in a read-only manner.
+	 */
+	inline const std::vector<T>& getConst() const {
+		return mData;
+	}
+
+	virtual ~STLVector() {
+	}
+};
+
+#endif /* STLVECTOR_H_ */

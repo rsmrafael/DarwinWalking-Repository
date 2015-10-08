@@ -1,0 +1,41 @@
+/*
+ * FieldDetection.h
+ *
+ *  Created on: Sep 3, 2012
+ *      Author: jan
+ */
+
+#ifndef FIELDDETECTION_H_
+#define FIELDDETECTION_H_
+
+
+#include "../../ModuleManager/Module.h"
+#include "../../Representations/YUVImage.h"
+#include "../../Representations/PointCloud.h"
+#include "../../Representations/FieldLines.h"
+#include "../../ConfigChangeListener.h"
+
+BEGIN_DECLARE_MODULE(FieldLineDetection)
+	REQUIRE(PointCloud,GreenPoints)
+	REQUIRE(YUVImage,Image)
+	PROVIDE(FieldLines, FieldLines)
+END_DECLARE_MODULE(FieldLineDetection)
+
+class FieldLineDetection
+: public FieldLineDetectionBase,
+  public ConfigChangeListener {
+public:
+	FieldLineDetection();
+	virtual ~FieldLineDetection();
+
+	virtual bool execute();
+	virtual void configChanged();
+
+private:
+	size_t mNumIterations;
+	size_t mMinPoints;
+	double mMaxError;
+	bool mShowDebugDrawings;
+};
+
+#endif /* FIELDDETECTION_H_ */

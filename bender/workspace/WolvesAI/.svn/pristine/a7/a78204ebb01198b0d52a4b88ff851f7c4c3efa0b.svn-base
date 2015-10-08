@@ -1,0 +1,104 @@
+/*
+ * BallDetection.h
+ *
+ *  Created on: Sep 3, 2012
+ *      Author: jan
+ */
+
+#ifndef BallDetection_H_
+#define BallDetection_H_
+
+#include "../../ModuleManager/Module.h"
+#include "../../Representations/YUVImage.h"
+#include "../../Representations/FieldLines.h"
+#include "../../Representations/Object.h"
+#include "../../Representations/PointCloudList.h"
+#include "../../Representations/Point.h"
+#include "../../Representations/BodyStatus.h"
+#include "../../Representations/RobotConfiguration.h"
+#include "../../ConfigChangeListener.h"
+
+struct BallCompareData {
+	int centerX;
+	int centerY;
+	int meanRadius;
+	double circleAnomaly;
+	double foundEdgesRatio;
+	double correctEdgesRatio;
+	size_t numCloudPixels;
+};
+
+BEGIN_DECLARE_MODULE(BallDetection)
+	REQUIRE(YUVImage,Image)
+	REQUIRE(FieldLines, FieldLines)
+	REQUIRE(PointCloud, BallPoints)
+	REQUIRE(Line, Horizon)
+	REQUIRE(BodyStatus, BodyStatus)
+	REQUIRE(RobotConfiguration, RobotConfiguration)
+	PROVIDE(Object,Ball)
+	PROVIDE(PointCloud,BallEdges)
+END_DECLARE_MODULE(BallDetection)
+
+class BallDetection: public BallDetectionBase,
+public ConfigChangeListener {
+public:
+	BallDetection();
+	virtual ~BallDetection();
+
+	virtual bool execute();
+	virtual void configChanged();
+
+private:
+	void addBallPointToNearestCloud( const Point &point);
+	void mergeOverlappingClouds();
+	double calculateCompareResult(const BallCompareData &data) const;
+
+	bool findAllBallEdges(BallCompareData &data);
+	bool findBallEdge(int xSlope, int ySlope, int &steps) const;
+
+	bool filterFieldLines(Point ball) const;
+	bool filterHorizon(Point ball) const;
+
+	vector<PointCloud> mBallClouds;
+	vector<PointCloudData> mBallCloudDataList;
+
+	int mBallCenterX;
+	int mBallCenterY;
+	int mBallRadius;
+
+	int mMinCloudDistance;
+
+	double mAdditionalScanPixelFactor;
+	int mAdditionalScanPixelMin;
+	int mAdditionalScanPixelCount;
+
+	double mRadiusCompareWeight;
+	double mCircleAnomalyCompareWeight;
+	double mFoundEdgesRatioCompareWeight;
+	double mCorrectEdgesRatioCompareWeight;
+	double mPointsAreaRatioCompareWeight;
+
+	int mMinRadius;
+	int mMaxFieldlineError;
+	double mMaxCircleAnomaly;
+	double mMinFoundEdgesRatio;
+	double mMinCorrectEdgesRatio;
+	double mMinPointsAreaRatio;
+	double mMaxAnomalyRadiusFactor;
+
+	bool mDebugInfoEnabled;
+	int mDebugDrawings;
+
+	bool mIsFilterFieldLine;
+	bool mIsFilterHorizon;
+
+	int mMinY;
+	int mMaxU;
+	int mMinV;
+
+	bool mIsAtBorder;
+
+	DebugDrawer::drawColor mColor;
+};
+
+#endif /* BallDetection_H_ */

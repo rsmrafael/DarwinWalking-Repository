@@ -1,0 +1,666 @@
+/*
+ * BallDetection.cpp
+ *
+ *  Created on: Sep 3, 2012
+ *      Author: Jan Carstensen
+ *      Edited: Oliver Krebs
+ */
+
+#include "BallDetection.h"
+#include "../../Config.h"
+#include "../../Utils/Constants.h"
+#include <cmath>
+#include <stdio.h>
+
+
+BallDetection::BallDetection()
+:	mBallCenterX( 0),
+	mBallCenterY( 0),
+	mBallRadius( 10),
+	mMinCloudDistance( 30),
+	mAdditionalScanPixelFactor( 0.6),
+	mAdditionalScanPixelMin( 1),
+	mAdditionalScanPixelCount( 20),
+	mRadiusCompareWeight( 1.0),
+	mCircleAnomalyCompareWeight( 1.0),
+	mFoundEdgesRatioCompareWeight( 1.0),
+	mCorrectEdgesRatioCompareWeight( 1.0),
+	mPointsAreaRatioCompareWeight( 1.0),
+	mMinRadius( 2),
+	mMaxFieldlineError( 5),
+	mMaxCircleAnomaly( 20.0),
+	mMinFoundEdgesRatio( 0.4),
+	mMinCorrectEdgesRatio( 0.5),
+	mMinPointsAreaRatio( 0.01),
+	mMaxAnomalyRadiusFactor( 0.2),
+	mDebugInfoEnabled( false),
+	mIsFilterFieldLine( true),
+	mIsFilterHorizon( true),
+	mMinY( 50),
+	mMaxU( 140),
+	mMinV( 140),
+	mIsAtBorder( false),
+	mVisionChangeBallDetection(30),
+	mDebugDrawings(0),
+	mColor(DebugDrawer::RED)
+{
+	getBall().type = Object::BALL;
+	Config::getInstance()->registerConfigChangeHandler(this);
+	this->configChanged();
+}
+
+BallDetection::~BallDetection()
+{
+	Config::getInstance()->removeConfigChangeHandler(this);
+}
+
+bool BallDetection::execute()
+{
+printf("BALLDETECTION!");
+#ifdef USE_BALL_DETECTION_DOUBLE
+	if(getBodyStatus().getTilt() > mVisionChangeBallDetection){
+		Debugger::DEBUG("BallDetection", "Tilt is too high (%d), OpenCV detection is used!",
+				getBodyStatus().getTilt());
+		return false;
+	}
+#endif
+	//Debugger::DEBUG("BallDetection","Using Ball Detection COLOR %d", getBodyStatus().getTilt());
+
+	mBallClouds.clear();
+	mBallCloudDataList.clear();
+	getRemovedBallCandidates().clearList();
+
+	mColor = DebugDrawer::RED;
+
+	const list<Point>* cloud = getBallPoints().getCloud();
+	list<Point>::const_iterator it = cloud->begin();
+	for( ; it != cloud->end(); ++it) {
+		addBallPointToNearestCloud( (*it));
+	}
+
+	//mergeOverlappingClouds();
+
+	BoundingBox bestCompareBox(Point(0,0),0,0);
+	double bestCompareResult = 0.0;
+	//vector<PointCloud>::const_iterator pointCloudIt;
+	//for( pointCloudIt = mBallClouds.begin(); pointCloudIt != mBallClouds.end(); ++pointCloudIt) {
+	for (auto cloud : mBallClouds) {
+
+		BoundingBox box = cloud.calculateBoundingBox();
+		Point centerPoint = cloud.getCenterPoint();
+		mBallCenterX = centerPoint.getX();
+		mBallCenterY = centerPoint.getY();
+		mBallRadius = (box.width + box.height) / 4; //3 // 4
+		//Debugger::INFO("BallDetection", "Cloud-Radius: %d", ballRadius);
+
+		//Debugger::DEBUG("BallDetection", "maxValue: %i", maxValue);
+
+		if (filterFieldLines(centerPoint)
+			&& filterHorizon(centerPoint)) {
+
+			// todo: filter out all possible balls with too small pixel to size ratio
+			// filter out all balls with wrong expected size (tilt angle)
+
+			getBallEdges().clearCloud();
+
+			//Debugger::DEBUG("BallDetection", "-----------------------------");
+			//Debugger::DEBUG("BallDetection", "BallRadius 1: %d", mBallRadius);
+
+			mIsAtBorder = false;
+			BallCompareData ballCompareData;
+
+			if( !findAllBallEdges(ballCompareData)) {
+				DEBUG_DRAWING_BALL(box, DebugDrawer::GREEN, 2);
+				//break;
+			}
+
+			ballCompareData.centerX = mBallCenterX;
+			ballCompareData.centerY = mBallCenterY;
+			ballCompareData.numCloudPixels = cloud.getSize();
+
+			DEBUG_DRAWING_CENTER(DebugDrawer::YELLOW, 6);
+
+			int countEdges = (int)getBallEdges().getSize();
+			int sumX = 0;
+			int sumY = 0;
+			list<Point>::const_iterator it2;
+			for (it2 = getBallEdges().getCloud()->begin();
+					it2 != getBallEdges().getCloud()->end(); ++it2) {
+				Point p = (*it2);
+				sumX += p.getX();
+				sumY += p.getY();
+			}
+
+			if( countEdges > 1) {
+				mBallCenterX = sumX / countEdges;
+				mBallCenterY = sumY / countEdges;
+				DEBUG_DRAWING_CENTER(DebugDrawer::BLUE, 6);
+			}
+
+			centerPoint.updatePoint(mBallCenterX, mBallCenterY);
+			if (filterFieldLines(centerPoint)
+				&& filterHorizon(centerPoint)) {
+
+				double sumDistances = 0.0;
+				vector<double> radiusList;
+				int i = 0;
+
+				list<Point>::const_iterator pointIt;
+				for (pointIt = getBallEdges().getCloud()->begin();
+						pointIt != getBallEdges().getCloud()->end(); ++pointIt) {
+					Point p = (*pointIt);
+					double dx = (double)mBallCenterX - p.getX();
+					double dy = (double)mBallCenterY - p.getY();
+					double rad = sqrt((dx * dx) + (dy * dy));
+					radiusList.push_back(rad);
+					sumDistances += rad;
+					/*if( mDebugInfoEnabled) {
+						Debugger::DEBUG("BallDetection", "%d) Radius point: %.2f (%d; %d)", i, rad, p.getX(), p.getY());
+					}*/
+					++i;
+				}
+				if( countEdges >= 4) {
+					mBallRadius = (int)(sumDistances / (double)countEdges);
+					//Debugger::INFO("Ball", "Mean-Radius: %d", ballRadius);
+				}
+
+				//Debugger::DEBUG("BallDetection", "BallRadius 2: %d", mBallRadius);
+
+				//Debugger::DEBUG("BallDetection", "ballCenter: %d, %d", ballCenterX, ballCenterY);
+				//Debugger::DEBUG("BallDetection", "radius: %d", ballRadius);
+
+				ballCompareData.meanRadius = mBallRadius;
+				ballCompareData.circleAnomaly = 0.0;
+
+				int numCorrectEdges = 0;
+				double maxAnomaly = (mMaxAnomalyRadiusFactor * mBallRadius) * (mMaxAnomalyRadiusFactor * mBallRadius);
+				//double maxAnomaly = 25; // 5 pixel
+				//Debugger::DEBUG("BallDetection", "maxAnomaly: %.2f", maxAnomaly);
+				i = 0;
+				for (double radius : radiusList) {
+					double anomaly = (double)mBallRadius - radius;
+					anomaly *= anomaly;
+#ifdef _DEBUG
+					if( mDebugInfoEnabled) {
+						Debugger::DEBUG("BallDetection", "%d) Anomaly centerPoint: %.2f", i, anomaly);
+					}
+#endif
+					if( anomaly > maxAnomaly) {
+						ballCompareData.circleAnomaly += anomaly;
+						//Debugger::DEBUG("BallDetection", "CircleAnomaly: %.2f",ballCompareData.circleAnomaly);
+					} else {
+						numCorrectEdges++;
+					}
+					++i;
+				}
+
+				if( numCorrectEdges > 0) {
+					//Debugger::DEBUG("BallDetection", "CircleAnomaly1: %.2f (%d)",ballCompareData.circleAnomaly, numCorrectEdges);
+					ballCompareData.circleAnomaly /= (double)numCorrectEdges;
+				}
+				//Debugger::DEBUG("BallDetection", "CircleAnomaly2: %.2f",ballCompareData.circleAnomaly);
+				if( countEdges > 0) {
+					ballCompareData.correctEdgesRatio = (double)numCorrectEdges / (double)countEdges;
+				}
+
+				box.topLeft = Point(mBallCenterX - mBallRadius, mBallCenterY - mBallRadius);
+				box.width = 2 * mBallRadius;
+				box.height = 2 * mBallRadius;
+
+				double compareResult = calculateCompareResult(ballCompareData);
+#ifdef _DEBUG
+				if( mDebugInfoEnabled) {
+					Debugger::INFO("BallDetection", "CompareResult: %f", compareResult);
+				}
+#endif
+				if( compareResult > bestCompareResult) {
+					bestCompareResult = compareResult;
+					bestCompareBox = box;
+				}
+				DEBUG_DRAWING_BALL(box, DebugDrawer::BROWN, 3);
+			} else {
+				DEBUG_DRAWING_BALL(box, DebugDrawer::ORANGE, 4);
+			}
+		} else {
+			Object obj(box.topLeft.getX(), box.topLeft.getY(), box.width, box.height);
+			obj.type = Object::BALL;
+			getRemovedBallCandidates().addObject(obj);
+			DEBUG_DRAWING_BALL(box, DebugDrawer::LIGHT_GRAY, 5);
+		}
+	}
+
+	if( bestCompareResult > 0.0) {
+		int x = bestCompareBox.topLeft.getX();
+		int y = bestCompareBox.topLeft.getY();
+		getBall().updateObject( x, y, bestCompareBox.width, bestCompareBox.height);
+		DEBUG_DRAWING_BALL(bestCompareBox, DebugDrawer::RED, 1);
+	} else {
+		getBall().notSeen();
+	}
+
+	return true;
+}
+
+void BallDetection::addBallPointToNearestCloud( const Point &point) {
+	int x = point.getX();
+	int y = point.getY();
+	vector<PointCloud>::iterator cloudIt = mBallClouds.begin();
+	vector<PointCloudData>::iterator it = mBallCloudDataList.begin();
+	while (it != mBallCloudDataList.end() && cloudIt != mBallClouds.end()) {
+		if( x > ((*it).minX - mMinCloudDistance)
+			&& x < ((*it).maxX + mMinCloudDistance)
+			&& y > ((*it).minY - mMinCloudDistance)
+			&& y < ((*it).maxY + mMinCloudDistance)) {
+				//if (debugDrawings) {
+					//DRAW_POINT("Ball", x, y, mColor);
+				//}
+				cloudIt->addPoint( point);
+				if( x < (*it).minX) {
+					(*it).minX = x;
+				} else if( x > (*it).maxX) {
+					(*it).maxX = x;
+				}
+				if( y < (*it).minY) {
+					(*it).minY = y;
+				} else if( y > (*it).maxY) {
+					(*it).maxY = y;
+				}
+				return;
+		}
+		++it;
+		++cloudIt;
+	}
+
+	PointCloud cloud;
+	cloud.addPoint(point);
+	mBallClouds.push_back(cloud);
+
+	PointCloudData data;
+	data.minX = x;
+	data.maxX = x;
+	data.minY = y;
+	data.maxY = y;
+	mBallCloudDataList.push_back(data);
+
+	//DRAW_POINT("Ball", x, y, mColor);
+
+	/*int color = (int)mColor;
+	color++;
+	if( color > 25) {
+		color = 0;
+	}
+	mColor = (DebugDrawer::drawColor)color;*/
+}
+
+void BallDetection::mergeOverlappingClouds() {
+	vector<PointCloud>::iterator it1, it2;
+	for (it1 = mBallClouds.begin(); it1 != mBallClouds.end(); ++it1) {
+		BoundingBox box = it1->calculateBoundingBox();
+		it2 = it1;
+		for (++it2; it2 != mBallClouds.end(); ++it2) {
+			if( it2->doBoundingBoxesOverlap( box)) {
+				it1->join( &(*it2));
+				it2->clearCloud();
+			}
+		}
+	}
+}
+
+double BallDetection::calculateCompareResult(const BallCompareData &data) const
+{
+	//Debugger::DEBUG("BallDetection", "---------------------------");
+	//Debugger::DEBUG("BallDetection", "Radius: %d", data.meanRadius);
+
+	if( data.meanRadius < mMinRadius) {
+#ifdef _DEBUG
+		if( mDebugInfoEnabled) {
+			Debugger::INFO("BallDetection", "Radius too small (%d; min: %d)!", data.meanRadius, mMinRadius);
+		}
+#endif
+		return 0;
+	}
+	if( data.foundEdgesRatio < mMinFoundEdgesRatio) {
+#ifdef _DEBUG
+		if( mDebugInfoEnabled) {
+			Debugger::INFO("BallDetection", "FoundEdgesRatio too low (%f; min: %f)!", data.foundEdgesRatio, mMinFoundEdgesRatio);
+		}
+#endif
+		return 0;
+	}
+	//Debugger::DEBUG("BallDetection", "CorrectEdgesRatio: %f", data.correctEdgesRatio);
+	if( !mIsAtBorder && data.correctEdgesRatio < mMinCorrectEdgesRatio) {
+#ifdef _DEBUG
+		if( mDebugInfoEnabled) {
+			Debugger::INFO("BallDetection", "CorrectEdgesRatio too low (%f; min: %f)!", data.correctEdgesRatio, mMinCorrectEdgesRatio);
+		}
+#endif
+		return 0;
+	}
+	double area = PI * data.meanRadius * data.meanRadius;
+	double pointsAreaRatio = 0.0;
+	if( area != 0.0) {
+		pointsAreaRatio = (double)data.numCloudPixels / area;
+		if( pointsAreaRatio < mMinPointsAreaRatio) {
+#ifdef _DEBUG
+			if( mDebugInfoEnabled) {
+				Debugger::INFO("BallDetection", "PointsAreaRatio too low (%f; min: %f)!", pointsAreaRatio, mMinPointsAreaRatio);
+			}
+#endif
+			return 0;
+		}
+	} else {
+#ifdef _DEBUG
+		if( mDebugInfoEnabled) {
+			Debugger::INFO("BallDetection", "Area is zero! Wrong radius (%d)?!", data.meanRadius);
+		}
+#endif
+		return 0;
+	}
+	//Debugger::INFO("BallDetection", "CircleAnomaly: %f", data.circleAnomaly);
+	double compareAnomaly = sqrt(data.circleAnomaly) / (5.0 + (double)(data.meanRadius));
+	//Debugger::DEBUG("BallDetection", "CompareAnomaly: %f", compareAnomaly);
+
+	if( !mIsAtBorder && compareAnomaly > mMaxCircleAnomaly) {
+#ifdef _DEBUG
+		if( mDebugInfoEnabled) {
+			Debugger::INFO("BallDetection", "Anomaly too high (%f; max: %f)!", compareAnomaly, mMaxCircleAnomaly);
+		}
+#endif
+		return 0;
+	}
+	double compareRadius = (mRadiusCompareWeight * data.meanRadius);
+	double compareFound = (mFoundEdgesRatioCompareWeight * data.foundEdgesRatio);
+	double compareCorrect = (mCorrectEdgesRatioCompareWeight * data.correctEdgesRatio);
+	double comparePointsArea = (mPointsAreaRatioCompareWeight * pointsAreaRatio);
+	compareAnomaly *= mCircleAnomalyCompareWeight;
+#ifdef _DEBUG
+	if( mDebugInfoEnabled) {
+		Debugger::DEBUG("BallDetection", "CompareRadius:     %f", compareRadius);
+		Debugger::DEBUG("BallDetection", "CompareFound:      %f", compareFound);
+		Debugger::DEBUG("BallDetection", "CompareCorrect:    %f", compareCorrect);
+		Debugger::DEBUG("BallDetection", "ComparePointsArea: %f", comparePointsArea);
+		Debugger::DEBUG("BallDetection", "CompareAnomaly:    %f", compareAnomaly);
+	}
+
+	//Debugger::INFO("BallDetection", "Anomaly/FoundRatio: %f", compareAnomaly / compareFoundRatio);
+	//Debugger::INFO("BallDetection", "Rated  MaxV: %d, Radius: %d, Anomaly: %f, Found: %f", compareMaxV, compareRadius, compareAnomaly, compareFoundRatio);
+#endif
+	return compareRadius + compareFound + compareCorrect + comparePointsArea - compareAnomaly;
+}
+
+bool BallDetection::findAllBallEdges(BallCompareData &data)
+{
+	int foundEdges = 0;
+	int steps1;
+	int steps2;
+
+	mAdditionalScanPixelCount = (int)(mAdditionalScanPixelFactor * mBallRadius);
+	if( mAdditionalScanPixelCount < mAdditionalScanPixelMin) {
+		mAdditionalScanPixelCount = mAdditionalScanPixelMin;
+	}
+
+	//Horizontal
+	if( findBallEdge(+1, 0, steps1)) {
+		if( findBallEdge(-1, 0, steps2)) {
+			foundEdges += 2;
+			mBallCenterX += (steps1 - steps2) / 2;
+			int radius = (steps1 + steps2) / 2;
+			if( radius > mBallRadius) {
+				mBallRadius = radius;
+				/*additionalScanPixelCount = (int)(additionalScanPixelFactor * ballRadius);
+				if( additionalScanPixelCount < additionalScanPixelMin) {
+					additionalScanPixelCount = additionalScanPixelMin;
+				}*/
+			}
+		} else {
+			getBallEdges().removeLast();
+		}
+	} /*else {
+		if( findBallEdge(-1, 0, steps2)) {
+			getBallEdges().removeLast();
+		} else {
+			return false;
+		}
+	}*/
+
+	//Vertical
+
+	if( findBallEdge(0, +1, steps1)) {
+		if( findBallEdge(0, -1, steps2)) {
+			foundEdges += 2;
+			mBallCenterY += (steps1 - steps2) / 2;
+			int radius = (steps1 + steps2) / 2;
+			if( radius > mBallRadius) {
+				mBallRadius = radius;
+				/*additionalScanPixelCount = (int)(additionalScanPixelFactor * ballRadius);
+				if( additionalScanPixelCount < additionalScanPixelMin) {
+					additionalScanPixelCount = additionalScanPixelMin;
+				}*/
+			}
+		} else {
+			getBallEdges().removeLast();
+		}
+	} /*else {
+		if( findBallEdge(0, -1, steps2)) {
+			getBallEdges().removeLast();
+		} else {
+			return false;
+		}
+	}*/
+
+	//Diagonal
+	if( findBallEdge(+1, +1, steps1)) {
+		if( findBallEdge(-1, -1, steps2)) {
+			foundEdges += 2;
+			mBallCenterX += (steps1 - steps2) / 2;
+			mBallCenterY += (steps1 - steps2) / 2;
+		} else {
+			getBallEdges().removeLast();
+		}
+	}
+
+	if( findBallEdge(-1, +1, steps1)) {
+		if( findBallEdge(+1, -1, steps2)) {
+			foundEdges += 2;
+			mBallCenterX += (steps2 - steps1) / 2;
+			mBallCenterY += (steps1 - steps2) / 2;
+		} else {
+			getBallEdges().removeLast();
+		}
+	}
+
+	// Diagonal 2
+	if( mBallRadius < 5) {
+		data.foundEdgesRatio = (double)foundEdges / 8.0;
+	} else {
+		if( findBallEdge(+1, +2, steps1)) {
+			if( findBallEdge(-1, -2, steps2)) {
+				foundEdges += 2;
+			} else {
+				getBallEdges().removeLast();
+			}
+		}
+
+		if( findBallEdge(+1, -2, steps1)) {
+			if( findBallEdge(-1, +2, steps2)) {
+				foundEdges += 2;
+			} else {
+				getBallEdges().removeLast();
+			}
+		}
+
+		if( findBallEdge(+2, -1, steps1)) {
+			if( findBallEdge(-2, +1, steps2)) {
+				foundEdges += 2;
+			} else {
+				getBallEdges().removeLast();
+			}
+		}
+
+		if( findBallEdge(-2, -1, steps1)) {
+			if( findBallEdge(+2, +1, steps2)) {
+				foundEdges += 2;
+			} else {
+				getBallEdges().removeLast();
+			}
+		}
+
+		data.foundEdgesRatio = (double)foundEdges / 16.0;
+	}
+	return true;
+}
+
+bool BallDetection::findBallEdge(int xSlope, int ySlope, int &steps) const
+{
+	Point p;
+
+	int x = mBallCenterX;
+	int y = mBallCenterY;
+
+	const YUVImage* image = &getImage();
+	int imageWidth = getImage().getWidth();
+	int imageHeight = getImage().getHeight();
+	int additionalPixelsScanned = 0;
+	bool scanAdditionalPixels = false;
+	bool ballPixelFound = false;
+	bool edgeReached = false;
+	int slopeSteps = abs(xSlope) + abs(ySlope);
+	int maxSteps = 3*mBallRadius / slopeSteps;
+	steps = 0;
+
+	while (!edgeReached) {
+		x += xSlope;
+		y += ySlope;
+
+		// bigger than expected maximal size => not found!
+		if (steps > maxSteps) {
+			return false;
+		}
+
+		// point is outside image => mark point as edge
+		if( x >= imageWidth || x < 0 || y >= imageHeight || y < 0) {
+			if( !scanAdditionalPixels) {
+				p.updatePoint(x, y);
+			}
+			//mIsAtBorder = true;
+			break;
+		}
+
+		//bool isPossibleEdge = image->getValue(x, y).V < minTreshold;
+		bool isPossibleEdge = image->getValue(x, y).V < mMinV
+				|| image->getValue(x, y).U >= mMaxU
+				|| image->getValue(x, y).Y < mMinY;
+
+//		Debugger::DEBUG("BallDetector", "(%i|%i) Sobelvalue: %i", x, y,
+//				sobelValue);
+		if (!scanAdditionalPixels) {
+			if (isPossibleEdge) {
+				if( ballPixelFound) {
+					p.updatePoint(x, y);
+				}
+				scanAdditionalPixels = true;
+			} else if( !ballPixelFound){
+				ballPixelFound = true;
+			}
+		} else {
+			if (isPossibleEdge) {
+				additionalPixelsScanned += slopeSteps;
+				// if additionalPixels were all negative, save last found edge point and cancel
+				if (additionalPixelsScanned >= mAdditionalScanPixelCount) {
+					edgeReached = true;
+				}
+			} else {
+				// point is valid ball pixel; reset scanAdditionalPixels
+				p.updatePoint(x, y);
+				additionalPixelsScanned = 0;
+				scanAdditionalPixels = false;
+				ballPixelFound = true;
+			}
+		}
+		steps++;
+	}
+
+	if( !ballPixelFound) {
+		return false;
+	}
+
+	getBallEdges().addPoint(p);
+#ifdef _DEBUG
+	//TODO change later on
+	if (true) {
+//	if (mDebugDrawings >= 7) {
+		DRAW_POINT("Ball", p.getX(), p.getY(), DebugDrawer::DARK_RED);
+	}
+	/*Debugger::INFO("BallDetection","Edge (%d, %d) Y: %d, U: %d, V: %d",
+			p.getX(), p.getY(),
+			image->getValue(p.getX(), p.getY()).Y,
+			image->getValue(p.getX(), p.getY()).U,
+			image->getValue(p.getX(), p.getY()).V);
+	*/
+#endif
+	return true;
+}
+
+bool BallDetection::filterFieldLines(const Point &ball) const
+{
+	if (mIsFilterFieldLine) {
+		if( getBodyStatus().getTilt() > 25 && !getFieldLines().isPointInField(ball, mMaxFieldlineError)) {
+#ifdef _DEBUG
+			if( mDebugInfoEnabled) {
+				Debugger::INFO("BallDetection", "Filtered by fieldLines");
+			}
+#endif
+			return false;
+		}
+	}
+	return true;
+}
+
+bool BallDetection::filterHorizon(const Point &ball) const
+{
+	//if (mIsFilterHorizon && !getHorizon().isPointBelow(&ball)) {
+#ifdef _DEBUG
+		if( mDebugInfoEnabled) {
+			Debugger::INFO("BallDetection", "Filtered by horizon");
+		}
+#endif
+		return false;
+	//}
+	return true;
+}
+
+void BallDetection::configChanged()
+{
+	Debugger::INFO("BallDetection", "config changed");
+
+	ConfigFile *config = Config::getInstance();
+	mDebugDrawings 		= config->get<int>("Vision", "Ball_debugDrawings", 0);
+	mDebugInfoEnabled 	= config->get<bool>("Vision", "Ball_debugInfoEnabled", false);//false
+	mIsFilterFieldLine 	= config->get<bool>("Vision", "Ball_filterFieldLine", true);
+	mIsFilterHorizon 	= config->get<bool>("Vision", "Ball_filterHorizon", false);
+	mAdditionalScanPixelMin = config->get<int>("Vision", "Ball_additionalScanPixelMin", 1);
+	mAdditionalScanPixelFactor = config->get<double>("Vision", "Ball_additionalScanPixelFactor", 0.6);
+
+	mMaxFieldlineError = config->get<int>("Vision", "Ball_maxFieldlineError", 15);//5
+
+	mRadiusCompareWeight 		= config->get<double>("Vision", "Ball_radiusCompareWeight", 0.01);
+	mCircleAnomalyCompareWeight = config->get<double>("Vision", "Ball_circleAnomalyCompareWeight", 12.0);//22//20//18//20
+	mFoundEdgesRatioCompareWeight= config->get<double>("Vision", "Ball_foundEdgesRatioCompareWeight", 1.0);
+	mCorrectEdgesRatioCompareWeight= config->get<double>("Vision", "Ball_correctEdgesRatioCompareWeight", 1.0);
+	mPointsAreaRatioCompareWeight= config->get<double>("Vision", "Ball_pointsAreaRatioCompareWeight", 1.0);
+
+	mMaxCircleAnomaly 			= config->get<double>("Vision", "Ball_maxCircleAnomaly", 0.25);//0.25
+	mMinCorrectEdgesRatio		= config->get<double>("Vision", "Ball_minCorrectEdgesRatio", 0.4);//0.5
+	mMinFoundEdgesRatio 		= config->get<double>("Vision", "Ball_minFoundEdgesRatio", 0.4);//0.4
+	mMinPointsAreaRatio 		= config->get<double>("Vision", "Ball_minPointsAreaRatio", 0.01);
+	mMaxAnomalyRadiusFactor		= config->get<double>("Vision", "Ball_maxAnomalyRadiusFactor", 0.35);//0.22
+	mMinRadius 					= config->get<int>("Vision", "Ball_minRadius", 3);//6//3//4//2
+
+	mMinY = config->get<int>("Vision", "Ball_minY",  50);
+	mMaxU = config->get<int>("Vision", "Ball_maxU", 130);
+	mMinV = config->get<int>("Vision", "Ball_minV", 160);//140
+
+	mMinCloudDistance = config->get<int>("Vision", "minCloudDistance", 10);//15
+
+	mVisionChangeBallDetection = config->get<int>("BallDetection", "ChangeVisionBallDetection", 30);
+}

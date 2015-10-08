@@ -1,0 +1,82 @@
+/*
+ * MovementPredictor.cpp
+ *
+ *  Created on: May 22, 2013
+ *      Author: CHO
+ */
+
+
+#include "MovementPredictor.h"
+#include "../../Debugging/Debugger.h"
+
+MovementPredictor::MovementPredictor() {
+	lastBall.type = Object::BALL;
+	lastBall.updateObject(0,0,0,0);
+	lastBall.lastImageSeen = false;
+	currentPan = 0;
+	currentTilt = 0;
+	lastPan = 0;
+	lastTilt = 0;
+
+	ballPredictX = 0;
+	ballPredictY = 0;
+	ballPredictSize = 0;
+}
+
+MovementPredictor::~MovementPredictor() {
+
+}
+
+bool MovementPredictor::execute() {
+
+	currentPan = getBodyStatus().getPan();
+	currentTilt = getBodyStatus().getTilt();
+
+	predictMovement( &getBall(), &lastBall, &getBallPredict());
+
+	/*DRAW_CIRCLE("BallDetection", ballPredictX, ballPredictY,
+				ballPredictSize, DebugDrawer::BLUE);
+
+	Debugger::INFO("MovementPredictor", "BallPredict: %d, %d; %d",
+			ballPredictX, ballPredictY, ballPredictSize);
+*/
+	lastPan = currentPan;
+	lastTilt = currentTilt;
+	return true;
+}
+
+void MovementPredictor::predictMovement(const Object *currentObj, Object *lastObj, Object *predictObj) {
+	int x = currentObj->lastImageX;
+	int y = currentObj->lastImageY;
+	int w = currentObj->lastImageWidth;
+	int h = currentObj->lastImageHeight;
+
+	if(currentObj->lastImageSeen) {
+		if( lastObj->lastImageSeen) {
+			// TODO use pan / tilt for prediction
+			int predictMoveX = x - lastObj->lastImageX;
+			int predictMoveY = y - lastObj->lastImageY;
+			int predictGrowW = w - lastObj->lastImageWidth;
+			int predictGrowH = h - lastObj->lastImageHeight;
+
+			predictObj->updateObject(x + predictMoveX, y + predictMoveY, w + predictGrowW, h + predictGrowH);
+
+			// Debugging
+			if( predictMoveX != 0 || predictMoveY != 0) {
+				ballPredictX = x + predictMoveX;
+				ballPredictY = y + predictMoveY;
+				ballPredictSize = w + predictGrowW;
+			}
+		} else {
+			predictObj->updateObject(x, y, w, h);
+			//predictObj->lastImageSeen = false;
+		}
+		lastObj->updateObject(x, y, w, h);
+	} else {
+		lastObj->notSeen();
+	}
+}
+
+void MovementPredictor::configChanged() {
+
+}

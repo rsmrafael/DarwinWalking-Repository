@@ -1,0 +1,60 @@
+/*
+ * walker.h
+ *
+ *  Created on: 17.07.2011
+ *      Author: Stefan
+ */
+
+#ifndef WALKER_H_
+#define WALKER_H_
+
+void Walker_Init(void);
+void Walker_Process(void);
+void Walker_SetServoParams(void);
+void Walker_GetPIDGains(float* pGain, float* iGain, float* dGain);
+void Walker_Start(void);
+void Walker_Stop(void);
+unsigned char Walker_IsRunning(void);
+void Walker_SetWalk(float X, float Y, float Yaw);
+void Walker_SetServosActive(unsigned char state);
+void Walker_ResetParameters(void);
+void Walker_ResetArmPositions(void);
+
+struct Walker_Parameters {
+	unsigned char version;
+	float X_OFFSET;
+	float Y_OFFSET;
+	float Z_OFFSET;
+	float R_OFFSET;
+	float P_OFFSET;
+	float A_OFFSET;
+	float HIP_PITCH_OFFSET;
+	float PERIOD_TIME;
+	float DSP_RATIO;
+	float STEP_FB_RATIO;
+	float Z_MOVE_AMPLITUDE;
+	float Y_SWAP_AMPLITUDE;
+	float Z_SWAP_AMPLITUDE;
+	float PELVIS_OFFSET;
+	float ARM_SWING_GAIN;
+	float BALANCE_KNEE_GAIN;
+	float BALANCE_ANKLE_PITCH_GAIN;
+	float BALANCE_HIP_ROLL_GAIN;
+	float BALANCE_ANKLE_ROLL_GAIN;
+	unsigned char BALANCE_ENABLE;
+} Walker_Params;
+
+struct Walker_Servo_Params {
+	unsigned char version;
+	unsigned char Pgain;
+	unsigned char Igain;
+	unsigned char Dgain;
+	unsigned char overload;
+} Walker_ServoSettings;
+
+unsigned char Walker_A_MOVE_AIM_ON;
+float Walker_X_MOVE_AMPLITUDE;
+float Walker_Y_MOVE_AMPLITUDE;
+float Walker_A_MOVE_AMPLITUDE;
+
+#endif /* WALKER_H_ */

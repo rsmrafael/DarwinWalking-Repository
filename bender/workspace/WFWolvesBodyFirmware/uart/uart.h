@@ -1,0 +1,34 @@
+#ifndef UART_H_
+#define UART_H_
+
+typedef void (*CharReceivedCallback)(char);
+typedef unsigned char (*TxReadyCallback)(void);
+
+void UART_Init(void);
+
+int uart0_getc(void);
+void uart0_print_ascii(const char *buffer);
+int uart0_putc(int ch);
+int uart0_putchar(int ch);
+void uart0_print_char_in_hex(unsigned char value);
+void uart0_print_4bit_in_hex(unsigned char value);
+void uart0_print_digit(unsigned char value);
+void uart0_print_hex8(unsigned long value);
+void uart0_print_int(int zahl);
+CharReceivedCallback uart0_AssignCharReceivedCallback(CharReceivedCallback callback);
+TxReadyCallback uart0_AssignTxReadyCallback(TxReadyCallback callback);
+void uart0_enable_TxReadyCallback(void);
+void uart0_SetBaudrate(int baudrate);
+
+int uart1_getc(void);
+void uart1_print_ascii(const char *buffer);
+int uart1_putc(int ch);
+int uart1_putchar(int ch);
+void uart1_waitforsent(void);
+unsigned char uart1_char_available(void);
+CharReceivedCallback uart1_AssignCharReceivedCallback(CharReceivedCallback callback);
+void uart1_hintStartOfTransfer(void);
+void uart1_hintEndOfTransfer(void);
+void uart1_SetBaudrate(int baudrate);
+
+#endif /*UART_H_*/

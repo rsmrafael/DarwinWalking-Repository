@@ -1,0 +1,47 @@
+/*
+ * BackgroundScan.cpp
+ *
+ *  Created on: 21.03.2014
+ *      Author: Oliver
+ */
+
+#include "BackgroundScan.h"
+
+BackgroundScan::BackgroundScan()
+{
+
+}
+
+BackgroundScan::~BackgroundScan()
+{
+
+}
+
+bool BackgroundScan::execute()
+{
+	getBackgroundY().clearHist();
+	getBackgroundU().clearHist();
+	getBackgroundV().clearHist();
+
+	const YUVImage* yuvImage = &getImage();
+	const list<Point> *cloud = getObstaclePoints().getCloud();
+	list<Point>::const_iterator it;
+	for( it = cloud->begin(); it != cloud->end(); ++it) {
+		// point is above the fieldline
+		if( !getFieldLines().isPointInField((*it), 0)) {
+			struct YUVImage::YUVData data = yuvImage->getValue(it->getX(), it->getY());
+			getBackgroundY().addData( data.Y);
+			getBackgroundU().addData( data.U);
+			getBackgroundV().addData( data.V);
+		}
+	}
+	//Debugger::DEBUG("BackgroundScan", "Y mean: %d", getBackgroundY().calculateMean());
+	//Debugger::DEBUG("BackgroundScan", "U mean: %d", getBackgroundU().calculateMean());
+	//Debugger::DEBUG("BackgroundScan", "V mean: %d", getBackgroundV().calculateMean());
+	return true;
+}
+
+void BackgroundScan::configChanged()
+{
+
+}

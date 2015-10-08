@@ -1,0 +1,55 @@
+package protobuf;
+
+option java_package = "de.ostfalia.robocup.message";
+option java_outer_classname = "MsgDebugDrawings";
+option optimize_for = LITE_RUNTIME;
+
+message DebugDrawings {
+	message DebugDrawing {
+		enum DrawColor {
+			BLACK = 0;
+			DARK_GRAY = 1;
+			LIGHT_GRAY = 2;
+			WHITE = 3;
+			RED = 4;
+			ORANGE = 5;
+			YELLOW = 6;
+			LIME = 7;
+			GREEN = 8;
+			CYAN = 9;
+			BLUE = 10;
+			VIOLET = 11;
+			PURPLE = 12;
+			MAGENTA = 13;
+			LIGHT_RED = 14;
+			LIGHT_YELLOW = 15;
+			LIGHT_GREEN = 16;
+			LIGHT_BLUE = 17;
+			LIGHT_PURPLE = 18;
+			BROWN = 19;
+			OLIVE = 20;
+			TEAL = 21;
+			AZURE = 22;
+			DARK_RED = 23;
+			DARK_GREEN = 24;
+			DARK_BLUE = 25;
+		}
+
+		enum DrawShape {
+			POINT = 0;
+			LINE = 1;
+			CIRCLE = 2;
+			BOX = 3;
+		}
+
+		required string module = 1;
+		required DrawShape type = 2;
+		required int32 x1 = 3;
+		required int32 y1 = 4;
+		optional int32 p1 = 5;
+		optional int32 p2 = 6;
+		optional DrawColor penColor = 7;
+	}
+
+	repeated DebugDrawing drawing = 1;
+}

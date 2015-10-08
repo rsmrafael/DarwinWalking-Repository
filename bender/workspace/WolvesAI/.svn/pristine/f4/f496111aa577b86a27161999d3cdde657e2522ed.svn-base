@@ -1,0 +1,119 @@
+package protobuf;
+
+option java_package = "de.ostfalia.robocup.message";
+option java_outer_classname = "MsgProtoBufFrame";
+option optimize_for = LITE_RUNTIME;
+
+enum ImageFormat {
+	YUV422_IMAGE = 1;
+	BAYER_IMAGE  = 2;
+	RGB_IMAGE    = 3;
+}
+
+message ImageData {
+	required ImageFormat format        = 1;
+	required bytes       data          = 2;
+	required bool        compressed    = 3 [ default = false ];
+	required int32       width         = 4;
+	required int32       height        = 5;
+}
+
+message Vector {
+	required int32 x = 1;
+	required int32 y = 2;
+	required int32 z = 3;
+}
+
+enum ObjectType {
+	UNKNOWN = 0;
+	GOAL_POLE_YELLOW = 1;
+	BALL = 2;
+	GOAL_YELLOW_CROSSBAR = 3;
+	ROBOT = 4;
+	ROBOT_CYAN = 5;
+	ROBOT_MAGENTA = 6;
+	OBSTACLE = 7;
+	FIELD_LINE = 8;
+ 	LINE = 9;
+ 	LINE_POINT = 10;
+}
+
+message BoundingBox {
+	required int32 x1 = 1;
+	required int32 y1 = 2;
+	required int32 x2 = 3;
+	required int32 y2 = 4;
+}
+
+enum CameraLocation {
+	HEAD_CENTER = 0;
+	HEAD_LEFT = 1;
+	HEAD_RIGHT = 2;
+	HEAD_NOSE = 3;
+	HEAD_CHIN = 4;
+}
+
+message ProtoBufFrame {
+	message Object {
+		required ObjectType type = 1;
+		required BoundingBox box = 2;
+	}
+	
+	message DataBlob {
+		required int32 length = 1;
+		required bytes data = 2;
+	}
+
+	message RobotData {
+		optional int32 robotID = 1;
+		optional string robotName = 2;
+
+		message PositionOrientation {
+			required int32 x = 1;
+			required int32 y = 2;
+			required double r = 3;
+		}
+		
+		optional PositionOrientation ground_truth = 3;
+	}
+
+	message Camera {
+		message CameraType {
+			required CameraLocation location = 1;
+			optional string name = 2;
+			optional double sensor_size_width = 3; // mm
+			optional double sensor_size_height = 4; // mm
+			optional string lens_name = 5;
+			optional double focal_length = 6; // mm
+		}
+	
+		message CameraSettings {
+			optional double gain = 1;
+			optional double brightness = 2;
+			optional double shutter = 3;
+			optional double white_balance = 4;
+			optional double saturation = 5;
+			optional double contrast = 6;
+			optional double sharpness = 7;
+			optional double hue = 8;
+			optional double gamma = 9; 
+		}
+	
+		required CameraType type = 1;
+		required ImageData image_data = 2;
+		repeated Object objects = 3;
+		optional CameraSettings settings = 4;
+		optional DataBlob team_data = 5;
+		optional Vector camera_position = 6;
+		optional Vector optical_axis = 7;
+	}
+
+	optional int32 time = 1;
+	optional int32 sequence_id = 2;
+	optional string comment = 3;
+	optional string capture_location = 4;
+	optional RobotData robot_data = 5;
+	repeated Camera camera = 6;
+	repeated Object merged_objects = 7;
+	optional DataBlob team_data = 8;	
+}

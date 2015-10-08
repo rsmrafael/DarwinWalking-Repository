@@ -1,0 +1,12 @@
+#!/bin/sh
+
+if [ -z $1 ] 
+then
+	echo "Fehler! Dieses Skript erwartet folgenden Aufruf:"
+	echo " ${0} <Bot-ID>"
+	exit 1
+fi
+
+cp ./config.ini /mnt/sdcard/
+ftp-upload --passive --host ${1} --user root --password uClinux -b --full-path /mnt/sdcard/config.ini
+rm /mnt/sdcard/config.ini

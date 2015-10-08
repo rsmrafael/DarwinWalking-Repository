@@ -1,0 +1,59 @@
+/*
+ * BodyStatus.h
+ *
+ *  Created on: 11.12.2012
+ *      Author: Stefan Krupop
+ */
+
+#ifndef BODYSTATUS_H_
+#define BODYSTATUS_H_
+
+#include <map>
+#include "ServoStatus.h"
+#include "../Blackboard/Printable.h"
+#include "../Blackboard/Serializer.h"
+#include "../Messages/BodyStatus.pb.h"
+
+using namespace std;
+
+class BodyStatus {
+public:
+	BodyStatus();
+	virtual ~BodyStatus();
+
+	void setPanTiltError(int panErr, int tiltErr);
+	void setPanTilt(int panDeg, int tiltDeg);
+	void setVoltage(double voltage);
+	void setServoStatus(int id, double maxPositionError, double temperature, double voltage);
+
+	int getPan() const;
+	int getTilt() const;
+	double getVoltage() const;
+
+	const map<int, ServoStatus*> getServos() const;
+	ServoStatus* getServo(int id);
+
+private:
+	//lint -e(1704)
+	BodyStatus(const BodyStatus& cSource);
+	BodyStatus& operator=(const BodyStatus& cSource);
+
+	int mPan;
+	int mTilt;
+	int mPanError;
+	int mTiltError;
+
+	double mVoltage;
+
+	map<int, ServoStatus*> mServoStatus;
+};
+
+
+template<>
+	class Serializer<BodyStatus> {
+	public:
+		static void serialize(const BodyStatus& representation, ostream& stream);
+		static void deserialize(istream& stream, BodyStatus& representation);
+	};
+
+#endif /* BODYSTATUS_H_ */

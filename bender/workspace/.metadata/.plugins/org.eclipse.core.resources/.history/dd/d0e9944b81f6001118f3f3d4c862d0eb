@@ -1,0 +1,533 @@
+/**
+ * WolvesAttackerNew.cpp
+ *
+ *  Created on: 05.07.2011
+ *  Author: Jan Carstensen
+ */
+
+#include "WolvesAttackerNew.h"
+#include <unistd.h>
+#include "../Debugging/Debugger.h"
+#include "../Config.h"
+#include <sys/time.h>
+#include <stdlib.h>
+#include <math.h>
+
+#define CAMERA_OPENENING_ANGLE_VERTICAL 53		//53.74
+#define CAMERA_OPENENING_ANGLE_HORIZONTAL 106	//106.78
+
+/// SearchBall
+
+#define OBJECT_FOUND_THRESHOLD 	5		// Number of subsequent ball detections needed
+#define OBJECT_LOST_THRESHOLD 	8
+
+WolvesAttackerNew::WolvesAttackerNew() {
+	//Initialize variables
+	mCurrentState = searchBall;
+
+	mSearchObjectFoundCounter = 0;
+	mSearchObjectNotFoundCounter = 0;
+
+	mReturnToState = searchBall;
+	mDelayLoopDuration = 0;
+	mSearchObjectsCurrentPos = -1; // Restart search pattern
+	mSearchObjectsLoopCnt = 1;
+	mSearchObjectsUpdateCnt = 0;
+}
+
+WolvesAttackerNew::~WolvesAttackerNew() {
+}
+
+bool WolvesAttackerNew::Process(Vision* vision, Body* body, Game* game) {
+	vision->setWindowing(false); // Disable windowing, was not compatible with (faster) tracking
+	vision->RefreshVision();
+
+	if (mCurrentState == searchBall) {
+		processSearchBall(vision, body);
+	} else if (mCurrentState == moveTowardsBall) {
+		processMoveTowardsBall(vision, body);
+	} else if (mCurrentState == searchGoal) {
+		processSearchGoal(vision, body);
+	} else if (mCurrentState == circleToGoal) {
+		processCircleToGoal(vision, body);
+	} else if (mCurrentState == moveHalfCircle) {
+		processMoveHalfCircle(vision, body);
+	} else if (mCurrentState == checkBallFound) {
+		processCheckBallFound(vision, body);
+	} else if (mCurrentState == checkGoalFound) {
+		processCheckGoalFound(vision, body);
+	} else if (mCurrentState == doKick) {
+		processDoKick(vision, body);
+	} else if (mCurrentState == doNothing) {
+		Debugger::INFO("WolvesAttackerNew", "Waiting 5 seconds...");
+		//body->MoveHi();
+		#ifdef WIN32
+		Sleep(5);
+		#else
+		usleep(5000 * 1000);
+		#endif
+		mCurrentState = searchBall;
+	} else if (mCurrentState == delayLoopState) {
+		timeval curTime;
+		gettimeofday(&curTime, 0);
+
+		long seconds  = curTime.tv_sec  - mLoopStartTime.tv_sec;
+
+		if (seconds >= mDelayLoopDuration) {
+			Debugger::DEBUG("WolvesAttackerNew", "Delay loop state ended");
+			mCurrentState = mReturnToState;
+		}
+	}
+
+	return true;
+}
+
+bool WolvesAttackerNew::processSearchBall(Vision* vision, Body* body) {
+	Debugger::DEBUG("WolvesAttackerNew", "State: SearchBall (found %i times)", mSearchObjectFoundCounter);
+
+	// STATE CHANGES
+	if (mSearchObjectFoundCounter >= OBJECT_FOUND_THRESHOLD) {
+		Debugger::INFO("WolvesAttackerNew", "Ball found stable");
+		body->Stop();
+		mCurrentState = moveTowardsBall;
+		mSearchObjectFoundCounter = 0;
+		mSearchObjectsCurrentPos = -1; // Restart search pattern
+		return true;
+	}
+
+	// STATE LOGIC
+	vision->setSearchBallOnly(true);
+	if (vision->getBall() != NULL) {
+		Debugger::DEBUG("WolvesAttackerNew", "Ball found, tracking");
+		processTracker(vision->getBall(), vision, body, false);
+		mSearchObjectFoundCounter++;
+		mSearchObjectsCurrentPos = -1; // Restart search pattern
+	} else if (mSearchObjectFoundCounter == 0) {
+		Debugger::DEBUG("WolvesAttackerNew", "Ball not found, looking for it");
+		body->Stop();
+		searchObject(body, true, false, false);
+	} else {
+		mSearchObjectNotFoundCounter++;
+		if (mSearchObjectNotFoundCounter > OBJECT_LOST_THRESHOLD){
+			Debugger::INFO("WolvesAttackerNew", "Ball lost");
+			mSearchObjectFoundCounter = 0;
+			mSearchObjectNotFoundCounter = 0;
+		}
+	}
+
+	return true;
+}
+
+#define FOLLOW_MAX_RL_TURN	200.0	// Body scales these to mm/step
+#define FOLLOW_MAX_FB_STEP	100.0
+#define FOLLOW_MIN_FB_STEP	50.0
+
+#define BALL_NEAR_DISTANCE	0.2 //Distance in m
+#define MOVE_LEFT_ANGLE		-30.0
+#define MOVE_RIGHT_ANGLE	30.0
+
+#define NO_BALL_MAX_COUNT	3
+
+#define MAX_OBJECT_ANGLE	90
+#define MAX_OBJECT_DISTANCE	0.3
+
+bool WolvesAttackerNew::processMoveTowardsBall(Vision* vision, Body* body) {
+	Debugger::DEBUG("WolvesAttackerNew", "State: MoveTowardsBall");
+
+	static int NoBallCount = NO_BALL_MAX_COUNT;
+
+	processTracker(vision->getBall(), vision, body, false);
+    if (vision->getBall() == NULL) {
+		if(NoBallCount > NO_BALL_MAX_COUNT) {
+			// can not find a ball
+			body->Stop();
+			mCurrentState = searchBall;
+		} else {
+			NoBallCount++;
+			Debugger::INFO("WolvesAttackerNew", "No Ball counting (%i/%i)", NoBallCount, NO_BALL_MAX_COUNT);
+		}
+    } else {
+		NoBallCount = 0;
+
+
+		int angle = (int) (vision->getBall()->angle*180/PI);	//Conversion RAD to DEG
+
+
+		Debugger::DEBUG("WolvesAttackerNew", "Distance to Switch: %f to Ball: %f",BALL_NEAR_DISTANCE, vision->getBall()->distance);
+
+		double angle_percent = (double)-angle / MAX_OBJECT_ANGLE;
+
+		if(angle > MOVE_LEFT_ANGLE && angle < MOVE_RIGHT_ANGLE) {
+			if(vision->getBall()->distance <= BALL_NEAR_DISTANCE) {
+				body->Stop();
+				mSearchObjectsCurrentPos = -1; // Restart search pattern
+				bool noSearchGoal = Config::GetInstance()->GetBoolean("AI", "noSearchGoal", false);
+				if (noSearchGoal) {
+					Debugger::INFO("WolvesAttackerNew", "Not looking for goal because config.ini says so!");
+					mCurrentState = checkBallFound;
+				} else {
+					mCurrentState = searchGoal;
+				}
+			} else {
+				double fbStep = FOLLOW_MAX_FB_STEP * ((1 / MAX_OBJECT_DISTANCE) * vision->getBall()->distance);
+				if (fbStep < FOLLOW_MIN_FB_STEP)
+				    fbStep = FOLLOW_MIN_FB_STEP;
+				body->setWalkerCommand((signed short)fbStep, 0, (signed short)(FOLLOW_MAX_RL_TURN * angle_percent));
+			}
+		} else {
+			body->setWalkerCommand(0, 0, (signed short)(FOLLOW_MAX_RL_TURN * angle_percent));
+		}
+	}
+
+	return true;
+}
+
+bool WolvesAttackerNew::processSearchGoal(Vision* vision, Body* body) {
+	Debugger::DEBUG("WolvesAttackerNew", "State: SearchGoal (found %i times)", mSearchObjectFoundCounter);
+
+	body->Stop();
+
+	// STATE CHANGES
+	if (mSearchObjectFoundCounter >= OBJECT_FOUND_THRESHOLD) {
+		Debugger::INFO("WolvesAttackerNew", "Goal found stable");
+		mCurrentState = circleToGoal;
+		mSearchObjectFoundCounter = 0;
+		mSearchObjectsCurrentPos = -1; // Restart search pattern
+		return true;
+	}
+
+	// STATE LOGIC
+	vision->setSearchBallOnly(false);
+	if (vision->getOpGoal() != NULL) {
+		Debugger::DEBUG("WolvesAttackerNew", "Goal found, tracking");
+		processTracker(vision->getOpGoal(), vision, body, false);
+		mSearchObjectFoundCounter++;
+		mSearchObjectsCurrentPos = -1; // Restart search pattern
+	} else if (mSearchObjectFoundCounter == 0) {
+		Debugger::DEBUG("WolvesAttackerNew", "Goal not found, looking for it");
+		body->Stop();
+		if (searchObject(body, false, true, true)) {
+			Debugger::DEBUG("WolvesAttackerNew", "Goal not found with searchObject, kicking...");
+			mSearchObjectFoundCounter = 0;
+			mSearchObjectNotFoundCounter = 0;
+			mCurrentState = doKick;
+		}
+	} else {
+		Debugger::DEBUG("WolvesAttackerNew", "Goal not found, retrying");
+		mSearchObjectNotFoundCounter++;
+		if (mSearchObjectNotFoundCounter > OBJECT_LOST_THRESHOLD){
+			Debugger::INFO("WolvesAttackerNew", "Goal lost");
+			mSearchObjectFoundCounter = 0;
+			mSearchObjectNotFoundCounter = 0;
+			mCurrentState = moveHalfCircle;
+		}
+	}
+
+	return true;
+}
+
+#define NO_GOAL_MAX_COUNT	5
+#define GOAL_LEFT_ANGLE		-10
+#define GOAL_RIGHT_ANGLE	10
+
+bool WolvesAttackerNew::processCircleToGoal(Vision* vision, Body* body) {
+	Debugger::DEBUG("WolvesAttackerNew", "State: CircleToGoal");
+
+	static int NoGoalCount = NO_GOAL_MAX_COUNT;
+
+	processTracker(vision->getOpGoal(), vision, body, false);
+    if (vision->getOpGoal() == NULL) {
+		if(NoGoalCount > NO_GOAL_MAX_COUNT) {
+			// lost the goal
+			body->Stop();
+			mSearchObjectsCurrentPos = -1; // Restart search pattern
+			mCurrentState = searchGoal;
+		} else {
+			NoGoalCount++;
+			Debugger::INFO("WolvesAttackerNew", "No Goal counting (%i/%i)", NoGoalCount, NO_GOAL_MAX_COUNT);
+		}
+    } else {
+		NoGoalCount = 0;
+
+		int angle = (int) (vision->getOpGoal()->angle*180/PI);	//Conversion RAD to DEG
+
+		if(angle > GOAL_LEFT_ANGLE && angle < GOAL_RIGHT_ANGLE) {
+			body->Stop();
+			mCurrentState = checkBallFound;
+		} else {
+			if (angle > GOAL_RIGHT_ANGLE) {
+				int x = Config::GetInstance()->GetInt("Body", "circleRightX", 0);
+				int y = Config::GetInstance()->GetInt("Body", "circleRightY", 30);
+				int r = Config::GetInstance()->GetInt("Body", "circleRightR", 60);
+				body->setWalkerCommand(x, y, r, true);
+				Debugger::INFO("WolvesAttackerNew", "Circling right...");
+			} else {
+				int x = Config::GetInstance()->GetInt("Body", "circleLeftX", 0);
+				int y = Config::GetInstance()->GetInt("Body", "circleLeftY", -30);
+				int r = Config::GetInstance()->GetInt("Body", "circleLeftR", -60);
+				body->setWalkerCommand(x, y, r, true);
+				Debugger::INFO("WolvesAttackerNew", "Circling left...");
+			}
+		}
+	}
+
+	return true;
+}
+
+bool WolvesAttackerNew::processMoveHalfCircle(Vision* vision, Body* body) {
+	Debugger::DEBUG("WolvesAttackerNew", "State: MoveHalfCircle");
+
+	// STATE CHANGES
+	// Do nothing for now, just switch to next state
+	Debugger::INFO("WolvesAttackerNew", "I'm sorry, Dave. I'm afraid I can't do that.");
+	mCurrentState = checkBallFound;
+	return true;
+
+	// STATE LOGIC
+}
+
+bool WolvesAttackerNew::processCheckBallFound(Vision* vision, Body* body) {
+	Debugger::DEBUG("WolvesAttackerNew", "State: CheckBallFound");
+
+	body->PanTilt()->SetPosition(0, -70);
+
+	// STATE CHANGES
+	// Do nothing for now, just switch to next state
+	Debugger::INFO("WolvesAttackerNew", "I'm sorry, Dave. I'm afraid I can't do that.");
+	mCurrentState = checkGoalFound;
+	return true;
+
+	// STATE LOGIC
+}
+
+bool WolvesAttackerNew::processCheckGoalFound(Vision* vision, Body* body) {
+	Debugger::DEBUG("WolvesAttackerNew", "State: CheckGoalFound");
+
+	// STATE CHANGES
+	// Do nothing for now, just switch to next state
+	Debugger::INFO("WolvesAttackerNew", "I'm sorry, Dave. I'm afraid I can't do that.");
+	mCurrentState = doKick;
+	return true;
+
+	// STATE LOGIC
+}
+
+#define FIT_MAX_RL_TURN		100.0	// Body scales these to mm/step
+#define FIT_FB_STEP			40.0
+
+#define KICK_DISTANCE_DEFAULT 0.13 // in m
+#define KICK_LEFT_ANGLE		-20.0
+#define KICK_RIGHT_ANGLE	15.0
+#define KICK_CORRECT 	-5.0		//Value to adjust with which leg the robot should kick, 0 means bith kicks are ok, positive kick more often witth left, negativ kick more with right
+#define CENTER_ANGLE		10
+
+bool WolvesAttackerNew::processDoKick(Vision* vision, Body* body) {
+	Debugger::DEBUG("WolvesAttackerNew", "State: DoKick");
+
+	static int NoBallCount = NO_BALL_MAX_COUNT;
+
+	processTracker(vision->getBall(), vision, body, true);
+    if (vision->getBall() == NULL) {
+		if(NoBallCount > NO_BALL_MAX_COUNT) {
+			// can not find a ball
+			body->Stop();
+			mCurrentState = searchBall;
+			NoBallCount = 0;
+		} else {
+			NoBallCount++;
+			Debugger::INFO("WolvesAttackerNew", "No Ball counting (%i/%i)", NoBallCount, NO_BALL_MAX_COUNT);
+		}
+    } else {
+		NoBallCount = 0;
+
+		double angle = (vision->getBall()->angle*180/PI);	//Conversion RAD to DEG
+		angle -= CENTER_ANGLE;
+		double angle_percent = (double)-angle / MAX_OBJECT_ANGLE;
+
+		if(angle > KICK_LEFT_ANGLE && angle < KICK_RIGHT_ANGLE) {
+			if(vision->getBall()->distance <= BALL_NEAR_DISTANCE) {
+				bool noKick = Config::GetInstance()->GetBoolean("AI", "noKick", false);
+				if (noKick) {
+					Debugger::INFO("WolvesAttackerNew", "Not kicking because config.ini says so!");
+				}
+				double KICK_DISTANCE =  Config::GetInstance()->GetDouble("AI", "kickDistance", KICK_DISTANCE_DEFAULT);
+				Debugger::DEBUG("WolvesAttackerNew", "Distance to kick: %f to Ball: %f, angle=%i", KICK_DISTANCE, vision->getBall()->distance, angle);
+				if(vision->getBall()->distance < KICK_DISTANCE && !noKick) {
+					body->setWalkerCommand(0, 0, 0);
+
+					if(angle < KICK_CORRECT) {
+						Debugger::INFO("WolvesAttackerNew", "Kick left");
+						body->KickLeft();
+					} else {
+						Debugger::INFO("WolvesAttackerNew", "Kick right");
+						body->KickRight();
+					}
+				} else {
+					body->setWalkerCommand((signed short)(FIT_FB_STEP), 0, (signed short)(FIT_MAX_RL_TURN * angle_percent));
+					//Debugger::INFO("WolvesAttackerNew", "FIT(P:%.2f T:%.2f>%.2f)", pan, tilt, KICK_TILT);
+					Debugger::INFO("WolvesAttackerNew", "FIT");
+				}
+
+			} else {
+				double fbStep = FOLLOW_MAX_FB_STEP * ((1 / MAX_OBJECT_DISTANCE) * vision->getBall()->distance);
+				if (fbStep < FOLLOW_MIN_FB_STEP)
+				    fbStep = FOLLOW_MIN_FB_STEP;
+				body->setWalkerCommand((signed short)fbStep, 0, (signed short)(FOLLOW_MAX_RL_TURN * angle_percent));
+				Debugger::INFO("WolvesAttackerNew", "FOLLOW2 Angle:%.2f Distance:%.2f", angle, vision->getBall()->distance);
+			}
+		} else {
+			body->setWalkerCommand(0, 0, (signed short)(FOLLOW_MAX_RL_TURN * angle_percent));
+			Debugger::INFO("WolvesAttackerNew", "FOLLOW1 Angle:%.2f Distance:%.2f", angle, vision->getBall()->distance);
+		}
+	}
+
+	return true;
+}
+
+#define NO_OBJECT_MAX_COUNT		15
+void WolvesAttackerNew::processTracker(VisionObject* object, Vision* vision, Body* body, bool disablePan) {
+	static int NoObjectCount = 0;
+
+	if (object == NULL) { // No object found
+		if (NoObjectCount < NO_OBJECT_MAX_COUNT) {
+			body->PanTilt()->MoveTracking(disablePan);
+			NoObjectCount++;
+		}
+	} else {
+		NoObjectCount = 0;
+		double offsetX = object->xPos - (vision->get_width() / 2);
+		double offsetY = object->yPos - (vision->get_height() / 2);
+		offsetY *= -1; // Inverse Y-axis
+		offsetX *= (CAMERA_OPENENING_ANGLE_HORIZONTAL / (double)vision->get_width()); // pixel per angle
+		offsetY *= (CAMERA_OPENENING_ANGLE_VERTICAL / (double)vision->get_height()); // pixel per angle
+//		Debugger::DEBUG("processTracker", "offsetX: %f, offsetY: %f", offsetX, offsetY);
+		body->PanTilt()->MoveTracking(offsetX, offsetY, disablePan);
+
+		if (offsetX > 30 || offsetX < -30 || offsetY > 30 || offsetY < -30) {
+			#ifdef WIN32
+			Sleep(100);
+			#else
+			usleep(100 * 1000);
+			#endif
+		}
+	}
+}
+
+bool WolvesAttackerNew::searchObject(Body *body, bool allowedToMove, bool reverse, bool fixedTilt) {
+#define UPDATES_PER_POINT	10 // # of calls before advancing to next point
+#define NUMBER_OF_POINTS	10
+#define LOOP_COUNT			2
+#define TURN_RIGHT_DURATION	7
+
+	if (mSearchObjectsCurrentPos < 0) {
+		// Determine start position from current pan/tilt angle
+		signed char currentPan = body->PanTilt()->GetPan();
+		signed char currentTilt = body->PanTilt()->GetTilt();
+		signed char pan = 0;
+		signed char tilt = 0;
+		float minDist = 1000;
+		signed char minIndex = -1;
+		for (int i = 0; i < NUMBER_OF_POINTS; i++) {
+			getPanTiltSearchPosition(i, &pan, &tilt);
+			float deltaPan  = currentPan  - pan;
+			float deltaTilt = currentTilt - tilt;
+			float dist = sqrt((deltaPan * deltaPan) + (deltaTilt * deltaTilt));
+			if (dist < minDist) {
+				minDist = dist;
+				minIndex = i;
+			}
+		}
+		if (minIndex >= 0) {
+			Debugger::DEBUG("WolvesAttackerNew", "SearchObject: Nearest index for start: %i, minDist = %f", minIndex, minDist);
+			mSearchObjectsCurrentPos = minIndex;
+		} else {
+			if (reverse) {
+				mSearchObjectsCurrentPos = NUMBER_OF_POINTS;
+			} else {
+				mSearchObjectsCurrentPos = 0;
+			}
+		}
+
+		mSearchObjectsLoopCnt = 1;
+		mSearchObjectsUpdateCnt = 0;
+	}
+
+	mSearchObjectsUpdateCnt++;
+	if (mSearchObjectsUpdateCnt >= UPDATES_PER_POINT) {
+		mSearchObjectsUpdateCnt = 0;
+
+		signed char pan = 0;
+		signed char tilt = 0;
+		getPanTiltSearchPosition(mSearchObjectsCurrentPos, &pan, &tilt);
+		if (fixedTilt) {
+			tilt = 0;
+		}
+
+		if (reverse) {
+			mSearchObjectsCurrentPos--;
+		} else {
+			mSearchObjectsCurrentPos++;
+		}
+		if ((mSearchObjectsCurrentPos >= NUMBER_OF_POINTS || mSearchObjectsCurrentPos < 0) && mSearchObjectsLoopCnt < LOOP_COUNT) {
+			Debugger::DEBUG("WolvesAttackerNew", "SearchObject: No success in loop %i, starting next", mSearchObjectsLoopCnt);
+			if (reverse) {
+				mSearchObjectsCurrentPos = NUMBER_OF_POINTS;
+			} else {
+				mSearchObjectsCurrentPos = 0; // Restart on first point
+			}
+			mSearchObjectsLoopCnt++;
+		}
+		if (mSearchObjectsCurrentPos > NUMBER_OF_POINTS || mSearchObjectsCurrentPos < 0) {
+			if (reverse) {
+				mSearchObjectsCurrentPos = NUMBER_OF_POINTS;
+			} else {
+				mSearchObjectsCurrentPos = 0; // Restart on first point
+			}
+			mSearchObjectsLoopCnt = 1;
+
+			if (allowedToMove) {
+				Debugger::INFO("WolvesAttackerNew", "SearchObject: Object not found, rotating body");
+				body->PanTilt()->MoveToHome();
+				body->TurnRight();
+				enterDelayState(mCurrentState, TURN_RIGHT_DURATION);
+				return true;
+			} else {
+				Debugger::INFO("WolvesAttackerNew", "SearchObject: Object not found, but not allowed to move");
+				return true;
+			}
+		}
+		Debugger::DEBUG("WolvesAttackerNew", "SearchObject: Pan %d, Tilt: %d, next pos index: %i", pan, tilt, mSearchObjectsCurrentPos);
+		body->PanTilt()->SetPosition(pan, tilt);
+
+		// Allow camera to set
+		#ifdef WIN32
+		Sleep(100);
+		#else
+		usleep(100 * 1000);
+		#endif
+
+	}
+	return false;
+}
+
+void WolvesAttackerNew::getPanTiltSearchPosition(unsigned char index, signed char* pan, signed char* tilt) {
+	switch (index) {
+		case 0:	*pan = -40; *tilt = -70; break;
+		case 1:	*pan = +10; *tilt = -70; break;
+		case 2:	*pan = +60; *tilt = -70; break;
+		case 3:	*pan = +75; *tilt = -40; break;
+		case 4:	*pan =  +5; *tilt = -40; break;
+		case 5:	*pan = -65; *tilt = -40; break;
+		case 6:	*pan = -90; *tilt = -10; break;
+		case 7:	*pan = -30; *tilt = -10; break;
+		case 8:	*pan = +30; *tilt = -10; break;
+		case 9:	*pan = +90; *tilt = -10; break;
+	}
+}
+
+void WolvesAttackerNew::enterDelayState(State returnState, unsigned char delay) {
+	mDelayLoopDuration = delay;
+	mReturnToState = returnState;
+	gettimeofday(&mLoopStartTime, 0);
+	mCurrentState = delayLoopState;
+}

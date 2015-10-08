@@ -1,0 +1,5 @@
+nullPointer:dbgu/dbgu.c
+nullPointer:include/lib_AT91SAM7XC256.h
+nullPointer:tc/tc.c
+*:include/Syscalls.c
+unusedStructMember:usb/cdc_enumerate.c

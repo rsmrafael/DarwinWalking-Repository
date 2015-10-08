@@ -1,0 +1,285 @@
+/*
+ * Scanlines.cpp
+ *
+ *  Created on: 29.08.2012
+ *      Author: Stefan Krupop
+ */
+
+#include "Scanlines.h"
+#include "../../Config.h"
+#include "../../Representations/Object.h"
+
+Scanlines::Scanlines()
+:	mScanlineDistanceColumn( 2),
+	mScanlineDistanceRow( 2),
+	mMaxGreenNotSeen( 20),
+	mMinCloudDistance( 30),
+	mMinCloudDistanceRow( 15),
+	mMinCloudDistanceColumn( 15),
+	mFieldLineScanDivisor( 4),
+	mNumGreenSearchPoints( 8),
+	mMinGreenPoints( 5),
+	mIgnoreObjectsOutsideField( true),
+	mMaxY_Green( 180),
+	mMinU_Green( 100),
+	mMaxU_Green( 180),
+	mMaxV_Green( 85),
+	mMaxSum_Green( 400),
+	mMinY_Ball( 50),
+	mMinV_Ball( 140),
+	mMaxU_Ball( 140),
+	mMinY_Goal( 80),
+	mMaxU_Goal( 120),
+	mMinV_Goal( 110),
+	mMaxV_Goal( 160),
+	mMinY_White( 150),
+	mMinSum_White( 350),
+	mMaxY_Black( 80),
+	mMaxVariance_Gray( 60),
+	mMinU_Cyan( 160),
+	mMaxV_Cyan( 80),
+	mMinU_Magenta( 140),
+	mMinV_Magenta( 140),
+	mDebugDrawings( 0)
+{
+	Config::GetInstance()->registerConfigChangeHandler(this);
+	this->configChanged();
+}
+
+Scanlines::~Scanlines() {
+	Config::GetInstance()->removeConfigChangeHandler(this);
+}
+
+bool Scanlines::execute() {
+
+	/**
+	 * Initialize parameters
+	 */
+	const YUVImage* yuvImage = &getImage();
+	int width = yuvImage->getWidth();
+	int height = yuvImage->getHeight();
+
+	int greenNotSeenCounter;
+	int lastGreenRow = 0;
+	//bool firstGreenFound;
+
+	getBallPoints().clearCloud();
+	getGoalPoints().clearCloud();
+	getObstaclePoints().clearCloud();
+	getCyanPoints().clearCloud();
+	getMagentaPoints().clearCloud();
+	getWhitePoints().clearCloud();
+	getGreenPoints().clearCloud();
+	getYChannel().clearHist();
+	getUChannel().clearHist();
+	getVChannel().clearHist();
+
+	/**
+	 * Create Scan Lines from the Bottom and Rise them. Mark the last spot where a green Pixel is found.
+	 */
+
+	int dx = mScanlineDistanceColumn * width / 2560;
+	if( dx <= 0) {
+		Debugger::WARN("Scanlines", "ScanlineDistanceColumn was too low (%d; %d), set to 1!", dx, mScanlineDistanceColumn);
+		dx = 1;
+	}
+	int dy = mScanlineDistanceRow * height / 1440;
+	if( dy <= 0) {
+		Debugger::WARN("Scanlines", "ScanlineDistanceRow was too low (%d; %d), set to 1!", dy, mScanlineDistanceRow);
+		dy = 1;
+	}
+
+	// Todo check if works
+	//double tiltFactor = 0.02 + 0.005 * (90.0 + getBodyStatus().getTilt());
+	//int maxLinePixel = tiltFactor * (0.25 * height);
+	//Debugger::DEBUG("Scanlines", "LinePixel: %d (tiltFactor: %f)", maxLinePixel, tiltFactor);
+
+	int fieldLineScanDivisor = mFieldLineScanDivisor * dx;
+
+	vector<enum Object::ObjectType> lastPixels;
+	for( size_t i = 0; i < mNumGreenSearchPoints; ++i) {
+		lastPixels.push_back( Object::UNKNOWN);
+	}
+	struct YUVImage::YUVData green;
+
+	// test
+	/*struct YUVImage::YUVData c = yuvImage->getValue(0, 0);
+	Debugger::DEBUG("Scanlines", "Image: 0, 0");
+	Debugger::DEBUG("Scanlines", " %d | %d | %d", c.Y, c.U, c.V);
+	c = yuvImage->getValue(width-1, height-1);
+	Debugger::DEBUG("Scanlines", "Image: width-1, height-1");
+	Debugger::DEBUG("Scanlines", " %d | %d | %d", c.Y, c.U, c.V);*/
+
+	for (int x = 0; x < width; x += dx) {
+		greenNotSeenCounter = 0;
+		lastGreenRow = height;
+		//firstGreenFound = false;
+
+		for( size_t i = 0; i < mNumGreenSearchPoints; ++i) {
+			lastPixels[i] = Object::UNKNOWN;
+		}
+
+		for (int y = height - 1; y >= 0; y -= dy) { //
+			struct YUVImage::YUVData currentColor = yuvImage->getValue(x, y);
+
+//			DRAW_POINT("Scanlines", column, row, DebugDrawer::BLACK);
+
+			for( size_t i = 0; i < mNumGreenSearchPoints - 1; ++i) {
+				//lint --e{864}
+				lastPixels[i] = lastPixels[i+1];
+			}
+			lastPixels[mNumGreenSearchPoints-1] = Object::UNKNOWN;
+
+			if (currentColor.U < mMaxU_Green && currentColor.V < mMaxV_Green && currentColor.Y < mMaxY_Green
+					/*&& (currentColor.U + currentColor.V + currentColor.Y) < mMaxSum_Green*/) {
+				int counter = 0;
+				lastPixels[mNumGreenSearchPoints-1] = Object::FIELD_LINE;
+				for( size_t i = 0; i < mNumGreenSearchPoints; ++i) {
+					if( lastPixels[i] == Object::FIELD_LINE) {
+						counter++;
+					}
+				}
+				//if( y > (lastGreenRow - maxGreenNotSeen)) {
+				if( counter >= mMinGreenPoints) {
+					greenNotSeenCounter = 0;
+					lastGreenRow = y;
+					//firstGreenFound = true;
+					green = currentColor;
+				}
+			#ifdef _DEBUG
+				if( mDebugDrawings == 8) {
+					DRAW_POINT("Field", x, y, DebugDrawer::GREEN);
+				}
+			#endif
+			} else if (currentColor.U < mMaxU_Goal
+					&& currentColor.V >= mMinV_Goal && currentColor.V < mMaxV_Goal
+					&& currentColor.Y >= mMinY_Goal
+					&& (currentColor.V + currentColor.U) < 240) {
+
+			#ifdef _DEBUG
+				if( mDebugDrawings == 4) {
+					DRAW_POINT("Goal", x, y, DebugDrawer::YELLOW);
+				}
+			#endif
+				getGoalPoints().addPoint(x, y);
+				greenNotSeenCounter = 0;
+			} else if(currentColor.U < mMaxU_Ball
+					&& currentColor.Y >= mMinY_Ball
+					&& currentColor.V >= mMinV_Ball) {
+				//Debugger::INFO("Scan", "Ball pixel: (%d, %d) : %d, %d, %d", column, row, currentColor.Y, currentColor.U, currentColor.V);
+				//DRAW_POINT("BallDetection", column, row, DebugDrawer::RED);
+			#ifdef _DEBUG
+				if( mDebugDrawings == 3) {
+					DRAW_POINT("Ball", x, y, DebugDrawer::RED);
+				}
+			#endif
+				getBallPoints().addPoint(x, y);
+			} else if (currentColor.Y >= mMinY_White) {
+			//} else if ((currentColor.U + currentColor.V + currentColor.Y) >= mMinSum_White) {
+				//lastGreenRow = y;
+				greenNotSeenCounter = 0;
+				/*linePixelCounter += dy;
+				if( mIgnoreObjectsOutsideField && linePixelCounter > maxLinePixel) {
+					break;
+				}*/
+			#ifdef _DEBUG
+				if( mDebugDrawings == 2) {
+					DRAW_POINT("Line", x, y, DebugDrawer::WHITE);
+				}
+			#endif
+				getWhitePoints().addPoint(x, y);
+			} else if(currentColor.U >= mMinU_Magenta && currentColor.V >= mMinV_Magenta) {
+			#ifdef _DEBUG
+				if( mDebugDrawings == 5) {
+					DRAW_POINT("Robot", x, lastGreenRow, DebugDrawer::MAGENTA);
+				}
+			#endif
+				getMagentaPoints().addPoint(x, y);
+			} else if (currentColor.U >= mMinU_Cyan && currentColor.V < mMaxV_Cyan) {
+			#ifdef _DEBUG
+				if( mDebugDrawings == 6) {
+					DRAW_POINT("Robot", x, lastGreenRow, DebugDrawer::CYAN);
+				}
+			#endif
+				getCyanPoints().addPoint(x, y);
+			} else {
+			#ifdef _DEBUG
+				if( mDebugDrawings == 7) {
+					DRAW_POINT("Obstacle", x, y, DebugDrawer::BLACK);
+				}
+			#endif
+				getObstaclePoints().addPoint(x, y);
+				++greenNotSeenCounter;
+			}
+
+			if (mIgnoreObjectsOutsideField && greenNotSeenCounter > mMaxGreenNotSeen) {
+				break;
+			}
+		}
+
+		if( !(x % fieldLineScanDivisor)) {
+			getGreenPoints().addPoint(x, lastGreenRow);
+		#ifdef _DEBUG
+			if( mDebugDrawings == 1) {
+				DRAW_POINT("FieldLine", x, lastGreenRow, DebugDrawer::GREEN);
+			}
+		#endif
+		}
+		//if( !(column % 4))
+			//Debugger::INFO("Scan", "Green: (%d, %d) : %d, %d, %d", column, lastGreenRow, green.Y, green.U, green.V);
+	}
+
+	return true;
+}
+
+void Scanlines::configChanged() {
+	Debugger::INFO("Scanlines", "config changed");
+
+	mIgnoreObjectsOutsideField 	= Config::GetBoolean("Vision", "ignoreObjectsOutsideField", false);//true
+	mScanlineDistanceColumn		= Config::GetInt("Vision", "scanlineDistanceColumn", 15);//30//15
+	mScanlineDistanceRow		= Config::GetInt("Vision", "scanlineDistanceRow", 10);//10
+	mMinCloudDistance 			= Config::GetInt("Vision", "minCloudDistance", 10);//15//20
+	mMinCloudDistanceRow 		= mMinCloudDistance / mScanlineDistanceRow;
+	mMinCloudDistanceColumn 	= mMinCloudDistance / mScanlineDistanceColumn;
+	mFieldLineScanDivisor		= Config::GetInt("Vision", "fieldLineScanDivisor", 4);//4
+	mMaxGreenNotSeen 			= Config::GetInt("Vision", "maxGreenNotSeen", 50);//20
+	mMaxGreenNotSeen /= mScanlineDistanceRow; // maxGreenNotSeen independent of scanlineDistanceRow
+	mMinGreenPoints = Config::GetInt("Vision", "minGreenPoints", 8);
+	mNumGreenSearchPoints = (size_t)(unsigned)Config::GetInt("Vision", "numGreenSearchPoints", 10);
+
+	mDebugDrawings = Config::GetInt("Vision", "Scan_debugDrawings", 0);
+
+	//Green
+	mMaxY_Green = Config::GetInt("Vision", "Field_maxY", 220);//190
+	//mMinU_Green = Config::GetInt("Vision", "Field_minU", 100);
+	mMaxU_Green = Config::GetInt("Vision", "Field_maxU", 180);//160
+	mMaxV_Green = Config::GetInt("Vision", "Field_maxV", 100);//90//88//120
+	//mMaxSum_Green = Config::GetInt("Vision", "Field_maxSum", 430);//410//400
+
+	//Debugger::DEBUG("Scanlines", "Green: maxY: %d, maxU: %d, maxV: %d", maxY_Green, maxU_Green, maxV_Green);
+
+	mMinY_Ball = Config::GetInt("Vision", "Ball_minY",  50);//70
+	mMaxU_Ball = Config::GetInt("Vision", "Ball_maxU", 130);//140
+	mMinV_Ball = Config::GetInt("Vision", "Ball_minV", 160);//140
+
+	//Debugger::DEBUG("Scanlines", "Ball: minY: %d, maxU: %d, minV: %d", minY_Ball, maxU_Ball, minV_Ball);
+
+	mMinY_Goal = Config::GetInt("Vision", "Goal_minY",  80);//140
+	mMaxU_Goal = Config::GetInt("Vision", "Goal_maxU", 105);//110//120//100
+	mMinV_Goal = Config::GetInt("Vision", "Goal_minV", 100);//100//90
+	mMaxV_Goal = Config::GetInt("Vision", "Goal_maxV", 180);//160//140
+
+	//Debugger::DEBUG("Scanlines", "Goal: minY: %d, maxU: %d, maxV: %d", minY_Goal, maxU_Goal, maxV_Goal);
+
+	mMaxY_Black 	= Config::GetInt("Vision", "Obstacle_maxY", 80);//60
+	mMinU_Magenta	= Config::GetInt("Vision", "Magenta_minU", 140);//160
+	mMinV_Magenta	= Config::GetInt("Vision", "Magenta_minV", 140);//160
+	mMinU_Cyan		= Config::GetInt("Vision", "Cyan_minU", 160);//160
+	mMaxV_Cyan		= Config::GetInt("Vision", "Cyan_maxV", 110);//80
+
+	//mMaxVariance_Gray = Config::GetInt("Vision", "Gray_maxVariance", 30);
+	//mMinSum_Gray = Config::GetInt("Vision", "Gray_minSum", 350);
+
+	mMinY_White  = Config::GetInt("Vision", "Line_minY", 210);//240//200
+	mMinSum_White = Config::GetInt("Vision", "Line_minSum", 350);
+}

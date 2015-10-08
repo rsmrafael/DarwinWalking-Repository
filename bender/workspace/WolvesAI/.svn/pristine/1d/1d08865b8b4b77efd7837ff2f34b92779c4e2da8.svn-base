@@ -1,0 +1,143 @@
+/*
+ * BehaviorStriker.h
+ *
+ *  Created on: 26.03.2014
+ *      Author: Oliver Krebs
+ */
+
+#ifndef BEHAVIORSTRIKER_H_
+#define BEHAVIORSTRIKER_H_
+
+#include "AbstractBehavior.h"
+
+/**
+ * Striker is the role who always moves towards the ball and tries to score goals
+ */
+class BehaviorStriker
+:	public AbstractBehavior,
+	public ConfigChangeListener
+{
+public:
+	/**
+	 * Constructor
+	 * @param game			information of the game
+	 * @param communicator	mitecom communicator
+	 */
+	BehaviorStriker(Game *game, MitecomCommunicator *communicator);
+
+	/**
+	 * Destructor
+	 */
+	virtual ~BehaviorStriker();
+
+	/**
+	 * called when config has changed
+	 * @see ConfigChangeListener::configChanged
+	 */
+	virtual void configChanged();
+
+	/**
+	 * get the name of the given state
+	 * @param state		index of state
+	 * @return name of the given state
+	 */
+	virtual string getStateName(int state);
+
+	virtual void gameStateHasChanged(Game::GameState state);
+
+protected:
+	virtual void executeBehavior();		//!< execute striker
+	virtual void updateState();			//!< update state
+
+	void entrySearchBall();				//!< entry state SEARCH_BALL
+	int processSearchBall();			//!< process state SEARCH_BALL
+
+	void entryMoveToBall();				//!< entry state MOVE_TO_BALL
+	int processMoveToBall();			//!< process state MOVE_TO_BALL
+
+	void entryCircleToGoal();			//!< entry state CIRLCE_TO_GOAL
+	int processCircleToGoal();			//!< process state CIRLCE_TO_GOAL
+
+	void entryPositionNearBall();		//!< entry state POSITION_NEAR_BALL
+	int processPositionNearBall();		//!< process state POSITION_NEAR_BALL
+
+	void entrySearchNextPole();			//!< entry state SEARCH_NEXT_POLE
+	int processSearchNextPole();		//!< process state SEARCH_NEXT_POLE
+
+	void entryPrepareKick();			//!< entry state PREPARE_KICK
+	int processPrepareKick();			//!< process state PREPARE_KICK
+
+	void entryKickBall();				//!< entry state KICK_BALL
+	int processKickBall();				//!< process state KICK_BALL
+
+	void entryCheckKick();				//!< entry state CHECK_KICK
+	int processCheckKick();				//!< process state CHECK_KICK
+
+	void entryMoveHalf();				//!< entry state MOVE_HALF
+	int processMoveHalf();				//!< process state MOVE_HALF
+
+	void entryScanField();				//!< entry state SCAN_FIELD
+	int processScanField();				//!< process state SCAN_FIELD
+
+	void entryRunToFront();
+	int processRunToFront();
+
+	void seekTarget();					//!< seek target
+
+	/**
+	 * Actions for striker
+	 */
+	enum {
+		SEARCH_BALL,		//!< search ball
+		MOVE_TO_BALL,		//!< move to ball
+		CIRCLE_TO_GOAL,		//!< move circle to goal (center for kick)
+		POSITION_NEAR_BALL,	//!< move near ball for preparing kick
+		SEARCH_NEXT_POLE,	//!< search next goal pole
+		PREPARE_KICK,		//!< prepare kick
+		KICK_BALL,			//!< kick ball
+		CHECK_KICK,			//!< check if ball kicked
+		CIRCLE_HALF,		//!< move circle 180 degrees
+		SCAN_FIELD,			//!< scan the field
+		RUN_TO_FRONT
+	};
+
+	int16_t mTurningXMovement;		//!< turning x movement
+	int mTowardsBallLeftTurnAngle;	//!< turn angle for moving towards ball left
+	int mTowardsBallRightTurnAngle;	//!< turn angle for moving towards ball right
+	int mNumberOfKicks;				//!< number of kicks
+	int mNumberOfKickTries;			//!< number of kick tries
+	int mNumberOfKickTriesMax;		//!< number of maximal kick tries
+	int mKickBallMovedRangeMin;		//!< minimal range for the ball to move after kick
+	int mMoveToBallDistance;		//!< distance moving to ball
+	int mKickLeftTurnAngle;			//!< turn angle kick left
+	int mKickRightTurnAngle;		//!< turn angle kick right
+
+	vect3d_t mBall;					//!< position of ball
+	vect3d_t mTarget;				//!< position of kick target
+
+	uint64_t mKickingTryTimeout;		//!< kicking try timeout
+	uint64_t mCircleToGoalEntryTime;	//!< circle to goal entry time
+	uint64_t mCircleToGoalTimeout;		//!< circle to goal timeout
+	uint64_t mMyGoalCircleDelay;		//!< my goal circle delay
+	uint64_t mPositionForKickTimeout;	//!< position for kick timeout
+	uint64_t mPositionForKickBegun;		//!< position for kick begun
+	uint64_t mCircleHalfDuration;		//!< circle half duration
+	uint64_t mEntryScanFieldBegun;		//!< entry scan field begun
+	uint64_t mSearchNextPoleBegun;		//!< search next pole begun
+	uint64_t mSearchNextPoleTimeout;	//!< search next pole timeout
+
+	int mPositionBallDistanceMin;		//!< position ball distance minimum
+	int mPositionBallDistanceMax;		//!< position ball distance maximum
+	int mKickBallDistance;				//!< distance for kick ball
+	int mKickTargetDistanceMax;			//!< maximal kick target distance
+
+	bool mSearchGoal;					//!< search goal (yes=true)
+	bool mAllowKick;					//!< allow kick (yes=true)
+	bool mCheckCorrectGoal;				//!< check correct goal (yes=true)
+
+	int mRunToFront;
+
+
+};
+
+#endif /* BEHAVIORSTRIKER_H_ */

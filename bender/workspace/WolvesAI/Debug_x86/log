@@ -1,0 +1,4088 @@
+[Config] Config.ini loaded[Debugger] Debugger will send data to 192.168.0.74:3745
+<3> [BodyCommunicator] Init with device: /dev/ttyUSB0 .
+<4> [Body] Stop
+<3> [ModuleManager] Starting module manager
+<3> [ModuleManager] Found 2 CPUs, using 8 threads
+<3> [ModuleManager] config changed
+<3> [Game] Bot is now allowed to move
+<4> [GameControllerServer] Team: 22, Port: 3838
+<4> [Network] construct: Enabling broadcast
+<2> [Network] construct: Successfully enabled SO_BROADCAST
+<4> [Network] construct: Enabling broadcast
+<2> [Network] construct: Successfully enabled SO_BROADCAST
+<2> [Network] getInterfaceIP: Host name is da-v3n
+<1> [Network] getInterfaceIP: Error getting addresses: 11
+<3> [ModuleManager] Added module ConfigurationProvider
+<3> [CaptureV4L2] Opening /dev/video0...
+<2> [CaptureV4L2] The V4L2 driver changed the time per frame to 1/15
+
+<3> [CaptureV4L2] Setting control 'Brightness' (30 to 255, default 133) to 93
+<3> [CaptureV4L2] Setting control 'Contrast' (0 to 10, default 5) to 7
+<3> [CaptureV4L2] Setting control 'Saturation' (0 to 200, default 83) to 200
+<2> [CaptureV4L2] Control 0x980903 is not supported
+<3> [CaptureV4L2] Setting control 'White Balance Temperature, Auto' (0 to 1, default 1) to 0
+<2> [CaptureV4L2] Control 0x98090e is not supported
+<2> [CaptureV4L2] Control 0x98090f is not supported
+<2> [CaptureV4L2] Control 0x980910 is not supported
+<2> [CaptureV4L2] Control 0x980911 is not supported
+<2> [CaptureV4L2] Control 0x980912 is not supported
+<2> [CaptureV4L2] Control 0x980913 is not supported
+<3> [CaptureV4L2] Setting control 'Power Line Frequency' (0 to 2, default 2) to 0
+<3> [CaptureV4L2] Setting control 'White Balance Temperature' (2800 to 10000, default 4500) to 3026
+<3> [CaptureV4L2] Setting control 'Sharpness' (0 to 50, default 25) to 0
+<3> [CaptureV4L2] Setting control 'Backlight Compensation' (0 to 10, default 0) to 0
+<3> [CaptureV4L2] Setting control 'Exposure, Auto' (0 to 3, default 1) to 0
+<1> [CaptureV4L2] VIDIOC_S_CTRL: 34, Numerical result out of range
+<3> [CaptureV4L2] Setting control 'Exposure (Absolute)' (5 to 20000, default 156) to 5
+<1> [CaptureV4L2] VIDIOC_S_CTRL: 5, Input/output error
+<4> [GameControllerServer] KeepAlive sent
+<3> [Mitecom] No information available to send
+<3> [ModuleManager] Added module CaptureV4L2
+<3> [CaptureV4L1] Opening /dev/video0...
+<1> [CaptureV4L1] error, cannot get device capabilities: /dev/video0
+<1> [CaptureV4L1] Could not open camera!
+<3> [ModuleManager] Added module CaptureV4L1
+<3> [ModuleManager] Added module RemoteBehavior
+<3> [Behavior] Role changed to 2
+<3> [ModuleManager] Added module Behavior
+<3> [Scanlines] config changed
+<3> [ModuleManager] Added module Scanlines
+<3> [BallDetection] config changed
+<3> [ModuleManager] Added module BallDetection
+<3> [FieldLineDetection] config changed
+<3> [ModuleManager] Added module FieldLineDetection
+<3> [ModuleManager] Added module BodyController
+<3> [GoalDetection] config changed
+<3> [ModuleManager] Added module GoalDetection
+<3> [RobotDetection] config changed
+<3> [ModuleManager] Added module RobotDetection
+<3> [ModuleManager] Added module GoalieDetection
+<3> [ModuleManager] Added module MovementPredictor
+<3> [HorizonDetection] config changed
+<3> [ModuleManager] Added module HorizonDetection
+<3> [LocalModeling] config changed
+<3> [ModuleManager] Added module LocalModeling
+<3> [ImageWriter] config changed
+<3> [ModuleManager] Added module ImageWriter
+<3> [ModuleManager] Added module MJPEGStreamer
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: CaptureV4L1<2> [CaptureV4L1] Camera not open, disabling module
+<3> [ModuleManager] Disabled module CaptureV4L1
+.
+WT exe: BodyController.
+WT exe: CaptureV4L2WT exe: HorizonDetection.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: Scanlines<4> [HTTPServer] Waiting for clients to connect
+.
+WT exe: FieldLineDetectionWT exe: RobotDetection.
+.
+WT exe: BallDetection.
+WT exe: GoalDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] searchObject start loop
+<4> [Behavior] SearchBall: Pan -135, Tilt: -10
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: ImageWriter.
+WT exe: MJPEGStreamerWT exe: HorizonDetectionWT exe: Scanlines.
+.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: GoalieDetection.
+WT exe: MovementPredictor.
+WT exe: BehaviorWT exe: LocalModeling.
+<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -135, Tilt: -10
+.
+<4> [Mitecom] Update sent
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyControllerWT exe: CaptureV4L2<4> [Body] Stop
+.
+.
+WT exe: HorizonDetection.
+WT exe: ImageWriter.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: GoalieDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -120, Tilt: -10
+.
+<4> [Mitecom] Update sent
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: FieldLineDetectionWT exe: RobotDetection.
+WT exe: BallDetectionWT exe: GoalDetection.
+WT exe: GoalieDetection.
+.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -120, Tilt: -10
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: ImageWriter.
+WT exe: HorizonDetectionWT exe: MJPEGStreamer.
+.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: GoalieDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -120, Tilt: -10
+.
+<4> [Mitecom] Update sent
+<4> [GameControllerServer] KeepAlive sent
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: FieldLineDetectionWT exe: RobotDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Mitecom] Update sent
+<4> [Behavior] SearchBall: Pan -105, Tilt: -10
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProviderWT exe: BodyController<4> [Body] Stop
+.
+.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: FieldLineDetectionWT exe: RobotDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: GoalieDetection.
+.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -105, Tilt: -10
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: CaptureV4L2.
+WT exe: BodyControllerWT exe: Scanlines<4> [Body] Stop
+.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+.
+WT exe: RobotDetection.
+WT exe: FieldLineDetection.
+WT exe: BallDetection.
+WT exe: GoalDetection.
+WT exe: GoalieDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -105, Tilt: -10
+.
+WT exe: RemoteBehavior.
+WT exe: BodyControllerWT exe: ConfigurationProvider.
+<4> [Body] Stop
+WT exe: CaptureV4L2.
+.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+WT exe: HorizonDetection.
+WT exe: ImageWriter.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+.
+<4> [Mitecom] Update sent
+<4> [Behavior] SearchBall: Pan -90, Tilt: -10
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: GoalieDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -90, Tilt: -10
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: CaptureV4L2.
+WT exe: BodyController<4> [Body] Stop
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: GoalieDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -90, Tilt: -10
+.
+<4> [Mitecom] Update sent
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: GoalieDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Mitecom] Update sent
+<4> [Behavior] SearchBall: Pan -75, Tilt: -10
+.
+<4> [GameControllerServer] KeepAlive sent
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyControllerWT exe: CaptureV4L2.
+<4> [Body] Stop
+WT exe: ImageWriter.
+.
+WT exe: HorizonDetection.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetectionWT exe: BallDetection.
+WT exe: GoalieDetection.
+.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -75, Tilt: -10
+.
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+.
+WT exe: ConfigurationProvider.
+WT exe: RemoteBehavior.
+WT exe: CaptureV4L2.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: BodyController<4> [Body] Stop
+.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetectionWT exe: BallDetection.
+.
+WT exe: GoalieDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -75, Tilt: -10
+.
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [GameControllerServer] KeepAlive sent
+<4> [Mitecom] Update sent
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+<4> [Mitecom] Update sent
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: BallDetectionWT exe: GoalDetection.
+.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -60, Tilt: -10
+.
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [GameControllerServer] KeepAlive sent
+<4> [Mitecom] Update sent
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyControllerWT exe: CaptureV4L2.
+<4> [Body] Stop
+WT exe: MJPEGStreamer.
+.
+WT exe: HorizonDetection.
+WT exe: ImageWriter.
+WT exe: Scanlines.
+WT exe: FieldLineDetectionWT exe: RobotDetection.
+WT exe: BallDetection.
+WT exe: GoalDetection.
+WT exe: GoalieDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -60, Tilt: -10
+.
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [GameControllerServer] KeepAlive sent
+<4> [Mitecom] Update sent
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: FieldLineDetectionWT exe: RobotDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -60, Tilt: -10
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: ImageWriter.
+WT exe: HorizonDetectionWT exe: Scanlines.
+WT exe: MJPEGStreamer.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: BallDetection.
+WT exe: GoalDetection.
+WT exe: GoalieDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Mitecom] Update sent
+.
+<4> [Behavior] SearchBall: Pan -45, Tilt: -10
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: FieldLineDetectionWT exe: RobotDetection.
+WT exe: BallDetection.
+WT exe: GoalDetectionWT exe: MovementPredictor.
+.
+WT exe: LocalModeling.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -45, Tilt: -10
+.
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [GameControllerServer] KeepAlive sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [GameControllerServer] KeepAlive sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [GameControllerServer] KeepAlive sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+.
+WT exe: ConfigurationProvider.
+WT exe: RemoteBehavior.
+WT exe: CaptureV4L2.
+WT exe: ScanlinesWT exe: BodyController<4> [Body] Stop
+.
+WT exe: HorizonDetection.
+WT exe: ImageWriter.
+WT exe: MJPEGStreamer.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: BallDetection.
+WT exe: GoalDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -45, Tilt: -10
+.
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [GameControllerServer] KeepAlive sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [GameControllerServer] KeepAlive sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [GameControllerServer] KeepAlive sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+.
+<4> [WolvesAI] FPS (min/mean/max/curr): 0.30/7.08/30.63/0.30
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: CaptureV4L2.
+WT exe: ScanlinesWT exe: HorizonDetection.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: ImageWriter.
+WT exe: MJPEGStreamer.
+.
+WT exe: FieldLineDetection.
+WT exe: RobotDetectionWT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+.
+<4> [Behavior] SearchBall: Pan -30, Tilt: -10
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyControllerWT exe: CaptureV4L2.
+<4> [Body] Stop
+.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetectionWT exe: BallDetection.
+.
+WT exe: GoalieDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+<4> [Mitecom] Update sent
+.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -30, Tilt: -10
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: CaptureV4L2.
+WT exe: BodyController<4> [Body] Stop
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: ScanlinesWT exe: HorizonDetection.
+.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -30, Tilt: -10
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: GoalieDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [GameControllerServer] KeepAlive sent
+<4> [Mitecom] Update sent
+<4> [Behavior] SearchBall: Pan -15, Tilt: -10
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyControllerWT exe: CaptureV4L2.
+<4> [Body] Stop
+.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetectionWT exe: BallDetection.
+WT exe: MovementPredictor.
+.
+WT exe: GoalieDetection.
+WT exe: LocalModeling.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -15, Tilt: -10
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyControllerWT exe: CaptureV4L2<4> [Body] Stop
+.
+.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: GoalieDetection.
+.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -15, Tilt: -10
+.
+<4> [Mitecom] Update sent
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyControllerWT exe: CaptureV4L2<4> [Body] Stop
+.
+.
+WT exe: HorizonDetection.
+WT exe: ImageWriter.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: GoalieDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+.
+<4> [Behavior] SearchBall: Pan 0, Tilt: -10
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyControllerWT exe: CaptureV4L2.
+<4> [Body] Stop
+.
+WT exe: ScanlinesWT exe: HorizonDetection.
+WT exe: MJPEGStreamerWT exe: ImageWriter.
+.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: GoalieDetection.
+WT exe: MovementPredictor.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 0, Tilt: -10
+.
+WT exe: LocalModeling.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines<4> [Mitecom] Update sent
+.
+WT exe: FieldLineDetectionWT exe: RobotDetection.
+WT exe: BallDetection.
+WT exe: GoalDetectionWT exe: MovementPredictor.
+.
+WT exe: GoalieDetection.
+WT exe: LocalModeling.
+.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 0, Tilt: -10
+.
+WT exe: ConfigurationProvider.
+WT exe: RemoteBehavior.
+WT exe: CaptureV4L2.
+WT exe: ScanlinesWT exe: BodyControllerWT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+<4> [Body] Stop
+.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Mitecom] Update sent
+.
+<4> [Behavior] SearchBall: Pan 15, Tilt: -10
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: CaptureV4L2.
+WT exe: BodyController<4> [Body] Stop
+WT exe: MJPEGStreamer.
+.
+WT exe: HorizonDetection.
+WT exe: ScanlinesWT exe: ImageWriter.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetectionWT exe: BallDetection.
+.
+WT exe: GoalieDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 15, Tilt: -10
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+<4> [GameControllerServer] KeepAlive sent
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: BallDetection.
+WT exe: GoalDetection.
+WT exe: MovementPredictor.
+<4> [Mitecom] Update sent
+.
+WT exe: LocalModeling.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 15, Tilt: -10
+.
+WT exe: RemoteBehaviorWT exe: ConfigurationProvider.
+.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines<4> [Mitecom] Update sent
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 30, Tilt: -10
+.
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [GameControllerServer] KeepAlive sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [GameControllerServer] KeepAlive sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [GameControllerServer] KeepAlive sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [GameControllerServer] KeepAlive sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: HorizonDetection.
+WT exe: ImageWriter.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: GoalieDetection.
+WT exe: MovementPredictor.
+WT exe: BehaviorWT exe: LocalModeling.
+<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 30, Tilt: -10
+.
+<4> [Mitecom] Update sent
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: HorizonDetection.
+WT exe: ImageWriter.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+.
+WT exe: FieldLineDetectionWT exe: RobotDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 30, Tilt: -10
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Mitecom] Update sent
+<4> [Behavior] SearchBall: Pan 45, Tilt: -10
+.
+<4> [GameControllerServer] KeepAlive sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: ImageWriter.
+WT exe: HorizonDetectionWT exe: MJPEGStreamer.
+.
+WT exe: Scanlines.
+WT exe: FieldLineDetectionWT exe: RobotDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 45, Tilt: -10
+.
+.
+<4> [Mitecom] Update sent
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 45, Tilt: -10
+.
+<4> [GameControllerServer] KeepAlive sent
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Mitecom] Update sent
+.
+<4> [Behavior] SearchBall: Pan 60, Tilt: -10
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: FieldLineDetectionWT exe: RobotDetection.
+WT exe: BallDetection.
+WT exe: GoalDetection.
+WT exe: MovementPredictor.
+.
+WT exe: GoalieDetection.
+WT exe: LocalModeling.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 60, Tilt: -10
+.
+<4> [Mitecom] Update sent
+<4> [WolvesAI] FPS (min/mean/max/curr): 0.24/6.90/30.63/5.02
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: BallDetectionWT exe: GoalDetection.
+WT exe: GoalieDetection.
+.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball found, tracking
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyControllerWT exe: CaptureV4L2.
+.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: BallDetectionWT exe: GoalDetection.
+WT exe: GoalieDetection.
+.
+WT exe: LocalModelingWT exe: MovementPredictor.
+.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController.
+WT exe: CaptureV4L2.
+WT exe: HorizonDetection.
+WT exe: ImageWriter.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+.
+WT exe: RobotDetection<4> [Mitecom] Update sent
+WT exe: FieldLineDetection.
+WT exe: GoalDetectionWT exe: BallDetection.
+.
+WT exe: GoalieDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController.
+WT exe: CaptureV4L2.
+WT exe: ImageWriter.
+WT exe: HorizonDetectionWT exe: MJPEGStreamer.
+.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: BallDetectionWT exe: GoalDetection.
+.
+WT exe: GoalieDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController.
+WT exe: CaptureV4L2.
+WT exe: ImageWriter.
+WT exe: MJPEGStreamer.
+WT exe: HorizonDetectionWT exe: Scanlines.
+<4> [Mitecom] Update sent
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: GoalieDetection.
+WT exe: MovementPredictor.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+.
+WT exe: LocalModeling.
+<4> [GameControllerServer] KeepAlive sent
+<4> [Mitecom] Update sent
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController.
+WT exe: CaptureV4L2.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetectionWT exe: BallDetection.
+.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController.
+WT exe: CaptureV4L2.
+WT exe: ImageWriter.
+WT exe: MJPEGStreamerWT exe: HorizonDetection.
+WT exe: Scanlines.
+.
+WT exe: FieldLineDetectionWT exe: RobotDetection.
+WT exe: GoalDetection.
+WT exe: BallDetectionWT exe: GoalieDetection.
+.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+.
+<4> [Mitecom] Update sent
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetectionWT exe: GoalieDetection.
+.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection<4> [Mitecom] Update sent
+.
+WT exe: GoalDetection.
+WT exe: BallDetectionWT exe: GoalieDetection.
+.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<3> [Behavior] SearchBall: Ball lost!
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetectionWT exe: GoalieDetection.
+.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 60, Tilt: -10
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+.
+<4> [Mitecom] Update sent
+<4> [Behavior] SearchBall: Pan 75, Tilt: -10
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetectionWT exe: GoalieDetection.
+.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 75, Tilt: -10
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 75, Tilt: -10
+.
+<4> [GameControllerServer] KeepAlive sent
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection<4> [Mitecom] Update sent
+WT exe: BallDetection.
+WT exe: MovementPredictor.
+.
+WT exe: LocalModeling.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+.
+<4> [Behavior] SearchBall: Pan 90, Tilt: -10
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 90, Tilt: -10
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyControllerWT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines<4> [Body] Stop
+.
+<4> [Mitecom] Update sent
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 90, Tilt: -10
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+.
+<4> [Behavior] SearchBall: Pan 105, Tilt: -10
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: HorizonDetectionWT exe: ImageWriter.
+.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetectionWT exe: GoalieDetection.
+.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 105, Tilt: -10
+.
+<4> [Mitecom] Update sent
+.
+<4> [WolvesAI] FPS (min/mean/max/curr): 0.24/8.07/30.63/8.55
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: ImageWriter.
+WT exe: MJPEGStreamerWT exe: HorizonDetection.
+WT exe: Scanlines.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 105, Tilt: -10
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: ImageWriter.
+WT exe: HorizonDetectionWT exe: MJPEGStreamer.
+.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Mitecom] Update sent
+<4> [Behavior] SearchBall: Pan 120, Tilt: -10
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: ImageWriter.
+WT exe: MJPEGStreamerWT exe: Scanlines.
+WT exe: HorizonDetection.
+.
+WT exe: FieldLineDetection.
+WT exe: RobotDetectionWT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 120, Tilt: -10
+.
+<4> [GameControllerServer] KeepAlive sent
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 120, Tilt: -10
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines<4> [Mitecom] Update sent
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetectionWT exe: BallDetection.
+WT exe: GoalieDetection.
+.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+.
+<4> [Behavior] SearchBall: Pan 75, Tilt: -40
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 75, Tilt: -40
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+WT exe: CaptureV4L2.
+.
+WT exe: MJPEGStreamer.
+WT exe: HorizonDetection.
+WT exe: ImageWriter.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetectionWT exe: GoalieDetection.
+.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+<4> [Mitecom] Update sent
+.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 75, Tilt: -40
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: CaptureV4L2WT exe: BodyController.
+<4> [Body] Stop
+.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+.
+<4> [Behavior] SearchBall: Pan 60, Tilt: -40
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyControllerWT exe: CaptureV4L2.
+<4> [Body] Stop
+WT exe: MJPEGStreamer.
+.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines<4> [Mitecom] Update sent
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetectionWT exe: BallDetection.
+WT exe: GoalieDetection.
+.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 60, Tilt: -40
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: CaptureV4L2WT exe: BodyController.
+<4> [Body] Stop
+.
+WT exe: ImageWriter.
+WT exe: MJPEGStreamer.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: FieldLineDetectionWT exe: RobotDetection.
+WT exe: GoalDetectionWT exe: BallDetection.
+.
+WT exe: GoalieDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 60, Tilt: -40
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: ImageWriter.
+WT exe: MJPEGStreamerWT exe: HorizonDetection.
+.
+WT exe: Scanlines<4> [Mitecom] Update sent
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: BallDetection.
+WT exe: GoalDetectionWT exe: MovementPredictor.
+.
+WT exe: LocalModeling.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 45, Tilt: -40
+.
+<4> [GameControllerServer] KeepAlive sent
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: CaptureV4L2WT exe: BodyController.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+<4> [Body] Stop
+.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 45, Tilt: -40
+.
+<4> [Mitecom] Update sent
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: BallDetection.
+WT exe: GoalDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 45, Tilt: -40
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyControllerWT exe: CaptureV4L2.
+<4> [Body] Stop
+.
+WT exe: ImageWriter.
+WT exe: MJPEGStreamer.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 30, Tilt: -40
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: HorizonDetection.
+WT exe: ImageWriter.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+.
+WT exe: RobotDetection<4> [Mitecom] Update sent
+WT exe: FieldLineDetection.
+WT exe: BallDetectionWT exe: GoalDetection.
+WT exe: GoalieDetection.
+.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 30, Tilt: -40
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: HorizonDetection.
+WT exe: ImageWriterWT exe: Scanlines.
+WT exe: MJPEGStreamer.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: BallDetectionWT exe: GoalDetection.
+WT exe: GoalieDetection.
+.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 30, Tilt: -40
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyControllerWT exe: CaptureV4L2<4> [Body] Stop
+.
+.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: FieldLineDetectionWT exe: RobotDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModelingWT exe: MovementPredictor.
+.
+WT exe: GoalieDetection.
+<4> [Mitecom] Update sent
+.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 15, Tilt: -40
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyControllerWT exe: CaptureV4L2.
+<4> [Body] Stop
+WT exe: MJPEGStreamer.
+.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetectionWT exe: BallDetection.
+WT exe: GoalieDetection.
+.
+<4> [Mitecom] Update sent
+.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 15, Tilt: -40
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: CaptureV4L2.
+WT exe: BodyController<4> [Body] Stop
+WT exe: MJPEGStreamer.
+.
+WT exe: ImageWriterWT exe: Scanlines.
+WT exe: HorizonDetection.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetectionWT exe: BallDetection.
+.
+WT exe: GoalieDetection.
+WT exe: MovementPredictor.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 15, Tilt: -40
+.
+WT exe: LocalModeling.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: FieldLineDetectionWT exe: RobotDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+<4> [GameControllerServer] KeepAlive sent
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+.
+<4> [Behavior] SearchBall: Pan 0, Tilt: -40
+.
+<4> [WolvesAI] FPS (min/mean/max/curr): 0.24/8.24/30.63/7.50
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: CaptureV4L2WT exe: BodyController.
+<4> [Body] Stop
+.
+WT exe: ScanlinesWT exe: HorizonDetection.
+WT exe: ImageWriter.
+WT exe: MJPEGStreamer.
+<4> [Mitecom] Update sent
+.
+WT exe: FieldLineDetectionWT exe: RobotDetection.
+WT exe: BallDetectionWT exe: GoalDetection.
+.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 0, Tilt: -40
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyControllerWT exe: CaptureV4L2<4> [Body] Stop
+.
+.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 0, Tilt: -40
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: GoalieDetection.
+<4> [Mitecom] Update sent
+.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Mitecom] Update sent
+<4> [Behavior] SearchBall: Pan -15, Tilt: -40
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: FieldLineDetectionWT exe: RobotDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -15, Tilt: -40
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+WT exe: CaptureV4L2.
+.
+WT exe: HorizonDetection.
+WT exe: ImageWriter.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -15, Tilt: -40
+.
+<4> [Mitecom] Update sent
+<4> [GameControllerServer] KeepAlive sent
+<4> [Mitecom] Update sent
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+.
+<4> [Behavior] SearchBall: Pan -30, Tilt: -40
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyControllerWT exe: CaptureV4L2.
+<4> [Body] Stop
+.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -30, Tilt: -40
+.
+<4> [Mitecom] Update sent
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -30, Tilt: -40
+.
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [GameControllerServer] KeepAlive sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [GameControllerServer] KeepAlive sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [GameControllerServer] KeepAlive sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+.
+WT exe: ConfigurationProvider.
+WT exe: CaptureV4L2.
+WT exe: RemoteBehavior.
+WT exe: ScanlinesWT exe: BodyController<4> [Body] Stop
+.
+WT exe: HorizonDetection.
+WT exe: ImageWriter.
+WT exe: MJPEGStreamer.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Mitecom] Update sent
+<4> [GameControllerServer] KeepAlive sent
+<4> [Behavior] SearchBall: Pan -45, Tilt: -40
+.
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [GameControllerServer] KeepAlive sent
+<4> [Mitecom] Update sent
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: CaptureV4L2WT exe: BodyController.
+<4> [Body] Stop
+.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -45, Tilt: -40
+.
+<4> [Mitecom] Update sent
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: GoalieDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -45, Tilt: -40
+.
+.
+<4> [Mitecom] Update sent
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: ScanlinesWT exe: HorizonDetection.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: BallDetection.
+WT exe: GoalDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+.
+<4> [Behavior] SearchBall: Pan -60, Tilt: -40
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: CaptureV4L2WT exe: BodyController.
+<4> [Body] Stop
+.
+WT exe: MJPEGStreamer.
+WT exe: HorizonDetectionWT exe: ImageWriter.
+.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: BallDetection.
+WT exe: GoalDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -60, Tilt: -40
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: ImageWriter.
+WT exe: HorizonDetectionWT exe: Scanlines.
+WT exe: MJPEGStreamer.
+.
+<4> [Mitecom] Update sent
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: GoalieDetection.
+.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -60, Tilt: -40
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: CaptureV4L2.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+<4> [GameControllerServer] KeepAlive sent
+WT exe: BallDetection.
+WT exe: GoalDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+.
+<4> [Behavior] SearchBall: Pan -60, Tilt: -70
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: ScanlinesWT exe: HorizonDetection.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -60, Tilt: -70
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: ImageWriter.
+WT exe: MJPEGStreamer.
+WT exe: ScanlinesWT exe: HorizonDetection.
+.
+<4> [Mitecom] Update sent
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: GoalieDetection.
+.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -60, Tilt: -70
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: CaptureV4L2WT exe: BodyController.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines<4> [Body] Stop
+.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+.
+<4> [Behavior] SearchBall: Pan -45, Tilt: -70
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModelingWT exe: MovementPredictor.
+.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -45, Tilt: -70
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: CaptureV4L2WT exe: BodyController.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines<4> [Body] Stop
+.
+<4> [Mitecom] Update sent
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -45, Tilt: -70
+.
+.
+.
+<4> [WolvesAI] FPS (min/mean/max/curr): 0.24/8.30/30.63/9.01
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController.
+WT exe: CaptureV4L2.
+WT exe: ImageWriter.
+WT exe: MJPEGStreamerWT exe: HorizonDetection.
+.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+.
+<4> [Behavior] SearchBall: Pan -30, Tilt: -70
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyControllerWT exe: CaptureV4L2.
+<4> [Body] Stop
+.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: ScanlinesWT exe: HorizonDetection.
+.
+WT exe: FieldLineDetection.
+WT exe: RobotDetectionWT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -30, Tilt: -70
+.
+<4> [Mitecom] Update sent
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: CaptureV4L2.
+WT exe: BodyController<4> [Body] Stop
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: BallDetection.
+WT exe: GoalDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -30, Tilt: -70
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: ImageWriter.
+WT exe: MJPEGStreamerWT exe: Scanlines.
+WT exe: HorizonDetection.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: GoalieDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+.
+<4> [Behavior] SearchBall: Pan -15, Tilt: -70
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyControllerWT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+<4> [Body] Stop
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: GoalieDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -15, Tilt: -70
+.
+<4> [Mitecom] Update sent
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+<4> [GameControllerServer] KeepAlive sent
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModelingWT exe: MovementPredictor.
+.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -15, Tilt: -70
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: HorizonDetection.
+WT exe: ImageWriter.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+.
+WT exe: FieldLineDetection.
+WT exe: RobotDetectionWT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: LocalModeling.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 0, Tilt: -70
+.
+<4> [Mitecom] Update sent
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+WT exe: CaptureV4L2.
+WT exe: HorizonDetection.
+WT exe: ImageWriter.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+.
+WT exe: FieldLineDetection.
+WT exe: RobotDetectionWT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 0, Tilt: -70
+.
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: CaptureV4L2.
+WT exe: BodyController.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: BallDetection.
+WT exe: GoalDetection.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: LocalModeling.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 0, Tilt: -70
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+.
+<4> [Mitecom] Update sent
+<4> [Behavior] SearchBall: Pan 15, Tilt: -70
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyControllerWT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines<4> [Body] Stop
+.
+WT exe: FieldLineDetectionWT exe: RobotDetection.
+WT exe: BallDetectionWT exe: GoalDetection.
+WT exe: GoalieDetection.
+.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 15, Tilt: -70
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController.
+WT exe: CaptureV4L2.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: BallDetection.
+WT exe: GoalDetectionWT exe: MovementPredictor.
+.
+WT exe: LocalModelingWT exe: GoalieDetection.
+.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 15, Tilt: -70
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: CaptureV4L2WT exe: BodyController.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+<4> [Body] Stop
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+.
+<4> [Mitecom] Update sent
+.
+<4> [Behavior] SearchBall: Pan 30, Tilt: -70
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyControllerWT exe: CaptureV4L2.
+.
+WT exe: HorizonDetection.
+WT exe: ImageWriter.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: BallDetectionWT exe: GoalDetection.
+.
+WT exe: LocalModelingWT exe: MovementPredictor.
+.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 30, Tilt: -70
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyControllerWT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+<4> [Body] Stop
+WT exe: Scanlines.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: GoalieDetection.
+<4> [Mitecom] Update sent
+<4> [GameControllerServer] KeepAlive sent
+.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 30, Tilt: -70
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: CaptureV4L2WT exe: BodyController.
+WT exe: ImageWriter.
+WT exe: MJPEGStreamerWT exe: Scanlines.
+WT exe: HorizonDetection.
+<4> [Body] Stop
+.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: GoalieDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Mitecom] Update sent
+<4> [Behavior] SearchBall: Pan 45, Tilt: -70
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 45, Tilt: -70
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 45, Tilt: -70
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines<4> [Mitecom] Update sent
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+.
+<4> [Behavior] SearchBall: Pan 75, Tilt: -40
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 75, Tilt: -40
+.
+.
+<4> [WolvesAI] FPS (min/mean/max/curr): 0.24/8.90/30.63/10.19
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: MJPEGStreamer.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: BallDetectionWT exe: GoalDetection.
+.
+WT exe: GoalieDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+.
+<4> [Mitecom] Update sent
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 75, Tilt: -40
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyControllerWT exe: CaptureV4L2.
+<4> [Body] Stop
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: GoalieDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+.
+<4> [Behavior] SearchBall: Pan 60, Tilt: -40
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyControllerWT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines<4> [Body] Stop
+.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: GoalieDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 60, Tilt: -40
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: BallDetection.
+WT exe: GoalDetection.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: LocalModeling.
+<4> [Mitecom] Update sent
+<4> [GameControllerServer] KeepAlive sent
+.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 60, Tilt: -40
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyControllerWT exe: CaptureV4L2<4> [Body] Stop
+.
+.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+.
+WT exe: FieldLineDetectionWT exe: RobotDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 45, Tilt: -40
+.
+<4> [Mitecom] Update sent
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: HorizonDetection.
+WT exe: ImageWriter.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+.
+WT exe: FieldLineDetectionWT exe: RobotDetection.
+WT exe: GoalDetectionWT exe: BallDetection.
+.
+WT exe: GoalieDetection.
+WT exe: LocalModelingWT exe: MovementPredictor.
+.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 45, Tilt: -40
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 45, Tilt: -40
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+.
+WT exe: FieldLineDetection.
+WT exe: RobotDetectionWT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+.
+<4> [Mitecom] Update sent
+<4> [Behavior] SearchBall: Pan 30, Tilt: -40
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyControllerWT exe: CaptureV4L2.
+<4> [Body] Stop
+.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: GoalieDetection.
+.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 30, Tilt: -40
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: FieldLineDetectionWT exe: RobotDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: GoalieDetection.
+.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 30, Tilt: -40
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: CaptureV4L2WT exe: BodyController.
+<4> [Body] Stop
+.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+.
+WT exe: FieldLineDetection.
+WT exe: RobotDetectionWT exe: GoalDetection.
+WT exe: BallDetectionWT exe: GoalieDetection.
+.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Mitecom] Update sent
+.
+<4> [Behavior] SearchBall: Pan 15, Tilt: -40
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+WT exe: CaptureV4L2.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetectionWT exe: GoalieDetection.
+.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 15, Tilt: -40
+.
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController.
+WT exe: CaptureV4L2.
+WT exe: HorizonDetection.
+WT exe: ImageWriter.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: GoalieDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 15, Tilt: -40
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyControllerWT exe: CaptureV4L2.
+<4> [Body] Stop
+.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+<4> [Mitecom] Update sent
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [GameControllerServer] KeepAlive sent
+.
+<4> [Behavior] SearchBall: Pan 0, Tilt: -40
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: ImageWriter.
+WT exe: HorizonDetectionWT exe: Scanlines.
+WT exe: MJPEGStreamer.
+.
+WT exe: FieldLineDetectionWT exe: RobotDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModelingWT exe: MovementPredictor.
+.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 0, Tilt: -40
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyControllerWT exe: CaptureV4L2<4> [Body] Stop
+.
+.
+WT exe: HorizonDetection.
+WT exe: ScanlinesWT exe: ImageWriter.
+WT exe: MJPEGStreamer.
+.
+WT exe: FieldLineDetectionWT exe: RobotDetection.
+WT exe: BallDetection.
+WT exe: GoalDetection.
+WT exe: LocalModeling.
+WT exe: GoalieDetection.
+WT exe: MovementPredictor.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan 0, Tilt: -40
+.
+<4> [Mitecom] Update sent
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: MJPEGStreamer.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+.
+<4> [Behavior] SearchBall: Pan -15, Tilt: -40
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: CaptureV4L2WT exe: BodyController.
+<4> [Body] Stop
+.
+WT exe: HorizonDetection.
+WT exe: ImageWriter.
+WT exe: MJPEGStreamer.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -15, Tilt: -40
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetectionWT exe: BallDetection.
+WT exe: MovementPredictor.
+.
+WT exe: LocalModeling.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -15, Tilt: -40
+.
+<4> [Mitecom] Update sent
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: ImageWriter.
+WT exe: MJPEGStreamer.
+WT exe: HorizonDetectionWT exe: Scanlines.
+.
+WT exe: FieldLineDetectionWT exe: RobotDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModelingWT exe: GoalieDetection.
+.
+WT exe: MovementPredictor.
+.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -30, Tilt: -40
+.
+<4> [WolvesAI] FPS (min/mean/max/curr): 0.24/9.33/30.63/5.69
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+<4> [Mitecom] Update sent
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: GoalieDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -30, Tilt: -40
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: CaptureV4L2WT exe: BodyController.
+<4> [Body] Stop
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+.
+.
+WT exe: FieldLineDetection.
+WT exe: RobotDetectionWT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -30, Tilt: -40
+.
+<4> [Mitecom] Update sent
+<4> [GameControllerServer] KeepAlive sent
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: GoalieDetection.
+.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Mitecom] Update sent
+<4> [Behavior] SearchBall: Pan -45, Tilt: -40
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: CaptureV4L2WT exe: BodyController.
+<4> [Body] Stop
+.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: MJPEGStreamer.
+WT exe: Scanlines.
+WT exe: FieldLineDetectionWT exe: RobotDetection.
+WT exe: BallDetectionWT exe: GoalDetection.
+.
+WT exe: GoalieDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -45, Tilt: -40
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: CaptureV4L2WT exe: BodyController.
+<4> [Body] Stop
+.
+WT exe: HorizonDetection.
+WT exe: ImageWriter.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -45, Tilt: -40
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: ImageWriter.
+WT exe: MJPEGStreamerWT exe: HorizonDetection.
+.
+WT exe: Scanlines<4> [Mitecom] Update sent
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: GoalieDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+.
+<4> [Behavior] SearchBall: Pan -60, Tilt: -40
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+.
+WT exe: FieldLineDetection.
+WT exe: RobotDetectionWT exe: GoalDetectionWT exe: BallDetection.
+.
+WT exe: GoalieDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+<4> [Mitecom] Update sent
+.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -60, Tilt: -40
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: HorizonDetection.
+WT exe: ImageWriter.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+.
+WT exe: FieldLineDetection.
+WT exe: RobotDetectionWT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: GoalieDetection.
+<4> [GameControllerServer] KeepAlive sent
+.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -60, Tilt: -40
+.
+<1> [ModuleManager] Dependency problem: No non-executed modules have all required representations available! Unexecuted Modules 
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyControllerWT exe: CaptureV4L2<4> [Body] Stop
+.
+.
+WT exe: Scanlines<4> [Mitecom] Update sent
+WT exe: ImageWriter.
+WT exe: MJPEGStreamerWT exe: HorizonDetection.
+.
+.
+WT exe: FieldLineDetection.
+WT exe: RobotDetectionWT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+.
+<4> [Behavior] SearchBall: Pan -135, Tilt: -10
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: CaptureV4L2.
+WT exe: BodyControllerWT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines<4> [Body] Stop
+.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: BallDetection.
+WT exe: GoalDetection.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: LocalModeling.
+.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -135, Tilt: -10
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: CaptureV4L2.
+WT exe: BodyControllerWT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines<4> [Body] Stop
+.
+.
+WT exe: FieldLineDetectionWT exe: RobotDetection.
+WT exe: BallDetection.
+WT exe: GoalDetection.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: BehaviorWT exe: LocalModeling.
+<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -135, Tilt: -10
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: ImageWriter.
+WT exe: MJPEGStreamer.
+WT exe: HorizonDetectionWT exe: Scanlines.
+<4> [Mitecom] Update sent
+.
+WT exe: FieldLineDetectionWT exe: RobotDetection.
+WT exe: GoalDetectionWT exe: BallDetection.
+.
+WT exe: GoalieDetection.
+WT exe: MovementPredictor.
+WT exe: BehaviorWT exe: LocalModeling.
+<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+.
+<4> [Behavior] SearchBall: Pan -120, Tilt: -10
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: BallDetection.
+WT exe: GoalDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -120, Tilt: -10
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyControllerWT exe: CaptureV4L2<4> [Body] Stop
+.
+WT exe: MJPEGStreamerWT exe: ImageWriter.
+.
+WT exe: Scanlines.
+WT exe: HorizonDetection.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: GoalieDetection.
+<4> [Mitecom] Update sent
+.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -120, Tilt: -10
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyControllerWT exe: CaptureV4L2<4> [Body] Stop
+.
+.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: GoalieDetection.
+.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -105, Tilt: -10
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: CaptureV4L2WT exe: BodyController.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines<4> [Body] Stop
+.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: LocalModeling.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -105, Tilt: -10
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: CaptureV4L2WT exe: BodyController.
+<4> [Body] Stop
+.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+.
+WT exe: FieldLineDetectionWT exe: RobotDetection.
+WT exe: GoalDetectionWT exe: BallDetection.
+.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -105, Tilt: -10
+.
+<4> [Mitecom] Update sent
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: CaptureV4L2WT exe: BodyController.
+<4> [Body] Stop
+.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetectionWT exe: Scanlines.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: BallDetection.
+WT exe: GoalDetection.
+WT exe: GoalieDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+.
+<4> [Behavior] SearchBall: Pan -90, Tilt: -10
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: CaptureV4L2WT exe: BodyController.
+<4> [Body] Stop
+.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -90, Tilt: -10
+.
+<4> [GameControllerServer] KeepAlive sent
+<4> [Mitecom] Update sent
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: HorizonDetection.
+WT exe: ImageWriter.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -90, Tilt: -10
+.
+<4> [Mitecom] Update sent
+.
+<4> [WolvesAI] FPS (min/mean/max/curr): 0.24/9.46/30.63/6.35
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: ScanlinesWT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+.
+WT exe: FieldLineDetectionWT exe: RobotDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModelingWT exe: MovementPredictor.
+.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -75, Tilt: -10
+.
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: ImageWriter.
+WT exe: MJPEGStreamerWT exe: Scanlines.
+WT exe: HorizonDetection.
+<4> [Mitecom] Update sent
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: BallDetection.
+WT exe: GoalDetection.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: LocalModeling.
+.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -75, Tilt: -10
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyControllerWT exe: CaptureV4L2.
+<4> [Body] Stop
+.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: GoalDetection.
+WT exe: BallDetectionWT exe: GoalieDetection.
+.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -75, Tilt: -10
+.
+<4> [Mitecom] Update sent
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriterWT exe: HorizonDetection.
+WT exe: Scanlines.
+.
+WT exe: FieldLineDetectionWT exe: RobotDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: GoalieDetection.
+WT exe: MovementPredictor.
+WT exe: BehaviorWT exe: LocalModeling.
+<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [GameControllerServer] KeepAlive sent
+<4> [Behavior] SearchBall: Pan -60, Tilt: -10
+.
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyControllerWT exe: CaptureV4L2.
+<4> [Body] Stop
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+.
+WT exe: RobotDetectionWT exe: FieldLineDetection.
+WT exe: BallDetection.
+WT exe: GoalDetection.
+WT exe: MovementPredictor.
+WT exe: LocalModeling.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -60, Tilt: -10
+.
+<4> [GameControllerServer] KeepAlive sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+.
+WT exe: RemoteBehavior.
+WT exe: ConfigurationProvider.
+WT exe: BodyController<4> [Body] Stop
+.
+WT exe: CaptureV4L2.
+WT exe: MJPEGStreamer.
+WT exe: ImageWriter.
+WT exe: HorizonDetection.
+WT exe: Scanlines.
+WT exe: FieldLineDetectionWT exe: RobotDetection.
+WT exe: GoalDetection.
+WT exe: BallDetection.
+WT exe: LocalModeling.
+WT exe: MovementPredictor.
+WT exe: GoalieDetection.
+WT exe: Behavior<4> [Mitecom] Information updated
+<3> [Behavior] Have 0 teammates, noGoalie
+<4> [Behavior] Striker
+<4> [Behavior] State: SearchBall
+<4> [Behavior] Ball not found, looking for it
+<4> [Behavior] SearchBall: Pan -60, Tilt: -10
+.
+<4> [GameControllerServer] KeepAlive sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [GameControllerServer] KeepAlive sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+<4> [Mitecom] Update sent
+.
+<3> [WolvesAI] Terminating program...
+<4> [Body] Stop
+<4> [Communicator] Listening thread ending
+<3> [ThreadPool] Shutting down worker threads...
+<3> [ModuleManager] Shutting down modules...
+<4> [HTTPServer] Stopping server thread...
+<4> [HTTPServer] Server thread ending
+<4> [HTTPServer] Server halted
+<3> [ModuleManager] Execution times (min/max): 32 ms / 4121 ms
+<3> [Config] Shutting down...
+<3> [Debugger] Metrics:
+<3> [Debugger]   Group 'fps':
+<3> [Debugger]     max: 30.629748
+<3> [Debugger]     mean: 9.232769
+<3> [Debugger]     min: 0.242639
+<3> [Debugger] Shutting down debugging...

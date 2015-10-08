@@ -1,0 +1,104 @@
+/*
+ * BehaviorStriker.h
+ *
+ *  Created on: 26.03.2014
+ *      Author: Oliver Krebs
+ */
+
+#ifndef BEHAVIORSTRIKER_H_
+#define BEHAVIORSTRIKER_H_
+
+#include "AbstractBehavior.h"
+
+class BehaviorStriker
+:	public AbstractBehavior,
+	public ConfigChangeListener
+{
+public:
+	BehaviorStriker(Game *game, MitecomCommunicator *communicator);
+	virtual ~BehaviorStriker();
+	virtual string getStateName(int state);
+	virtual void configChanged();
+
+protected:
+	virtual void executeBehavior();
+	virtual void updateState();
+
+	void entrySearchBall();
+	int processSearchBall();
+
+	void entryMoveToBall();
+	int processMoveToBall();
+
+	void entryCircleToGoal();
+	int processCircleToGoal();
+
+	void entryPositionNearBall();
+	int processPositionNearBall();
+
+	void entryPrepareKick();
+	int processPrepareKick();
+
+	void entryKickBall();
+	int processKickBall();
+
+	void entryCheckKick();
+	int processCheckKick();
+
+	void seekTarget();
+
+	enum {
+		SEARCH_BALL,
+		MOVE_TO_BALL,
+		CIRCLE_TO_GOAL,
+		POSITION_NEAR_BALL,
+		PREPARE_KICK,
+		KICK_BALL,
+		CHECK_KICK
+	};
+
+	int16_t mTurningXMovement;
+	int mTowardsBallLeftTurnAngle;
+	int mTowardsBallRightTurnAngle;
+	int mKickTiltDefault;
+	int mKickTilt;
+	int mNumberOfKicks;
+	int mNumberOfKickTries;
+	int mNumberOfKickTriesMax;
+	int mMinKickBallRange;
+	int mTargetBallDistance;
+	int mKickLeftTurnAngle;
+	int mKickRightTurnAngle;
+
+	int mLastBallPan;
+	int mLastBallTilt;
+	int mLastGoalPan;
+	int mLastGoalTilt;
+
+	vect3d_t mBall;
+	vect3d_t mTarget;
+	vect3d_t mKickOffTarget;
+
+	uint64_t mKickingBegun;
+	uint64_t mKickingTryTimeout;
+	uint64_t mCircleToGoalEntryTime;
+	uint64_t mCircleToGoalTimeout;
+	uint64_t mMyGoalCircleDelay;
+	uint64_t mPositionForKickTimeout;
+	uint64_t mPositionForKickBegun;
+
+	int mNearBallDistanceMin;
+	int mNearBallDistanceMax;
+	int mKickMaxBallDistance;
+
+	int mFoundCounter;
+	int mNotFoundCounter;
+	int mBallLostCounter;
+	int mGoalLostCounter;
+
+	bool mSearchGoal;
+	bool mAllowKick;
+	bool mCheckCorrectGoal;
+};
+
+#endif /* BEHAVIORSTRIKER_H_ */

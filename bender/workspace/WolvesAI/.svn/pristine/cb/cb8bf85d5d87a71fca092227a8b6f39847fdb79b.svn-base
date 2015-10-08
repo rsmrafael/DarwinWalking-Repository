@@ -1,0 +1,39 @@
+/*
+ * MovementPredictor.cpp
+ *
+ *  Created on: May 22, 2013
+ *      Author: CHO
+ */
+
+
+#include "MovementPredictor.h"
+#include "../../Debugging/Debugger.h"
+
+MovementPredictor::MovementPredictor() {
+	lastBall.updateVector(0.0, 0.0);
+}
+
+MovementPredictor::~MovementPredictor() {
+
+}
+
+bool MovementPredictor::execute() {
+
+	predictMovement( &getBallRelative(), &lastBall, &getBallPredict());
+
+	/*Debugger::INFO("MovementPredictor", "BallPredict: %.2f rad, %.0f mm",
+			getBallPredict().getAngle(), getBallPredict().getLength());
+	*/
+
+	return true;
+}
+
+void MovementPredictor::predictMovement(const Position *currentObj, const Position *lastObj, Position *predictObj) {
+	Vector diff = currentObj->subtract(*lastObj);
+	Vector vec = currentObj->sum(diff);
+	predictObj->updateVector(vec.getAngle(), vec.getLength());
+}
+
+void MovementPredictor::configChanged() {
+
+}

@@ -1,0 +1,80 @@
+/*
+ * Histogramm.h
+ *
+ *  Created on: Sep 24, 2012
+ *      Author: jan
+ */
+
+#ifndef Histogramm_H_
+#define Histogramm_H_
+
+#include <list>
+#include "../Blackboard/Printable.h"
+#include "../Blackboard/Serializer.h"
+#include <vector>
+
+struct Area {
+
+	int start;
+	int end;
+	int combinedValue;
+
+	Area(int s, int e, int value) {
+		start = s;
+		end = e;
+		combinedValue = value;
+	}
+
+	Area(int firstPoint, int value){
+		start = firstPoint;
+		end = firstPoint;
+		combinedValue = value;
+	}
+};
+
+class Histogramm: public Printable {
+public:
+	Histogramm();
+	virtual ~Histogramm();
+
+	void setType(int minValue, int maxValue, int stepSize);
+	void clearHist();
+	void addData(int data);
+
+	const map<int, int> getHistData() const;
+	const int getMinValue() const {
+		return mMinValue;
+	}
+	const int getMaxValue() const {
+		return mMaxValue;
+	}
+	const int getStepSize() const {
+		return mStepSize;
+	}
+
+	const vector<int> getMaxima(size_t numOfMaxima) const;
+	const vector<int> getMinima(size_t numOfMinima) const;
+
+	vector<Area> getMaxAreas(int maxSize, int numOfMaxima) const;
+
+	void addEntry(int key, int value);
+
+	virtual void print(ostream& stream) const {
+
+	}
+
+private:
+	map<int, int> mData;
+	int mMinValue;
+	int mMaxValue;
+	int mStepSize;
+};
+
+template<>
+class Serializer<Histogramm> {
+public:
+	static void serialize(const Histogramm& representation, ostream& stream);
+	static void deserialize(istream& stream, Histogramm& representation);
+};
+
+#endif /* Histogramm_H_ */

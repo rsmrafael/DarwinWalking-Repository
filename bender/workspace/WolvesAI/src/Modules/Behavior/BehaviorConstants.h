@@ -1,0 +1,60 @@
+/*
+ * BehaviorConstants.h
+ *
+ *  Created on: 26.03.2014
+ *      Author: Oliver Krebs
+ */
+
+#ifndef BEHAVIORCONSTANTS_H_
+#define BEHAVIORCONSTANTS_H_
+
+const int NO_OBJECT_MAX_COUNT		= 15;
+const int NO_BALL_MAX_COUNT			= 10;//3	// ball not seen more times than that => ball lost
+const int NO_GOAL_MAX_COUNT			= 10;//5
+
+const int BALL_FOUND_THRESHOLD 		= 2;//5		// Number of subsequent ball detections needed
+const int GOAL_FOUND_THRESHOLD 		= 2;//20		// Number of subsequent goal detections needed
+
+const int OBJECT_LOST_THRESHOLD 	= 10;//8 // searchBall: ball not seen more times than that => ball lost
+const int MAX_LOST_COUNTER			= 5;//10
+
+const double FOLLOW_MAX_RL_TURN		= 300.0;//200.0	// Body scales these to mm/step
+const double FOLLOW_MIN_RL_TURN		= 3.0;
+const double FOLLOW_MAX_FB_STEP		= 100.0;//100.0
+const double FOLLOW_MIN_FB_STEP		= 20.0; // 50.0
+
+const double FIT_MAX_RL_TURN		= 100.0;	// Body scales these to mm/step
+const double FIT_FB_STEP			= 20.0;
+
+const double GOAL_LEFT_ANGLE		= -10.0;//-5
+const double GOAL_RIGHT_ANGLE		= +10.0;//5
+
+const int UPDATES_PER_POINT			= 3;//5 // # of calls before advancing to next point
+const int MAX_LOOP_POINTS			= 9;
+
+const uint64_t SCAN_FIELD_TIMEOUT 	= 30000;	// maximal time (ms) in state SCAN_FIELD
+
+const uint64_t TURN_DURATION		= 3000; // time in milliseconds robot is turning if object not found
+const uint64_t CIRCLE_DURATION		= 3000;
+
+const uint64_t ROLE_DECIDE_CHANGE_INTERVAL = 5000; // ms
+
+// constants
+const int BALL_DISTANCE_STRIKER   	= 300;
+const int BALL_DISTANCE_SUPPORTER 	= 800;
+const int BALL_DISTANCE_DEFENDER 	= 2000;
+
+const int PAN_SEARCH_MIN[] = 	{-10, -90, -90};//{-135, -135, -45};
+const int PAN_SEARCH_MAX[] = 	{+10, +90, +90};//{+135, +135, +45};
+const int PAN_SEARCH_STEP  = 	+10;//+15;
+
+const int TILT_SEARCH_MIN  = 	 20; //old:-70;
+const int TILT_SEARCH_MAX  = 	 80; //old:-10;
+const int TILT_SEARCH_STEP = 	+30;//30 //old:+30;
+
+const double CIRCLE_DISTANCE_MIN = 100.0; // minimal distance to center: circle radius (75) + reserve
+
+const int TOP_ROW = 0;	// first row (tilt=80 deg)
+const int BOT_ROW = 2;	// last row (tilt=20 deg)
+
+#endif /* BEHAVIORCONSTANTS_H_ */

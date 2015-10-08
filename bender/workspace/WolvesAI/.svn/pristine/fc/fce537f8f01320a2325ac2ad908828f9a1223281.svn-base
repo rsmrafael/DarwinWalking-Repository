@@ -1,0 +1,7 @@
+#export PYTHONHOME=/mnt/sdcard/python
+#export PATH=$PATH:/mnt/sdcard/python/bin
+#export PATH=$PATH:/mnt/sdcard/ros/bin
+#export LD_LIBRARY_PATH=/mnt/sdcard/python/lib
+#ln -s /bin/env /usr/bin/env
+
+#. /mnt/sdcard/ros/setup.bash

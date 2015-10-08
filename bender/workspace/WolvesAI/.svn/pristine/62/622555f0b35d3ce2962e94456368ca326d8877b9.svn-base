@@ -1,0 +1,18 @@
+#!/bin/sh
+
+# Config for RoboCup 2011 Humanoid League Field
+
+#iwconfig wlan0 essid HL_KID_B
+#ifconfig wlan0 192.168.23.15`fw_printenv -n botid` netmask 255.255.255.0
+
+# Config for Labor
+
+iwconfig wlan0 essid HL_KID_A
+ifconfig wlan0 192.168.120.15`fw_printenv -n botid` netmask 255.255.255.0
+
+
+# Anpassen xxx.xxx.xx.15'Platzhalter für letzte Ziffer, z.B 4 für  154
+# Name für WLan eingenben, hier  kidsize
+
+# Add broadcast address
+route add 255.255.255.255 netmask 0.0.0.0 dev wlan0

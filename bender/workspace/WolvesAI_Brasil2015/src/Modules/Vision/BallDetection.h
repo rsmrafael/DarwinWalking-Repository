@@ -1,0 +1,142 @@
+/*
+ * BallDetection.h
+ *
+ *  Created on: Sep 3, 2012
+ *      Author: Jan
+ */
+
+#ifndef BallDetection_H_
+#define BallDetection_H_
+
+#include "../../ModuleManager/Module.h"
+#include "../../Representations/YUVImage.h"
+#include "../../Representations/FieldLines.h"
+#include "../../Representations/Object.h"
+#include "../../Representations/ObjectList.h"
+#include "../../Representations/Point.h"
+#include "../../Representations/RobotConfiguration.h"
+#include "../../Representations/BodyStatus.h"
+#include "../../ConfigChangeListener.h"
+
+/**
+ * ball compare data
+ */
+struct BallCompareData {
+	int centerX;				//!< center position x
+	int centerY;				//!< center position y
+	int meanRadius;				//!< mean radius
+	double circleAnomaly;		//!< circle anomaly
+	double foundEdgesRatio;		//!< found edges ratio
+	double correctEdgesRatio;	//!< correct edges ratio
+	size_t numCloudPixels;		//!< number of cloud pixels
+};
+
+BEGIN_DECLARE_MODULE(BallDetection)
+	REQUIRE(YUVImage,Image)
+	REQUIRE(FieldLines, FieldLines)
+	REQUIRE(PointCloud, BallPoints)
+	//REQUIRE(Line, Horizon)
+	REQUIRE(BodyStatus, BodyStatus)
+	REQUIRE(RobotConfiguration, RobotConfiguration)
+	PROVIDE(Object,Ball)
+	PROVIDE(PointCloud,BallEdges)
+	PROVIDE(ObjectList,RemovedBallCandidates)
+END_DECLARE_MODULE(BallDetection)
+
+/**
+ * BallDetection tries to find the ball
+ */
+class BallDetection: public BallDetectionBase,
+public ConfigChangeListener {
+public:
+	BallDetection();
+	virtual ~BallDetection();
+
+	/**
+	 * execute
+	 * @see Module::execute
+	 */
+	virtual bool execute();
+
+	/**
+	 * config has changed
+	 * @see ConfigChangeListener::configChanged
+	 */
+	virtual void configChanged();
+
+private:
+	void addBallPointToNearestCloud( const Point &point);
+	void mergeOverlappingClouds();
+	double calculateCompareResult(const BallCompareData &data) const;
+
+	bool findAllBallEdges(BallCompareData &data);
+	bool findBallEdge(int xSlope, int ySlope, int &steps) const;
+
+	bool filterFieldLines(const Point &ball) const;
+	bool filterHorizon(const Point &ball) const;
+	inline void DEBUG_DRAWING_BALL(BoundingBox &box, DebugDrawer::drawColor col, int min);
+	inline void DEBUG_DRAWING_CENTER(DebugDrawer::drawColor col, int min);
+
+	vector<PointCloud> mBallClouds;
+	vector<PointCloudData> mBallCloudDataList;
+
+	int mBallCenterX;
+	int mBallCenterY;
+	int mBallRadius;
+
+	int mMinCloudDistance;
+
+	double mAdditionalScanPixelFactor;
+	int mAdditionalScanPixelMin;
+	int mAdditionalScanPixelCount;
+
+	double mRadiusCompareWeight;
+	double mCircleAnomalyCompareWeight;
+	double mFoundEdgesRatioCompareWeight;
+	double mCorrectEdgesRatioCompareWeight;
+	double mPointsAreaRatioCompareWeight;
+
+	int mMinRadius;
+	int mMaxFieldlineError;
+	double mMaxCircleAnomaly;
+	double mMinFoundEdgesRatio;
+	double mMinCorrectEdgesRatio;
+	double mMinPointsAreaRatio;
+	double mMaxAnomalyRadiusFactor;
+
+	bool mDebugInfoEnabled;
+	int mDebugDrawings;
+
+	bool mIsFilterFieldLine;
+	bool mIsFilterHorizon;
+
+	int mMinY;
+	int mMaxU;
+	int mMinV;
+
+	bool mIsAtBorder;
+
+	int mVisionChangeBallDetection;
+
+	DebugDrawer::drawColor mColor;
+};
+
+void BallDetection::DEBUG_DRAWING_BALL(BoundingBox &box, DebugDrawer::drawColor col, int min)
+{
+#ifdef _DEBUG
+	if (mDebugDrawings >= min) {
+		DRAW_CIRCLE("Ball", box.topLeft.getX(), box.topLeft.getY(), box.width, col);
+	}
+#endif
+}
+
+void BallDetection::DEBUG_DRAWING_CENTER(DebugDrawer::drawColor col, int min)
+{
+#ifdef _DEBUG
+	if (mDebugDrawings >= min) {
+		DRAW_POINT("Ball", mBallCenterX, mBallCenterY, col);
+	}
+#endif
+}
+
+#endif /* BallDetection_H_ */

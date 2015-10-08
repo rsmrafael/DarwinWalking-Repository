@@ -1,0 +1,63 @@
+; "virtual serial port" for the basic-usb-demo
+;
+
+; This inf-file is from a FreeRTOS-demo-application.
+; All references to FreeRTOS have been remove to avoid
+; conflicts with FreeRTOS.
+; The VID and PID have been adapted to the Atmel demo-code.
+;
+; modifications by Martin Thomas 
+; http://www.siwawi.arubi.uni-kl.de/avr_projects
+
+
+[Version]
+Signature="$Windows NT$"
+Class=Ports
+ClassGuid={4D36E978-E325-11CE-BFC1-08002BE10318}
+Provider=%WinARM%
+LayoutFile=layout.inf
+DriverVer=10/15/1999,5.0.2153.1
+
+[MANUFACTURER]
+%WinARM_SAM7%=Models
+
+[Models]
+; %WinARM_SAM7_CDC%=Reader,USB\VID_03EB&PID_6124
+%WinARM_SAM7_CDC%=Reader,USB\VID_03EB&PID_6125
+
+[Reader_Install.NTx86]
+;Windows2000
+
+[DestinationDirs]
+DefaultDestDir=12
+Reader.NT.Copy=12
+
+[Reader.NT]
+CopyFiles=Reader.NT.Copy
+AddReg=Reader.NT.AddReg
+
+[Reader.NT.Copy]
+usbser.sys
+
+[Reader.NT.AddReg]
+HKR,,NTMPDriver,,*ntkern
+HKR,,NTMPDriver,,usbser.sys
+HKR,,EnumPropPages32,,"MsPorts.dll,SerialPortPropPageProvider"
+
+[Reader.NT.Services]
+AddService = usbser, 0x00000002,Service_Inst
+
+[Service_Inst]
+DisplayName = %Serial.SvcDesc%
+ServiceType = 1 ; SERVICE_KERNEL_DRIVER
+StartType = 3 ; SERVICE_DEMAND_START
+ErrorControl = 1 ;SERVICE_ERROR_NORMAL
+ServiceBinary = %12%\usbser.sys
+LoadOrderGroup = Base
+
+[Strings]
+WinARM = "WinARM demo collection"
+WinARM_SAM7 = "WinARM"
+WinARM_SAM7_CDC = "WinARM CDC Demo (virtual COM)"
+Serial.SvcDesc = "USB Serial emulation driver"
+

@@ -1,0 +1,24 @@
+#!/bin/bash
+
+if [ -z $1 ] 
+then
+	echo "Fehler! Dieses Skript erwartet folgenden Aufruf:"
+	echo " ${0} <Bot-ID>"
+	exit 1
+fi
+
+ftp_site=$1
+username=root
+passwd=uClinux
+
+ftp -in <<EOF
+open $ftp_site
+user $username $passwd
+bin
+passive
+verbose
+cd /mnt/sdcard
+put ./Debug/WolvesKI2 
+close 
+bye
+EOF

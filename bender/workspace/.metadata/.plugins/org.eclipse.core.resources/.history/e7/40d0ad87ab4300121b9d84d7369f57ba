@@ -1,0 +1,76 @@
+/*
+ * AttackerBehavior.h
+ *
+ *  Created on: 21.11.2012
+ *      Author: Stefan
+ */
+
+#ifndef ATTACKERBEHAVIOR_H_
+#define ATTACKERBEHAVIOR_H_
+
+//#define GOAL_TARGETING_AVAILABLE
+
+#include "../../ModuleManager/Module.h"
+#include "../../Representations/RobotConfiguration.h"
+#include "../../Representations/Object.h"
+#include "../../Representations/YUVImage.h"
+#include "../../Representations/BodyAction.h"
+#include "../../Representations/BodyStatus.h"
+
+BEGIN_DECLARE_MODULE(AttackerBehavior)
+	REQUIRE(RobotConfiguration,RobotConfiguration)
+	REQUIRE(BodyStatus,BodyStatus)
+	REQUIRE(YUVImage,Image)
+	REQUIRE(Object,Ball)
+#ifdef GOAL_TARGETING_AVAILABLE
+	REQUIRE(Object,OpGoal)
+#endif
+	PROVIDE(BodyAction,BodyAction)
+END_DECLARE_MODULE(AttackerBehavior)
+
+class AttackerBehavior : public AttackerBehaviorBase {
+public:
+	AttackerBehavior();
+	virtual ~AttackerBehavior();
+
+	virtual void execute();
+private:
+	enum State {
+		searchBall,
+		moveTowardsBall,
+		searchGoal,
+		circleToGoal,
+		moveHalfCircle,
+		checkBallFound,
+		checkGoalFound,
+		doKick,
+		doNothing,
+		delayLoopState
+	};
+
+	State mCurrentState;
+	State mReturnToState;
+	unsigned char mDelayLoopDuration;
+	timeval mLoopStartTime;
+	signed char mSearchObjectsCurrentPos;
+	unsigned char mSearchObjectsLoopCnt;
+	unsigned char mSearchObjectsUpdateCnt;
+	int mSearchObjectFoundCounter;
+	int mSearchObjectNotFoundCounter;
+
+	bool processSearchBall();
+	bool processMoveTowardsBall();
+	bool processSearchGoal();
+	bool processCircleToGoal();
+	bool processMoveHalfCircle();
+	bool processCheckBallFound();
+	bool processCheckGoalFound();
+	bool processDoKick();
+
+	void processTracker(const Object& object) const;
+	void searchObject(bool allowedToMove, bool reverse);
+	void getPanTiltSearchPosition(signed char idx, signed char* pan, signed char* tilt) const;
+	void enterDelayState(State returnState, unsigned char delay);
+};
+
+#endif /* ATTACKERBEHAVIOR_H_ */

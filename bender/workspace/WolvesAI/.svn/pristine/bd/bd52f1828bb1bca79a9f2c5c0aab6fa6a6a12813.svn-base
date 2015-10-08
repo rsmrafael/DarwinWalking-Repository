@@ -1,0 +1,234 @@
+/*
+ * BehaviorGoalie.cpp
+ *
+ *  Created on: 26.03.2014
+ *      Author: Oliver Krebs
+ */
+
+#include "BehaviorGoalie.h"
+#include "BehaviorConstants.h"
+#include "../../Config.h"
+
+BehaviorGoalie::BehaviorGoalie(Game *game, MitecomCommunicator *communicator)
+:	AbstractBehavior( game, communicator)
+{
+	mThisRole = ROLE_GOALIE;
+	mReactTilt = 30;
+	mReactDistance = 200.0;
+	mFoundCounter = 0;
+	mNotFoundCounter = 0;
+	mCurrentState = SEARCH_BALL;
+	entrySearchBall();
+
+	Config::GetInstance()->registerConfigChangeHandler(this);
+	this->configChanged();
+}
+
+BehaviorGoalie::~BehaviorGoalie()
+{
+	Config::GetInstance()->removeConfigChangeHandler(this);
+}
+
+void BehaviorGoalie::configChanged()
+{
+	mTurningXMovement   = Config::GetValue<int16_t>("AI", "turningXMovement", 0);//Bot4: -40
+	mReactTilt 			= Config::GetInt("Goalie", "reactTilt", 30);
+	mReactDistance 		= Config::GetDouble("Goalie", "reactDistance", 200.0);
+}
+
+void BehaviorGoalie::executeBehavior()
+{
+	switch( mCurrentState) {
+	case SEARCH_BALL:
+		mCurrentState = processSearchBall();
+		break;
+	case TRACK_BALL:
+		mCurrentState = processTrackBall();
+		break;
+	case SAVE_BALL:
+		mCurrentState = processSaveBall();
+		break;
+	case DELAY_LOOP:
+		mCurrentState = processDelayLoop();
+		break;
+	default:
+		Debugger::INFO("Goalie", "Unknown state, change to searchBall");
+		mCurrentState = SEARCH_BALL;
+		break;
+	}
+}
+
+void BehaviorGoalie::updateState()
+{
+	if (mCurrentState != mLastState) {
+		switch( mCurrentState) {
+		case SEARCH_BALL:
+			entrySearchBall();
+			break;
+		case TRACK_BALL:
+			entryTrackBall();
+			break;
+		case SAVE_BALL:
+			entrySaveBall();
+			break;
+		default:
+			mMyInfo.data[ROBOT_CURRENT_ACTION] = ACTION_WAITING;
+			//Debugger::announce("Waiting");
+			break;
+		}
+		Debugger::INFO("Goalie", "Changed state %d to %d", mLastState, mCurrentState);
+		mLastState = mCurrentState;
+	}
+}
+
+/**
+ * SearchBall
+ */
+void BehaviorGoalie::entrySearchBall()
+{
+	mFoundCounter = 0;
+	mNotFoundCounter = 0;
+	mMyInfo.data[ROBOT_CURRENT_ACTION] = ACTION_UNDEFINED;
+	Debugger::announce("Searching ball");
+}
+
+int BehaviorGoalie::processSearchBall()
+{
+	Debugger::DEBUG("Goalie", "State: SearchBall");
+
+	mIsBallSeenStable = false;
+
+	if (getBall().lastImageSeen) {
+		Debugger::DEBUG("Goalie", "Ball found, tracking");
+		processTracker(&getBall());//getBallPredict()
+		mFoundCounter++;
+		if (mFoundCounter >= BALL_FOUND_THRESHOLD) {
+			mIsBallSeenStable = true;
+			Debugger::INFO("Goalie", "Ball found stable => Move to ball");
+			getBodyAction().Stop();
+			mFoundCounter = 0;
+			mNotFoundCounter = 0;
+			return TRACK_BALL;
+		}
+	} else if (mFoundCounter == 0) {
+		Debugger::DEBUG("Goalie", "Ball not found, looking for it");
+		getBodyAction().Stop();
+		if( !searchObject(false)) {
+			Debugger::INFO("Goalie", "SearchBall: Ball not found, rotate");
+			mSearchObjectLoopPoint = -1;
+			searchObject(false);
+			getBodyAction().setPanTilt(mSearchObjectPan, mSearchObjectTilt);
+			getBodyAction().setWalkerCommand(mTurningXMovement, 0, 100);
+			initDelayLoop(TURN_DURATION);
+			return DELAY_LOOP;
+		} else {
+			Debugger::DEBUG("Goalie", "SearchBall: Pan %d, Tilt: %d", mSearchObjectPan, mSearchObjectTilt);
+			getBodyAction().setPanTilt(mSearchObjectPan, mSearchObjectTilt);
+		}
+	} else {
+		mNotFoundCounter++;
+		if (mNotFoundCounter >= OBJECT_LOST_THRESHOLD){
+			Debugger::INFO("Goalie", "SearchBall: Ball lost!");
+			mFoundCounter = 0;
+			mNotFoundCounter = 0;
+		}
+	}
+	return SEARCH_BALL;
+}
+
+/**
+ * TrackBall
+ */
+void BehaviorGoalie::entryTrackBall()
+{
+	mFoundCounter = 0;
+	mNotFoundCounter = 0;
+	mMyInfo.data[ROBOT_CURRENT_ACTION] = ACTION_WAITING;
+	Debugger::announce("Track Ball");
+}
+
+int BehaviorGoalie::processTrackBall()
+{
+	Debugger::DEBUG("Goalie", "State: TrackBall");
+
+	processTracker(&getBall());
+	if (!getBall().lastImageSeen) {
+		mIsBallSeenStable = false;
+		mNotFoundCounter++;
+		Debugger::DEBUG("Goalie", "No Ball seen (%i/%i)",
+			mNotFoundCounter, NO_BALL_MAX_COUNT);
+		if (mNotFoundCounter >= NO_BALL_MAX_COUNT) {
+			// can not find a ball
+			getBodyAction().Stop();
+			Debugger::INFO("Goalie", "Track: Ball lost!");
+			mFoundCounter = 0;
+			mNotFoundCounter = 0;
+			return SEARCH_BALL;
+		}
+	} else {
+		mIsBallSeenStable = true;
+		mNotFoundCounter = 0;
+		// old code
+		/*if (panTiltCorrection) {
+			int correction = abs(getBodyStatus().getPan());
+
+			if (correction > maxPanAngle) {
+				correction = maxPanAngle;
+			}
+			correction = (int) (correction / panTiltScaling);
+
+			if (getBodyStatus().getTilt() + correction < reactTilt) {
+				mCurrentState = reactToSaveBall;
+				return true;
+			}
+
+		} else {
+			if (getBodyStatus().getTilt() < reactTilt) {
+				mCurrentState = reactToSaveBall;
+				return true;
+			}
+		}*/
+
+		// predicted ball is near enough for reactDistance -> react!
+		if( getBallPredict().lastVector.getLength() < mReactDistance) {
+			return SAVE_BALL;
+		}
+	}
+	return TRACK_BALL;
+}
+
+/**
+ * SaveBall
+ */
+void BehaviorGoalie::entrySaveBall()
+{
+	mMyInfo.data[ROBOT_CURRENT_ACTION] = ACTION_UNDEFINED;
+	Debugger::announce("Save ball");
+}
+
+int BehaviorGoalie::processSaveBall()
+{
+	/*if (getBodyStatus().getPan() < 0) {
+		getBodyAction().GoaliMoveLeft();
+	} else {
+		getBodyAction().GoaliMoveRight();
+	}
+	mIsBallSeenStable = false;*/
+	changeRole(ROLE_STRIKER);
+	return SEARCH_BALL;
+}
+
+/**
+ * LocalizeAndPosition
+ */
+void BehaviorGoalie::entryLocalizeAndPosition()
+{
+	mMyInfo.data[ROBOT_CURRENT_ACTION] = ACTION_POSITIONING;
+}
+
+int BehaviorGoalie::processLocalizeAndPosition()
+{
+	Debugger::DEBUG("Goalie", "State: LocalizeAndPosition");
+	mIsBallSeenStable = false;
+	return SEARCH_BALL;
+}

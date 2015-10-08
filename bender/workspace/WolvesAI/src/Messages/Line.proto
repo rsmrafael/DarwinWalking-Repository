@@ -1,0 +1,13 @@
+package protobuf;
+
+option java_package = "de.ostfalia.robocup.message";
+option java_outer_classname = "MsgLine";
+option optimize_for = LITE_RUNTIME;
+
+import "Point.proto";
+
+message Line {
+	required Point startPoint = 1;
+	required Point endPoint = 2;
+
+}

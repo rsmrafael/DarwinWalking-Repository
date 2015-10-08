@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<item value="655" key="RevertDialog.location.x"/>
+	<item value="https://robolab.robocup.ostfalia.de/svn/robowm/Humanoid/WolvesAI/WolvesAI4/trunk" key="UrlCombo.WolvesKI2 - BlackBoard.0"/>
+	<item value="383" key="passwordStores.size.y"/>
+	<item value="512" key="passwordStores.size.x"/>
+	<item value="241" key="RevertDialog.location.y"/>
+	<item value="101" key="HistoryTableProvider.revisions.Revision"/>
+	<item value="253" key="HistoryTableProvider.revisions.Date"/>
+	<item value="201" key="HistoryTableProvider.revisionsBlock.Author"/>
+	<item value="https://robolab.robocup.ostfalia.de/svn/robowm/Humanoid/WolveAI/WolvesAI4/trunk" key="UrlCombo.WolvesKI2 - BlackBoard.1"/>
+	<item value="615" key="RevertDialog.size.x"/>
+	<item value="101" key="HistoryTableProvider.revisionsBlock.Revision"/>
+	<item value="438" key="RevertDialog.size.y"/>
+	<item value="560" key="ChooseUrlDialog.location.x"/>
+	<item value="217" key="ChooseUrlDialog.location.y"/>
+	<item value="102" key="HistoryTableProvider.MergeWizardUnblockRevisionsPage.Revision"/>
+	<item value="505" key="HistoryTableProvider.MergeWizardUnblockRevisionsPage.Comment"/>
+	<item value="201" key="HistoryTableProvider.revisions.Author"/>
+	<item value="500" key="CommitDialog.weights.0"/>
+	<item value="500" key="CommitDialog.weights.1"/>
+	<item value="483" key="ChooseUrlDialog.size.x"/>
+	<item value="366" key="ChooseUrlDialog.size.y"/>
+	<item value="655" key="MarkResolvedDialog.location.x"/>
+	<item value="218" key="MarkResolvedDialog.location.y"/>
+	<item value="202" key="HistoryTableProvider.MergeWizardUnblockRevisionsPage.Author"/>
+	<item value="252" key="HistoryTableProvider.MergeWizardUnblockRevisionsPage.Date"/>
+	<item value="777" key="SwitchDialogWithConflictHandling.size.y"/>
+	<item value="615" key="SwitchDialogWithConflictHandling.size.x"/>
+	<item value="494" key="SwitchDialogWithConflictHandling.location.x"/>
+	<item value="73" key="SwitchDialogWithConflictHandling.location.y"/>
+	<item value="28" key="CommitDialog.location.y"/>
+	<item value="253" key="HistoryTableProvider.revisionsBlock.Date"/>
+	<item value="257" key="CommitDialog.location.x"/>
+	<item value="95" key="passwordStores.location.y"/>
+	<item value="252" key="passwordStores.location.x"/>
+	<item value="504" key="HistoryTableProvider.revisions.Comment"/>
+	<item value="613" key="MarkResolvedDialog.size.x"/>
+	<item value="468" key="MarkResolvedDialog.size.y"/>
+	<item value="1280" key="CommitDialog.size.x"/>
+	<item value="1000" key="CommitDialog.size.y"/>
+	<item value="504" key="HistoryTableProvider.revisionsBlock.Comment"/>
+	<section name="CommitWizard">
+		<item value="true" key="ShowCompare"/>
+		<item value="500" key="VWeight2"/>
+		<item value="650" key="HWeight2"/>
+		<item value="500" key="VWeight1"/>
+		<item value="350" key="HWeight1"/>
+	</section>
+</section>

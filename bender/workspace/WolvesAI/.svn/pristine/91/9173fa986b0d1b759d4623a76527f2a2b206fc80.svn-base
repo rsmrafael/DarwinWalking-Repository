@@ -1,0 +1,217 @@
+/*
+ * LocalModeling.cpp
+ *
+ *  Created on: 20.02.2013
+ *      Author: Jan Carstensen
+ */
+
+#include "LocalModeling.h"
+#include "../../Config.h"
+#include "../../Utils/Constants.h"
+
+#define _USE_MATH_DEFINES
+#include <math.h>
+
+LocalModeling::LocalModeling() {
+	mLocalModel = ObjectList();
+	mMaxMatchDistance = 20.0;//0.5;
+	mGain = 0.9;
+	mMaxNotSeen = 10;
+
+	mOdomOrientation = 0.0;
+	mOdomX = 0;
+	mOdomY = 0;
+
+	mLastOdomOrientation = 0.0;
+	mLastOdomX = 0;
+	mLastOdomY = 0;
+
+	mRadiansPerPixelH = 0.0;
+	mRadiansPerPixelV = 0.0;
+	mHeadPan  = 0.0;
+	mHeadTilt = 0.0;
+	mUpperBodyTilt = 13.0;
+
+	mPrinciplePointX = 0;
+	mPrinciplePointY = 0;
+	mCameraHeight = 40.0;
+
+	getBallRelative().type = Object::BALL;
+
+	Config::GetInstance()->registerConfigChangeHandler(this);
+	this->configChanged();
+}
+
+LocalModeling::~LocalModeling() {
+}
+
+bool LocalModeling::execute() {
+
+	// update odometry
+	Odometry odom = getOdometry();
+
+	mOdomX = odom.getX() - mLastOdomX;
+	mOdomY = odom.getY() - mLastOdomY;
+	mOdomOrientation = odom.getOrientation() - mLastOdomOrientation;
+
+	mLastOdomX = odom.getX();
+	mLastOdomY = odom.getY();
+	mLastOdomOrientation = odom.getOrientation();
+	//Debugger::DEBUG("LocalModeling", "Odometrie Update X:%i, Y:%i, Orientation:%f",mLastOdomX,mLastOdomY,mLastOdomOrientation);
+	//updateOdometry( getBallRelative());
+
+	vector<Object> localPoles = getPolesRelative().getObjects();
+	for( vector<Object>::iterator it = localPoles.begin();
+			it != localPoles.end(); ++it) {
+		//updateOdometry( (*it));
+		it->lastSeenCounter--;
+	}
+
+	// update camera information
+	const RobotConfiguration& botConf = getRobotConfiguration();
+	const BodyStatus& bodyStatus = getBodyStatus();
+	const CameraSettings& camSet = getCameraSettings();
+
+	mRadiansPerPixelH = DEGREE_TO_RADIANS * botConf.cameraOpeningHorizontal
+			/ (double) (camSet.width);
+	mRadiansPerPixelV = DEGREE_TO_RADIANS * botConf.cameraOpeningVertical
+			/ (double) (camSet.height);
+
+	mHeadPan = DEGREE_TO_RADIANS * (double) bodyStatus.getPan();
+	mHeadTilt = DEGREE_TO_RADIANS * ((double) bodyStatus.getTilt() - mUpperBodyTilt);
+
+	mPrinciplePointX = botConf.principlePointX;
+	mPrinciplePointY = botConf.principlePointY;
+	mCameraHeight = botConf.cameraHeight;
+
+	// ball
+	if (getBall().lastImageSeen) {
+		Vector vec = calculateVector(getBall());
+		getBallRelative().lastVector = vec;
+		Debugger::DEBUG("LocalModeling", "New vector for ball: %.0f; %.2f deg",
+				vec.getLength(), vec.getAngle());
+	}
+
+	// update Local Model
+	ObjectList objects = ObjectList();
+
+	vector<Object> goalList = getGoalPoles().getObjects();
+	for (vector<Object>::const_iterator it = goalList.begin();
+			it != goalList.end(); ++it) {
+		Object pole = (*it);
+		pole.lastVector = calculateVector(pole);
+
+		// test how it works, but is probably very bad
+		Object *bestMatch = NULL;
+		double bestScore = 0;
+
+		for (vector<Object>::iterator ot = localPoles.begin();
+				ot != localPoles.end(); ++ot) {
+			double currentScore = calculateMatchScoring((*ot), pole);
+			if (currentScore > bestScore) {
+				bestScore = currentScore;
+				bestMatch = &(*ot);
+			}
+		}
+
+		if (bestMatch != NULL) {
+			//Filter Update (switch to Kalmann...)
+			double length = pole.lastVector.getLength() * mGain
+					+ bestMatch->lastVector.getLength() * (1.0 - mGain);
+			double angle = pole.lastVector.getAngle() * mGain
+					+ bestMatch->lastVector.getAngle() * (1.0 - mGain);
+			pole.lastVector = Vector(angle, length);
+			pole.lastSeenCounter += 2;
+			if( pole.lastSeenCounter > 200) {
+				pole.lastSeenCounter = 200;
+			}
+			bestMatch->matched = true;
+			objects.addObject(pole);
+		} else {
+			objects.addObject(pole);
+		}
+
+	}
+
+	for (vector<Object>::const_iterator it = localPoles.begin();
+			it != localPoles.end(); ++it) {
+		if( !it->matched && it->lastSeenCounter >= 0) {
+			objects.addObject(*it);
+		}
+	}
+
+	getPolesRelative().clearList();
+	getPolesRelative().addObjects(objects);
+
+	getLocalModel().clearList();
+	getLocalModel().addObject(getBallRelative());
+	getLocalModel().addObjects(objects);
+
+	return true;
+}
+
+void LocalModeling::updateOdometry(Object& obj) {
+	// 1) Rotate Objects
+	Vector vec = obj.lastVector;
+	vec = Vector(vec.getAngle() + mOdomOrientation, vec.getLength());
+
+	// 2) Move Objects
+	Vector vecOdom(atan2((double)mOdomX, (double)mOdomY),
+			sqrt((double)mOdomX*mOdomX + (double)mOdomY*mOdomY));
+	vec = vec.sum(vecOdom);
+
+	obj.lastVector = vec;
+}
+
+Vector LocalModeling::calculateVector(const Object& obj) const {
+	// todo use upperBodyTilt from IMU
+
+	double panAngle = (-((double) (mPrinciplePointX - obj.lastImageX)
+			* mRadiansPerPixelH)) + mHeadPan;
+	double tiltAngle = ((double) (mPrinciplePointY
+			- obj.lastImageY) * mRadiansPerPixelV) // (obj.lastImageTopLeftY + obj.lastImageHeight) => obj.lastImageY
+			+ mHeadTilt;
+
+	double distanceFromAngle = tan(tiltAngle) * mCameraHeight;
+	distanceFromAngle += getRobotConfiguration().cameraOffsetX;
+
+//Debugger::DEBUG("LocalModeling", "degreePerPixelV=%f, tiltAngle=%f, verticalAngle=%f, distance=%f", (degreePerPixelV * 180.0) / M_PI, (tiltAngle * 180.0) / M_PI, (verticalAngle * 180.0) / M_PI, distanceFromAngle);
+
+//Distanz ueber die Breite
+
+//Filter ueber beide Distanzen
+
+	return Vector(panAngle, distanceFromAngle);
+}
+
+double LocalModeling::calculateMatchScoring(Object one, Object two) const {
+
+	if (one.matched || two.matched) {
+		return -1.0;
+	}
+
+	if (one.type == two.type) {
+		double dist = one.lastVector.calcluateDistanceTo(two.lastVector);
+		if (dist < mMaxMatchDistance) {
+			if (dist > 0.01) {
+				return 1.0 / dist;
+			} else {
+				return 100.0;
+			}
+		} else {
+			return -1.0;
+		}
+	} else {
+		return -1.0;
+	}
+}
+
+void LocalModeling::configChanged() {
+	Debugger::INFO("LocalModeling", "config changed");
+
+	mMaxMatchDistance = Config::GetDouble("Localization", "Local_maxMatchDistance", 500.0);
+	mGain = Config::GetDouble("Localization", "Local_gain", 0.9);
+	mMaxNotSeen = Config::GetInt("Localization", "Local_maxNotSeen", 10);
+	mUpperBodyTilt = Config::GetDouble("Localization", "Local_upperBodyTilt", 13.0);
+}
+

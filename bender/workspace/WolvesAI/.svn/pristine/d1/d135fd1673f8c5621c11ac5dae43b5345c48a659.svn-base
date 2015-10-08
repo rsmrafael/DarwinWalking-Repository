@@ -1,0 +1,287 @@
+/*
+ * AbstractBehavior.cpp
+ *
+ *  Created on: 26.03.2014
+ *      Author: Oliver Krebs
+ */
+
+#include <algorithm>
+#include <cmath>
+#include "AbstractBehavior.h"
+#include "BehaviorConstants.h"
+#include "../../Communication/MitecomHandler.h"
+#include "../../Communication/MitecomRoledecider.h"
+#include "../../Config.h"
+
+
+int32_t AbstractBehavior::mCurrentRole = ROLE_IDLING;
+
+AbstractBehavior::AbstractBehavior(Game *game, MitecomCommunicator *communicator)
+{
+	mThisRole = -1;
+	mLastState = 0;
+	mCurrentState = 0;
+	mReturnState = 0;
+	mGame = game;
+	mCommunicator = communicator;
+	mWalkingSpeedAvg = 20;
+	mKickingDistanceMax = 300;
+
+	ConfigFile *config = Config::getInstance();
+	mWalkingSpeedAvg = config->get<int>("Robot", "walkSpeedAvg", 20);
+	mKickingDistanceMax = config->get<int>("Robot", "kickDistMax", 300);
+	mMinWalkingTurnAngle = config->get<int>("Robot", "minWalkingTurnAngle", 3);
+	mMinTurnAngle = config->get<int>("Robot", "minTurnAngle", 10);
+	mYTurnAngle = config->get<int>("Robot", "YTurnAngle", 0);
+	mLeftTurnSpeed = config->get<int>("Robot", "LeftTurnSpeed", 1);
+	mRightTurnSpeed = config->get<int>("Robot", "RightTurnSpeed", 1);
+
+	mMyInfo.robotID = game->getBotID();
+
+	mDelayLoopDuration = 0;
+	mLoopStartTime = getCurrentTime();
+	mLastRoleDecideTime = mLoopStartTime;
+
+	mIsKickOff = false;
+	mHaveGoalie = false;
+	mIsPenalized = false;
+	mUseMitecom = config->get<bool>("AI", "useMitecom", true);
+	mDynamicRoleChange = config->get<bool>("AI", "changeRoleDynamically", true);
+
+	changeRole( config->getString("AI", "defaultAI", "striker"));
+	mRoleWhenLosingGame = config->getString("AI", "losingAI", "striker");
+}
+
+AbstractBehavior::~AbstractBehavior()
+{
+	mCommunicator = NULL;
+	mGame = NULL;
+}
+
+void AbstractBehavior::isPenalizedHasChanged(bool penalized)
+{
+	mIsPenalized = penalized;
+}
+
+void AbstractBehavior::gameResultHasChanged(Game::GameResult result)
+{
+	if( result == Game::LOSE) {
+		changeRole( mRoleWhenLosingGame);
+	}
+}
+
+void AbstractBehavior::gameStateHasChanged(Game::GameState state)
+{
+	if( state == IGame::SET) {
+		changeRole( Config::getInstance()->getString("AI", "defaultAI", "striker"));
+	}
+}
+
+void AbstractBehavior::kickOffHasChanged(bool haveKickOff)
+{
+	mIsKickOff = haveKickOff;
+}
+
+void AbstractBehavior::updateTeamMates()
+{
+	// check if i am goalie
+	mHaveGoalie = (mCurrentRole == ROLE_GOALIE);
+	if( mHaveGoalie) {
+		getGoalie().setData(mMyInfo);
+	}
+	mCommunicator->getTeamMates(mTeamMates);
+	MixedTeamMatesCIter it;
+	for ( it = mTeamMates.begin(); it != mTeamMates.end(); ++it) {
+		MixedTeamMate mate = it->second;
+		MixedTeamMateDataCIter data;
+		data = mate.data.find(ROBOT_CURRENT_STATE);
+		if( data != mate.data.end() && data->second == STATE_ACTIVE) {
+			data = mate.data.find(ROBOT_CURRENT_ROLE);
+			if( data != mate.data.end() && data->second == ROLE_GOALIE) {
+				getGoalie().setData(mate);
+				mHaveGoalie = true;
+			}
+		}
+	}
+	if( mHaveGoalie) {
+		Debugger::INFO("Behavior", "Have %d teammates, goalie", mTeamMates.size());
+	} else {
+		MixedTeamMate mate;
+		mate.robotID = 0;
+		mate.lastUpdate = 0;
+		getGoalie().setData(mate);
+		Debugger::INFO("Behavior", "Have %d teammates, no goalie", mTeamMates.size());
+	}
+}
+
+void AbstractBehavior::updateCommunicator()
+{
+	if( mIsPenalized) {
+		mMyInfo.data[ROBOT_CURRENT_STATE] = STATE_PENALIZED;
+	} else {
+		mMyInfo.data[ROBOT_CURRENT_STATE] = STATE_ACTIVE;
+	}
+
+	mMyInfo.data[ROBOT_CURRENT_ROLE] = (MITECOM_DATATYPE)mCurrentRole;
+	mMyInfo.data[ROBOT_AVG_WALKING_SPEED_IN_CM_PER_SECOND] = mWalkingSpeedAvg;
+	mMyInfo.data[ROBOT_MAX_KICKING_DISTANCE] = mKickingDistanceMax;
+
+	if( getBallStatus().getObjectStatus() == VisionStatus::OBJECT_FOUND_STABLE) {
+		double ballX = getBallVector().getX();
+		double ballY = getBallVector().getY();
+		mMyInfo.data[BALL_RELATIVE_X] = (MITECOM_DATATYPE)ballX;
+		mMyInfo.data[BALL_RELATIVE_Y] = (MITECOM_DATATYPE)ballY;
+		double positionTime = sqrt((ballX * ballX) + (ballY * ballY));
+		positionTime *= (double)mWalkingSpeedAvg / 10.0;
+		mMyInfo.data[ROBOT_TIME_TO_POSITION_AT_BALL_IN_SECONDS] = (MITECOM_DATATYPE)positionTime;
+	}
+	mCommunicator->updateInformation(mMyInfo);
+	updateTeamMates();
+}
+
+bool AbstractBehavior::execute()
+{
+	if( mCurrentRole != mThisRole) {
+		//Debugger::DEBUG("Behavior", "I am %d, but not %d", mThisRole, mCurrentRole);
+		return false;
+	}
+
+	getBehaviorStatus().setActualRole(mCurrentRole);
+	getBehaviorStatus().setActualStatus(getStateName(mCurrentState));
+
+	//Debugger::DEBUG("Behavior", "I am %d", mThisRole);
+
+	mMyInfo.data.clear();
+
+	executeBehavior();
+	updateState();
+	if( mUseMitecom) {
+		updateCommunicator();
+		if( mDynamicRoleChange) {
+			uint64_t currentTime = getCurrentTime();
+			if( currentTime - mLastRoleDecideTime >= ROLE_DECIDE_CHANGE_INTERVAL) {
+				int32_t role = Mitecom::decideRole(mTeamMates, mMyInfo);
+				if( mCurrentRole != role && role != ROLE_OTHER) {
+					Debugger::INFO("Behavior", "Dynamic role change");
+					changeRole( role);
+					mLastRoleDecideTime = currentTime;
+				}
+			}
+		}
+	}
+	return true;
+}
+
+void AbstractBehavior::initDelayLoop(uint64_t delay_ms)
+{
+	mDelayLoopDuration = delay_ms;
+	mLoopStartTime = getCurrentTime();
+	mReturnState = mCurrentState;
+}
+
+void AbstractBehavior::initDelayLoop(uint64_t delay_ms, int goToState)
+{
+	mDelayLoopDuration = delay_ms;
+	mLoopStartTime = getCurrentTime();
+	mReturnState = goToState;
+}
+
+int AbstractBehavior::processDelayLoop() const
+{
+	uint64_t curTime = getCurrentTime();
+	if ((curTime - mLoopStartTime) >= mDelayLoopDuration) {
+		Debugger::DEBUG("Behavior", "Delay loop state ended Going now to State %i",mReturnState);
+		return mReturnState;
+	}
+	return DELAY_LOOP;
+}
+
+void AbstractBehavior::calculateFitWalkSteps( int pan, int16_t &rlStep, int16_t &fbStep) const {
+	double pan_range = getRobotConfiguration().panRange;
+	double pan_percent = (double)pan / pan_range;
+
+	fbStep = (int16_t)(FIT_FB_STEP);
+	rlStep = (int16_t)(FIT_MAX_RL_TURN * pan_percent);
+}
+
+void AbstractBehavior::calculateWalkSteps( int pan, int tilt, int16_t &rlStep, int16_t &fbStep) const {
+	double pan_range = getRobotConfiguration().panRange;
+	double pan_percent = (double)pan / pan_range;
+	double tilt_range = 60;
+	double tilt_percent = (double)tilt / tilt_range;
+
+	fbStep = (int16_t)(FOLLOW_MAX_FB_STEP * tilt_percent);
+	if (fbStep > 0 && fbStep < FOLLOW_MIN_FB_STEP) {
+		fbStep = FOLLOW_MIN_FB_STEP;
+	} else if (fbStep < 0 && fbStep > -FOLLOW_MIN_FB_STEP) {
+		fbStep = -FOLLOW_MIN_FB_STEP;
+	}
+	rlStep = (int16_t)(FOLLOW_MAX_RL_TURN * pan_percent);
+	if( rlStep > 0 && rlStep < mMinWalkingTurnAngle) {
+		rlStep = (int16_t)mMinWalkingTurnAngle;
+	} else if( rlStep < 0 && rlStep > -mMinWalkingTurnAngle) {
+		rlStep = (int16_t)-mMinWalkingTurnAngle;
+	}
+}
+
+void AbstractBehavior::calculateTurnWalkSteps( int pan, int16_t &rlStep, int16_t &yStep) const {
+	double pan_range = getRobotConfiguration().panRange;
+	double pan_percent = (double)pan / pan_range;
+	yStep = (int16_t) mYTurnAngle;
+	rlStep = (int16_t)(FOLLOW_MAX_RL_TURN * pan_percent);
+	if(rlStep < 0){
+		rlStep = (int16_t)(rlStep*mLeftTurnSpeed);
+	}else{
+		rlStep = (int16_t)(rlStep*mRightTurnSpeed);
+	}
+
+	if(rlStep > 0 && mMinTurnAngle>rlStep){
+		rlStep = (int16_t)mMinTurnAngle;
+	}else if( rlStep < 0 && rlStep > -mMinTurnAngle) {
+		rlStep = (int16_t)-mMinTurnAngle;
+	}
+}
+
+void AbstractBehavior::changeRole( int role)
+{
+	Debugger::INFO("Behavior", "Change role from %d to: %d", mCurrentRole, role);
+	switch( role) {
+	case ROLE_STRIKER:
+	case ROLE_SUPPORTER:
+	case ROLE_DEFENDER:
+	case ROLE_GOALIE:
+	case ROLE_FIELD_RUNNER:
+		mCurrentRole = role;
+		break;
+	default:
+		Debugger::INFO("Behavior", "Role not supported, use last role!");
+		break;
+	}
+}
+
+void AbstractBehavior::changeRole(string role)
+{
+	//lint --e{864}
+	std::transform(role.begin(), role.end(), role.begin(), ::tolower);
+	if( role == "goalie") {
+		mCurrentRole = ROLE_GOALIE;
+	} else if( role == "defender") {
+		mCurrentRole = ROLE_DEFENDER;
+	} else if( role == "supporter") {
+		mCurrentRole = ROLE_SUPPORTER;
+	} else if( role == "striker") {
+		mCurrentRole = ROLE_STRIKER;
+	} else if( role == "runner") {
+		mCurrentRole = ROLE_FIELD_RUNNER;
+	} else {
+		Debugger::INFO("Behavior", "Role %s not available, use last role (%d)!", role.c_str(), mCurrentRole);
+	}
+	Debugger::INFO("Behavior", "Role changed to %d", mCurrentRole);
+}
+
+string AbstractBehavior::getStateName(int state){
+	switch(state) {
+		case DELAY_LOOP: return "DELAY_LOOP";
+		default: return "UNKNOWN " + state;
+	}
+}

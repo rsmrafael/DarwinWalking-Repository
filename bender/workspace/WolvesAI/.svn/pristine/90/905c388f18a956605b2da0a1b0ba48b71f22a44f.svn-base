@@ -1,0 +1,124 @@
+/*
+ * Config.cpp
+ *
+ *  Created on: 01.07.2009
+ *      Author: Stefan
+ */
+
+#include <iostream>
+
+#include "Config.h"
+#include "Blackboard/DataHolder.h"
+#include "ModuleManager/ModuleManager.h"
+#include "Debugging/Debugger.h"
+
+Config* Config::mInstance = NULL;
+
+#ifdef WIN32
+std::string Config::sConfigPath = "config.ini"; //"/mnt/sdcard/config.ini"
+#else
+std::string Config::sConfigPath = "/mnt/sdcard/config.ini";
+#endif
+
+Config* Config::getInstance() {
+	if (mInstance == NULL) {
+		mInstance = new Config();
+	}
+	return mInstance;
+}
+
+void Config::shutdown() {
+	delete mInstance;
+	mInstance = NULL;
+}
+
+Config::Config()
+:	ConfigFile()
+{
+#ifdef CONFIG_FILE_ACCESS
+	if( !load(sConfigPath)) {
+		mNoSaveMode = true;
+		fprintf(stderr, "[Config] WARNING! Could not load standart config file, will not save configuration changes!\n");
+	} else {
+		fprintf(stdout, "[Config] Config.ini loaded\n");
+		mNoSaveMode = false;
+	}
+#else
+	mNoSaveMode = true;
+	fprintf(stdout, "[Config] Do not load config file, use default values!\n");
+#endif
+	mListeners = new list<ConfigChangeListener*>();
+	mDisableChangeListeners = false;
+	mDescriptions = NULL;
+}
+
+Config::~Config() {
+	Debugger::INFO("Config", "Shutting down...");
+	mListeners->clear();
+	delete mListeners;
+	save();
+	mDescriptions = NULL;
+}
+
+void Config::save() const {
+	if (!mNoSaveMode) {
+		ConfigFile::save();
+	} else {
+		Debugger::ERR("Config", "WARNING: NoSaveMode enabled, will not store configuration!");
+	}
+}
+
+void Config::setConfig(string const &content) {
+	// TODO implement ...
+	Debugger::INFO("BotControlService", "Config received: " + content.substr(0, 20) + "...");
+}
+
+string Config::getConfigAsString() const {
+#ifdef CONFIG_FILE_ACCESS
+	return createString();
+#else
+	return "[config]\nno_Access=Compile_with_CONFIG_FILE_ACCESS!\n";
+#endif
+}
+
+void Config::registerConfigChangeHandler(ConfigChangeListener* handler) {
+	mListeners->push_back(handler);
+}
+
+void Config::removeConfigChangeHandler(ConfigChangeListener* handler) {
+	mListeners->remove(handler);
+}
+
+void Config::notifyChangeHandlers() {
+#ifdef CONFIG_FILE_ACCESS
+	if (!mDisableChangeListeners) {
+		for (list<ConfigChangeListener*>::iterator it = mListeners->begin(); it != mListeners->end(); ++it) {
+			(*it)->configChanged();
+		}
+	}
+#endif
+}
+
+void Config::setDisableChangeListeners(bool state) {
+	mDisableChangeListeners = state;
+}
+
+void Config::setComment(string const &section, string const &setting, string const &description) {
+	ConfigFile::setComment( section, setting, description);
+	ConfigDescriptions* desc = mDescriptions;
+	if (desc != NULL) {
+		desc->addDescription(section, setting, description);
+	}
+	// cppcheck-suppress memleak
+}
+
+void Config::moduleManagerReady() {
+	Blackboard *bb = ModuleManager::GetInstance()->getBlackboardDirect(true);
+	DataHolder<ConfigDescriptions>& rep = bb->getRepresentation<DataHolder<ConfigDescriptions> >("ConfigDescriptions");
+	mDescriptions = &(*rep);
+}
+
+void Config::setString(std::string const &section, std::string const &key, std::string const &value) {
+	ConfigFile::setString( section, key, value);
+	notifyChangeHandlers();
+}

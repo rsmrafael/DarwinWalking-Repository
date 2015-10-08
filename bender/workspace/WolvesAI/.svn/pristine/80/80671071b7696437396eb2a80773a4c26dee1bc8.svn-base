@@ -1,0 +1,83 @@
+/*
+ * Histogramm.h
+ *
+ *  Created on: Sep 24, 2012
+ *      Author: jan
+ */
+
+#ifndef Histogramm_H_
+#define Histogramm_H_
+
+#include "../Blackboard/Printable.h"
+#include "../Blackboard/Serializer.h"
+#include <vector>
+#include <list>
+#include <map>
+
+struct Area {
+
+	int start;
+	int end;
+	int combinedValue;
+
+	Area(int s, int e, int value) {
+		start = s;
+		end = e;
+		combinedValue = value;
+	}
+
+	Area(int firstPoint, int value){
+		start = firstPoint;
+		end = firstPoint;
+		combinedValue = value;
+	}
+};
+
+class Histogram: public Printable {
+public:
+	Histogram();
+	virtual ~Histogram();
+
+	void setType(int minValue, int maxValue, int stepSize);
+	void clearHist();
+	void addData(int data);
+	void addDataBytes(int data, int bytes);
+
+	const std::map<int, int> getHistData() const;
+	const int getMinValue() const {
+		return mMinValue;
+	}
+	const int getMaxValue() const {
+		return mMaxValue;
+	}
+	const int getStepSize() const {
+		return mStepSize;
+	}
+
+	const std::vector<int> getMaxima(size_t numOfMaxima) const;
+	const std::vector<int> getMinima(size_t numOfMinima) const;
+	int calculateMean() const;
+
+	std::vector<Area> getMaxAreas(int maxSize, int numOfMaxima) const;
+
+	void addEntry(int key, int value);
+
+	virtual void print(std::ostream& stream) const {
+
+	}
+
+private:
+	std::map<int, int> mData;
+	int mMinValue;
+	int mMaxValue;
+	int mStepSize;
+};
+
+template<>
+class Serializer<Histogram> {
+public:
+	static void serialize(const Histogram& representation, std::ostream& stream);
+	static void deserialize(std::istream& stream, Histogram& representation);
+};
+
+#endif /* Histogramm_H_ */

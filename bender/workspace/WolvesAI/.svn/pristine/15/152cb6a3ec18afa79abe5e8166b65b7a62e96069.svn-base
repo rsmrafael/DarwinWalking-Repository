@@ -1,0 +1,72 @@
+/*
+ * LocalModeling.h
+ *
+ *  Created on: 20.02.2013
+ *      Author: Jan Carstensen
+ *      Edited: Oliver Krebs
+ */
+
+#ifndef LocalModeling_H_
+#define LocalModeling_H_
+
+#include "../../ModuleManager/Module.h"
+#include "../../Representations/Odometry.h"
+#include "../../Representations/Object.h"
+#include "../../Representations/ObjectList.h"
+#include "../../Representations/RobotConfiguration.h"
+#include "../../Representations/BodyStatus.h"
+#include "../../Representations/CameraSettings.h"
+#include "../../Representations/Vector.h"
+#include "../../ConfigChangeListener.h"
+
+using namespace std;
+
+BEGIN_DECLARE_MODULE(LocalModeling)
+	REQUIRE(Odometry,Odometry)
+	REQUIRE(Object,Ball)
+	REQUIRE(ObjectList,GoalPoles)
+	REQUIRE(RobotConfiguration,RobotConfiguration)
+	REQUIRE(BodyStatus,BodyStatus)
+	REQUIRE(CameraSettings,CameraSettings)
+	PROVIDE(Object,BallRelative)
+	PROVIDE(ObjectList,PolesRelative)
+END_DECLARE_MODULE(LocalModeling)
+
+class LocalModeling : public LocalModelingBase, public ConfigChangeListener {
+public:
+	LocalModeling();
+	virtual ~LocalModeling();
+
+	virtual bool execute();
+
+	virtual void configChanged();
+
+private:
+	void updateOdometry(Object& obj);
+	Vector calculateVector(const Object &obj) const;
+	double calculateMatchScoring(Object one, Object two) const;
+
+	ObjectList mLocalModel;
+	double mMaxMatchDistance;
+	double mGain;
+	int mMaxNotSeen;
+
+	int mOdomX;
+	int mOdomY;
+	double mOdomOrientation;
+	int mLastOdomX;
+	int mLastOdomY;
+	double mLastOdomOrientation;
+
+	double mRadiansPerPixelH;
+	double mRadiansPerPixelV;
+	double mHeadPan;
+	double mHeadTilt;
+	double mUpperBodyTilt;
+
+	int mPrinciplePointX;
+	int mPrinciplePointY;
+	int mCameraHeight;
+};
+
+#endif /* LocalModeling_H_ */

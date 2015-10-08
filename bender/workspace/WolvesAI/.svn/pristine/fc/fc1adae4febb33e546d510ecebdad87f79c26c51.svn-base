@@ -1,0 +1,74 @@
+/*
+ * GoalSidePrediction.cpp
+ *
+ *  Created on: 20.06.2014
+ *      Author: Oliver Krebs
+ */
+
+#include "GoalSidePrediction.h"
+#include "../../Config.h"
+
+GoalSidePrediction::GoalSidePrediction()
+{
+	mAccuracy = 0.0;
+	mAccuracySum = 0.0;
+	mProbability = 0.0;
+	mCountPredictions = 0;
+	Config::getInstance()->registerConfigChangeHandler(this);
+	this->configChanged();
+}
+
+GoalSidePrediction::~GoalSidePrediction()
+{
+	Config::getInstance()->removeConfigChangeHandler(this);
+}
+
+bool GoalSidePrediction::execute()
+{
+	mAccuracySum = 0.0;
+	mProbability = 0.0;
+	mCountPredictions = 0;
+
+	// add all accuracies
+	mAccuracySum += getGoalSideGoalkeeperPrediction().getAccuracy();
+	//mAccuracySum += getGoalSideBackgroundPrediction().getAccuracy();
+	//mAccuracySum += getGoalSideHistogramPrediction().getAccuracy();
+	//mAccuracySum += getGoalSideGoalieBallPrediction().getAccuracy();
+
+	// calculate probability by adding all predictions
+	addProbability(getGoalSideGoalkeeperPrediction());
+	//addProbability(getGoalSideBackgroundPrediction());
+	//addProbability(getGoalSideHistogramPrediction());
+	//addProbability(getGoalSideGoalieBallPrediction());
+
+	if( mCountPredictions > 0) {
+		mAccuracy = mAccuracySum / (double)mCountPredictions;
+	} else {
+		mAccuracy = 0.0;
+	}
+
+	getGoalSidePrediction().setProbability(mProbability);
+	getGoalSidePrediction().setAccuracy(mAccuracy);
+
+	Debugger::DEBUG("GoalSidePrediction", "Prob: %.4f (acc: %.3f)", mProbability, mAccuracy);
+
+	getGoalSideView().updateGoalSide(getHeadAction().getPan(), getGoalSidePrediction());
+	return true;
+}
+
+void GoalSidePrediction::addProbability( const GoalSide &prediction)
+{
+	double acc = 0.0;
+	if (mAccuracySum > 0.0) {
+		acc = prediction.getAccuracy() / mAccuracySum;
+	}
+	mProbability += acc * prediction.getProbabilityOpGoal();
+	mCountPredictions++;
+}
+
+void GoalSidePrediction::configChanged()
+{
+	ConfigFile *config = Config::getInstance();
+	int step = config->get<int>("GoalSidePrediction", "viewAngleStep", 15);
+	getGoalSideView().setAngleStep(step);
+}

@@ -1,0 +1,13 @@
+package protobuf;
+
+option java_package = "de.ostfalia.robocup.message";
+option java_outer_classname = "MsgHistogram";
+option optimize_for = LITE_RUNTIME;
+
+message Histogram {
+
+	repeated int32 value = 1;
+	required int32 minValue = 2;
+	required int32 maxValue = 3;
+	required int32 stepSize = 4;
+}

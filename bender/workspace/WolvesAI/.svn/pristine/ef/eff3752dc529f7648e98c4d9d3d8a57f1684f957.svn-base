@@ -1,0 +1,41 @@
+/*
+ * GlobalModeling.h
+ *
+ *  Created on: 26.06.2014
+ *      Author: Oliver Krebs
+ */
+
+#ifndef GLOBALMODELING_H_
+#define GLOBALMODELING_H_
+
+#include "../../ModuleManager/Module.h"
+#include "../../Representations/Object.h"
+#include "../../Representations/ObjectList.h"
+#include "../../Representations/Position.h"
+#include "../../Representations/GoalSideView.h"
+#include "../../Representations/DebugDrawings.h"
+
+BEGIN_DECLARE_MODULE(GlobalModeling)
+	REQUIRE(Object,BallRelative)
+	REQUIRE(ObjectList,PolesRelative)
+	REQUIRE(GoalSideView,GoalSideView)
+	PROVIDE(Position,BallAbsolute)
+	PROVIDE(Position,MyPosition)
+	PROVIDE(ObjectList,GlobalModel)
+	PROVIDE(DebugDrawings,LocalizationDrawings)
+END_DECLARE_MODULE(GlobalModeling)
+
+class GlobalModeling
+:	public GlobalModelingBase
+{
+public:
+	GlobalModeling();
+	virtual ~GlobalModeling();
+
+	virtual bool execute();
+
+private:
+	int mMaxDifference;
+};
+
+#endif /* GLOBALMODELING_H_ */

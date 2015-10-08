@@ -1,0 +1,80 @@
+/*
+ * GoalSidePredictor_MD.cpp
+ *
+ *  Created on: 04.04.2014
+ *      Author: Stefan Krupop
+ */
+
+#include "GoalSidePredictor_MD.h"
+#include "../../Config.h"
+
+
+GoalSidePredictor_MD::GoalSidePredictor_MD() : mDecayValue(0.01), mMinRemovedBallWidth(30), mMinPanAngle(10), mConfidence(0.7), mObjectsOnRightInFirstHalf(true) {
+	Config::GetInstance()->registerConfigChangeHandler(this);
+	this->configChanged();
+}
+
+GoalSidePredictor_MD::~GoalSidePredictor_MD() {
+	Config::GetInstance()->removeConfigChangeHandler(this);
+}
+
+bool GoalSidePredictor_MD::execute() {
+	bool found = false;
+
+	if (!getRemovedBallCandidates().getObjects().empty()) {
+		const vector<Object>& balls = getRemovedBallCandidates().getObjects();
+		for (vector<Object>::const_iterator it = balls.begin(); it != balls.end(); ++it) {
+			if ((*it).getBoundingBox().width >= mMinRemovedBallWidth) {
+				int pan = getBodyStatus().getPan();
+				if (abs(pan) >= mMinPanAngle) {
+					Debugger::DEBUG("GoalSidePredictor_MD", "Detected valid orientation object at pan=%d", pan);
+
+					double newPercent = getGoalSide().getPercent() + mConfidence;
+					if (newPercent > 1.0) newPercent = 1.0;
+
+					double myPercent = 0;
+					double opPercent = 0;
+					if (pan > 0) {
+						if (mObjectsOnRightInFirstHalf) {
+							opPercent = newPercent;
+						} else {
+							myPercent = newPercent;
+						}
+					} else {
+						if (mObjectsOnRightInFirstHalf) {
+							myPercent = newPercent;
+						} else {
+							opPercent = newPercent;
+						}
+					}
+					if (!getGameStatus().isFirstHalf) {
+						double tmp = myPercent;
+						myPercent = opPercent;
+						opPercent = tmp;
+					}
+
+					Debugger::DEBUG("GoalSidePredictor_MD", "Object votes for %s goal", myPercent != 0.0 ? "my" : "opponent");
+					getGoalSide().setChancesInPercent(myPercent, opPercent);
+					found = true;
+				}
+			}
+		}
+	}
+	if (!found) {
+		if (getGoalSide().getPercent() > 0) {
+			double percent = getGoalSide().getPercent() - mDecayValue;
+			Debugger::DEBUG("GoalSidePredictor_MD", "No orientation objects seen, new percent=%f", percent);
+			getGoalSide().setPercent(percent);
+		}
+	}
+
+	return true;
+}
+
+void GoalSidePredictor_MD::configChanged() {
+	mDecayValue = Config::GetDouble("GoalSidePredictor_MD", "DecayValue", 0.1, "Amount the current probability decays per iteration where no target objects are seen");
+	mMinRemovedBallWidth = Config::GetInt("GoalSidePredictor_MD", "MinRemovedBallWidth", 30, "Amount the current probability decays per iteration where no target objects are seen");
+	mMinPanAngle = Config::GetInt("GoalSidePredictor_MD", "MinPanAngle", 10, "Minimum pan angle in either direction to be valid");
+	mConfidence = Config::GetDouble("GoalSidePredictor_MD", "Confidence", 0.7, "Amount the current probability is increased by each target object seen");
+	mObjectsOnRightInFirstHalf = Config::GetBoolean("GoalSidePredictor_MD", "ObjectsOnRightInFirstHalf", true, "True when objects are on right side of robots when looking towards opponent goal");
+}

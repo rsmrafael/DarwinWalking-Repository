@@ -1,0 +1,81 @@
+/*
+ * GoalSidePrediction.cpp
+ *
+ *  Created on: 25.03.2014
+ *      Author: Oliver Krebs
+ */
+
+#include "GoalSidePrediction.h"
+#include "../../Config.h"
+
+const double COLOR_VARIANCE_MAX = 384.0; //384 = 3*128
+
+GoalSidePrediction::GoalSidePrediction()
+:	mColorMinInterval( 0.1),
+ 	mMyGoalBackgroundY( 0),
+ 	mMyGoalBackgroundU( 0),
+ 	mMyGoalBackgroundV( 0),
+ 	mOpGoalBackgroundY( 0),
+ 	mOpGoalBackgroundU( 0),
+ 	mOpGoalBackgroundV( 0)
+{
+	Config::GetInstance()->registerConfigChangeHandler(this);
+	this->configChanged();
+}
+
+GoalSidePrediction::~GoalSidePrediction()
+{
+	Config::GetInstance()->removeConfigChangeHandler(this);
+}
+
+bool GoalSidePrediction::execute()
+{
+	if( !getGoalPoles().getObjects().empty())
+	{
+		int y = getBackgroundY().calculateMode();
+		int u = getBackgroundU().calculateMode();
+		int v = getBackgroundV().calculateMode();
+
+		//DRAW_TEXT("Background", 10, 20, DebugDrawer::LIGHT_YELLOW, "Y: %d, U: %d, V: %d", y, u, v);
+		Debugger::DEBUG("GoalSidePrediction", "Y: %d, U: %d, V: %d", y, u, v);
+
+		double varMy = (double)(abs(mMyGoalBackgroundY - y)
+				+ abs(mMyGoalBackgroundU - u)
+				+ abs(mMyGoalBackgroundV - v));
+		double varOp = (double)(abs(mOpGoalBackgroundY - y)
+				+ abs(mOpGoalBackgroundU - u)
+				+ abs(mOpGoalBackgroundV - v));
+
+		double chanceMy = 0.0;
+		if( varMy < COLOR_VARIANCE_MAX) {
+			chanceMy = (COLOR_VARIANCE_MAX - varMy) / COLOR_VARIANCE_MAX;
+		}
+
+		double chanceOp = 0.0;
+		if( varOp < COLOR_VARIANCE_MAX) {
+			chanceOp = (COLOR_VARIANCE_MAX - varOp) / COLOR_VARIANCE_MAX;
+		}
+
+		Debugger::DEBUG("GoalSidePrediction", "My: %.2f (%.0f), Op: %.2f (%.0f)", chanceMy, varMy, chanceOp, varOp);
+
+		getGoalSide().setChancesInPercent(chanceMy, chanceOp);
+	} else {
+		getGoalSide().resetChances();
+	}
+
+	return true;
+}
+
+void GoalSidePrediction::configChanged()
+{
+	mColorMinInterval = Config::GetDouble("Support", "ColorMinInterval", 0.1);
+	mMyGoalBackgroundY = Config::GetInt("Support", "GoalSide_myY", 0);
+	mMyGoalBackgroundU = Config::GetInt("Support", "GoalSide_myU", 0);
+	mMyGoalBackgroundV = Config::GetInt("Support", "GoalSide_myV", 0);
+	mOpGoalBackgroundY = Config::GetInt("Support", "GoalSide_opY", 200);
+	mOpGoalBackgroundU = Config::GetInt("Support", "GoalSide_opU", 200);
+	mOpGoalBackgroundV = Config::GetInt("Support", "GoalSide_opV", 200);
+	getGoalSide().setMinInterval( mColorMinInterval);
+}
+
+

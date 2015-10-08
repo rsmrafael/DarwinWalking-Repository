@@ -1,0 +1,55 @@
+/*
+ * HeadAction.h
+ *
+ *  Created on: 24.04.2014
+ *      Author: Oliver Krebs
+ */
+
+#ifndef HEADACTION_H_
+#define HEADACTION_H_
+
+#include "../Body/ICommunicator.h"
+#include "../Blackboard/Printable.h"
+#include "../Blackboard/Serializer.h"
+#include "Object.h"
+
+class HeadAction {
+public:
+	HeadAction();
+	virtual ~HeadAction();
+
+	void setPanTilt(int PanDeg, int TiltDeg);
+	void PanTiltTracking(bool disablePan);
+	void PanTiltTracking(double errorX, double errorY, bool disablePan);
+
+	int getPan() const { return mPan; }
+	int getTilt() const { return mTilt; }
+	uint8_t getPanTiltChangeID() const { return mPanTiltChangeID; }
+	bool getPanTiltSetDirect() const { return mPanTiltSetDirect; }
+	bool getPanTiltWithError() const { return mWithError; }
+	double getPanTiltErrorX() const { return mErrorX; }
+	double getPanTiltErrorY() const { return mErrorY; }
+	bool getDisablePanError() const { return mDisablePanError; }
+
+	void searchObject( Object::ObjectType type, bool resetSearch);
+	Object::ObjectType getSearchObjectType();
+	bool getResetSearch() const;
+
+private:
+	Object::ObjectType mSearchObjectType;
+
+	int mPan;
+	int mTilt;
+
+	double mErrorX;
+	double mErrorY;
+	bool mDisablePanError;
+	bool mWithError;
+
+	bool mPanTiltSetDirect;
+	bool mResetSearch;
+
+	uint8_t mPanTiltChangeID;
+};
+
+#endif /* HEADACTION_H_ */

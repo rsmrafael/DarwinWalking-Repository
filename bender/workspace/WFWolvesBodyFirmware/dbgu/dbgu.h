@@ -1,0 +1,28 @@
+#ifndef DBGU_H_
+#define DBGU_H_
+
+#include "uart/uart.h"
+
+void DBGU_Init(void);
+
+unsigned char dbgu_char_available(void);
+unsigned char dbgu_get_char(void);
+void dbgu_gets(char* buffer, unsigned short size);
+void dbgu_print_char_in_hex(unsigned char value);
+void dbgu_print_4bit_in_hex(unsigned char value);
+void dbgu_print_ascii(const char *buffer);
+void dbgu_print_char(const unsigned char ch);
+void dbgu_print_digit(unsigned char value);
+void dbgu_print_hex8(unsigned long value);
+void dbgu_print_int(int zahl);
+int dbgu_printf(const char *format, ...);
+CharReceivedCallback dbgu_AssignCharReceivedCallback(CharReceivedCallback callback);
+TxReadyCallback dbgu_AssignTxReadyCallback(TxReadyCallback callback);
+void dbgu_enable_TxReadyCallback(void);
+
+void dbgu_ClearScreen(void);
+void dbgu_GoToCursor(int col, int row);
+
+#endif /*DBGU_H_*/
+
+

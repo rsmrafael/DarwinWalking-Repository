@@ -1,0 +1,4 @@
+/home/da-v1n/workspace/WolvesAI/src/CMakeFiles/WolvesAI.dir
+/home/da-v1n/workspace/WolvesAI/CMakeFiles/docs.dir
+/home/da-v1n/workspace/WolvesAI/CMakeFiles/documentation.dir
+/home/da-v1n/workspace/WolvesAI/CMakeFiles/doxygen.dir

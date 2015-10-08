@@ -1,0 +1,52 @@
+/*
+ * LineModel.h
+ *
+ *  Created on: 07.01.2014
+ *      Author: Oliver Krebs
+ */
+
+#ifndef LINEMODEL_H_
+#define LINEMODEL_H_
+
+#include "AbstractModel.h"
+#include <cstdlib>
+#include <list>
+#include "../../../../Representations/Point.h"
+
+using namespace std;
+
+class LineModel: public AbstractModel {
+public:
+	LineModel();
+	LineModel(const Point &startPoint, const Point &endPoint);
+	~LineModel();
+
+	LineModel* createNextModel(const list<Point>* data);
+	double calculateError(const list<Point>* data);
+	double calculateError(const Point* data);
+	size_t getNumberOfFittedDataPoints(const list<Point>* data, double maximumError);
+
+	void eraseFittedPoints(list<Point>* data, double maximumError);
+	list<Point>* getNotFittedPoints(const list<Point>* data, double maximumError);
+	list<Point>* getFittedPoints(const list<Point>* data, double maximumError);
+
+	Point calcLeftPoint(const list<Point>* data, double maximumError);
+	Point calcRightPoint(const list<Point>* data, double maximumError);
+
+	const Point getStartPoint() const;
+	const Point getEndPoint() const;
+
+	int getX(int y) const;
+	int getY(int x) const;
+
+private:
+	void update();
+
+	Point mStartPoint;
+	Point mEndPoint;
+	double mSlope;
+	double mYIntercept;
+
+};
+
+#endif /* LINEMODEL_H_ */

@@ -1,0 +1,175 @@
+/*
+ * BallDetection.cpp
+ *
+ *  Created on: Sep 3, 2012
+ *      Author: jan
+ */
+
+#include "BallDetection.h"
+#include <math.h>
+
+BallDetection::BallDetection() {
+}
+
+BallDetection::~BallDetection() {
+
+}
+
+void BallDetection::execute() {
+
+	const YUVImage* yuvImage = &getImage();
+	const char* rawImage = yuvImage->getImage();
+	int width = yuvImage->getWidth();
+	int height = yuvImage->getHeight();
+
+	getBallEdges().clearCloud();
+
+#define xStep 8
+#define yStep 2
+#define SOBEL_THRESHHOLD 20
+
+	int maxValue = 0;
+	int maxX = 0;
+	int maxY = 0;
+	int currentValue = 0;
+
+	int size = width * height * 2;
+	int maxI = 0;
+
+	for (int i = 3; i < size; i += xStep) {
+		currentValue = (unsigned char) rawImage[i];
+
+		if (currentValue > maxValue) {
+			maxValue = currentValue;
+			maxI = i;
+		}
+	}
+
+	Debugger::DEBUG("BallDetection", "maxValue: %i", maxValue);
+
+	if (maxValue < 200) {
+		getBall().notSeen();
+	} else {
+		maxY = (maxI / (width * 2.0));
+		maxX = maxI / 2 % width;
+		getBall().updateObject(maxX, maxY, 10, 10);
+		checkCircle(maxX, maxY, maxValue - SOBEL_THRESHHOLD);
+
+		int maX = 0;
+		int minX = width;
+		int minY = height;
+		int maY = 0;
+
+		for (list<Point>::const_iterator it =
+				getBallEdges().getCloud()->begin();
+				it != getBallEdges().getCloud()->end(); ++it) {
+			Point p = (*it);
+			if (p.getX() < minX) {
+				minX = p.getX();
+			} else if (p.getX() > maX) {
+				maX = p.getX();
+			}
+
+			if (p.getY() < minY) {
+				minY = p.getY();
+			} else if (p.getY() > maY) {
+				maY = p.getY();
+			}
+		}
+
+		getBall().updateObject(minX, minY, (maX - minX), (maY - minY));
+	}
+
+<<<<<<< .mine
+	//Debugger::DEBUG("BallDetection", "maxValue: %i", maxValue);
+=======
+}
+>>>>>>> .r6661
+
+<<<<<<< .mine
+	if (maxValue < 175) {
+		getBall().notSeen();
+	} else {
+		getBall().updateObject(maxX, maxY);
+=======
+void BallDetection::checkCircle(int x, int y, int minThreshold) const {
+
+	list<Point*>* pointList = new list<Point*>();
+	/**
+	 * Start Scan Lines
+	 */
+
+	//Horizontal
+	processScanLine(1, 0, pointList, minThreshold);
+	processScanLine(-1, 0, pointList, minThreshold);
+
+	//Vertical
+
+	processScanLine(0, 1, pointList, minThreshold);
+	processScanLine(0, -1, pointList, minThreshold);
+
+	//Diagonal
+
+	processScanLine(1, 1, pointList, minThreshold);
+	processScanLine(-1, -1, pointList, minThreshold);
+
+	processScanLine(-1, 1, pointList, minThreshold);
+	processScanLine(1, -1, pointList, minThreshold);
+
+	// Diagonal 2
+
+	processScanLine(1, 2, pointList, minThreshold);
+	processScanLine(-1, -2, pointList, minThreshold);
+
+	processScanLine(1, -2, pointList, minThreshold);
+	processScanLine(-1, 2, pointList, minThreshold);
+
+	processScanLine(2, -1, pointList, minThreshold);
+	processScanLine(-2, 1, pointList, minThreshold);
+
+	processScanLine(-2, -1, pointList, minThreshold);
+	processScanLine(2, 1, pointList, minThreshold);
+
+}
+
+void BallDetection::processScanLine(int xSlope, int ySlope,
+		list<Point*>* pointList, int minThreshold) const {
+
+	Point* p = NULL;
+
+	int x = getBall().lastImageX;
+	int y = getBall().lastImageY;
+
+	const YUVImage* image = &getImage();
+	int i = 0;
+
+	while (i < getImage().getWidth()) {
+
+		++i;
+		x += (xSlope * i);
+		y += (ySlope * i);
+
+		if (x >= getImage().getWidth() || x <= 0) {
+			break;
+		} else if (y >= getImage().getHeight() || y <= 0) {
+			break;
+		}
+
+//		Debugger::DEBUG("BallDetector", "(%i|%i) Sobelvalue: %i", x, y,
+//				sobelValue);
+		if (image->getValue(x, y).V < minThreshold) {
+			p = new Point(x, y);
+			getBallEdges().addPoint(p);
+			break;
+		}
+
+>>>>>>> .r6661
+	}
+
+	if (p != NULL) {
+		pointList->push_back(p);
+	}
+
+	//lint -e{429} 'pointList' lost the custody
+}
+

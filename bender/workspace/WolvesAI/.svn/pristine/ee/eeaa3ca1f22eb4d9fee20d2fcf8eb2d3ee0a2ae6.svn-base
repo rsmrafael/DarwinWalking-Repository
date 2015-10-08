@@ -1,0 +1,121 @@
+/*
+ * AbstractBehavior.h
+ *
+ *  Created on: 26.03.2014
+ *      Author: Oliver Krebs
+ */
+
+#ifndef ABSTRACTBEHAVIOR_H_
+#define ABSTRACTBEHAVIOR_H_
+
+#include "../../ModuleManager/Module.h"
+#include "../../Representations/Object.h"
+#include "../../Representations/ObjectList.h"
+#include "../../Representations/RobotConfiguration.h"
+#include "../../Representations/BodyStatus.h"
+#include "../../Representations/YUVImage.h"
+#include "../../Representations/BehaviorStatus.h"
+#include "../../Representations/BodyAction.h"
+#include "../../Representations/GameStatus.h"
+#include "../../Representations/GoalSide.h"
+#include "../../Communication/MitecomCommunicator.h"
+#include "../../Network/Network.h"
+#include "../../GameEventListener.h"
+#include "../../Game.h"
+
+BEGIN_DECLARE_MODULE(AbstractBehavior)
+	REQUIRE(RobotConfiguration,RobotConfiguration)
+	REQUIRE(BodyStatus,BodyStatus)
+	REQUIRE(YUVImage,Image)
+	REQUIRE(Object,Ball)
+	REQUIRE(Object,BallPredict)
+	REQUIRE(ObjectList,GoalPoles)
+	REQUIRE(GameStatus,GameStatus)
+	REQUIRE(Object, GoalKeeper)
+	REQUIRE(GoalSide,GoalSide)
+	PROVIDE(BehaviorStatus,BehaviorStatus)
+	PROVIDE(BodyAction,BodyAction)
+END_DECLARE_MODULE(AbstractBehavior)
+
+class AbstractBehavior
+:	public AbstractBehaviorBase,
+	public GameEventListener
+{
+public:
+	AbstractBehavior(Game *game, MitecomCommunicator *communicator);
+	virtual ~AbstractBehavior();
+
+	virtual bool execute();
+
+	virtual void isPenalizedHasChanged(bool penalized);
+	virtual void gameResultHasChanged(Game::GameResult result);
+	virtual void gameStateHasChanged(Game::GameState state);
+	virtual void kickOffHasChanged(bool haveKickOff);
+	virtual string getStateName(int state);
+
+protected:
+
+	virtual void updateState() = 0;
+	virtual void executeBehavior() = 0;
+	static void changeRole( int role);
+	static void changeRole(string role);
+
+	void updateTeamMates();
+	void updateCommunicator();
+
+	enum {
+		DELAY_LOOP = -1
+	};
+
+	void initDelayLoop(uint64_t delay_ms);
+	int processDelayLoop() const;
+
+	bool processTracker(const Object& object) const;
+	bool searchObject(bool topRowOnly);
+
+	void calculateWalkSteps( int pan, int tilt, int16_t &rlStep, int16_t &fbStep) const;
+	void calculateFitWalkSteps( int pan, int16_t &rlStep, int16_t &fbStep) const;
+	void calculateTurnWalkSteps( int pan, int16_t &rlStep, int16_t &yStep) const;
+
+	static int32_t mCurrentRole;
+	int32_t mThisRole;
+	bool mIsPenalized;
+	bool mIsKickOff;
+	bool mHaveGoalie;
+	bool mIsBallSeenStable;
+	bool mUseMitecom;
+	bool mDynamicRoleChange;
+
+	int mWalkingSpeedAvg;
+	int mKickingDistanceMax;
+
+	int mSearchObjectRow;
+	int mSearchObjectPan;
+	int mSearchObjectTilt;
+	int mSearchObjectPanDir;
+	int mSearchObjectTiltDir;
+	int mSearchObjectLoopPoint;
+	int mSearchObjectUpdateCnt;
+
+	int mLastState;
+	int mCurrentState;
+	int mReturnState;
+	uint64_t mDelayLoopDuration;
+	uint64_t mLoopStartTime;
+	uint64_t mLastRoleDecideTime;
+
+	std::string mRoleWhenLosingGame;
+
+	MixedTeamMates mTeamMates;
+	MixedTeamMate mMyInfo;
+	Game *mGame;
+	MitecomCommunicator *mCommunicator;
+
+	int mMinWalkingTurnAngle;
+	int mMinTurnAngle;
+	int mYTurnAngle;
+	int mLeftTurnSpeed;
+	int mRightTurnSpeed;
+};
+
+#endif /* ABSTRACTBEHAVIOR_H_ */

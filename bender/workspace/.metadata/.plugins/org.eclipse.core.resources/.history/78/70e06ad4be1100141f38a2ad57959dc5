@@ -1,0 +1,31 @@
+/*
+ * FieldRunner.h
+ *
+ *  Created on: 22.07.2014
+ *      Author: da-v1n
+ */
+
+#ifndef FIELDRUNNER_H_
+#define FIELDRUNNER_H_
+
+#include "AbstractBehavior.h"
+
+class FieldRunner
+:	public AbstractBehavior,
+	public ConfigChangeListener
+{
+public:
+	FieldRunner(Game *game, MitecomCommunicator *communicator);
+	virtual ~FieldRunner();
+	virtual string getStateName(int state);
+	virtual void configChanged();
+	void gameStateHasChanged(Game::GameState state);
+private:
+	enum {
+			SEARCH_FOR_BACKFIELDLINE,
+			MOVE_TO_FIELDLINE,
+			TURN_HALF
+		};
+};
+
+#endif /* FIELDRUNNER_H_ */

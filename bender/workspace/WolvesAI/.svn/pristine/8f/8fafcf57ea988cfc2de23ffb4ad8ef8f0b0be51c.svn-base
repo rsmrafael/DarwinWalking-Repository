@@ -1,0 +1,46 @@
+/*
+ * GoalFind.h
+ *
+ *  Created on: 16.03.2015
+ *      Author: bombadil
+ */
+
+#ifndef GOALFIND_H_
+#define GOALFIND_H_
+
+#include "../../ModuleManager/Module.h"
+#include "../../Representations/FieldLines.h"
+#include "../../Representations/YUVImage.h"
+#include "../../Representations/ObjectList.h"
+#include "../../ConfigChangeListener.h"
+#include <cmath>
+#include <algorithm>
+
+
+BEGIN_DECLARE_MODULE(GoalFind)
+	REQUIRE(FieldLines,FieldLines)
+	REQUIRE(YUVImage,Image)
+	PROVIDE(ObjectList, GoalPoles)
+END_DECLARE_MODULE(GoalFind)
+
+class GoalFind : public GoalFindBase, public ConfigChangeListener{
+public:
+	GoalFind();
+	virtual ~GoalFind();
+	virtual bool execute();
+	virtual void configChanged();
+
+private:
+	int mDebugDrawings;
+	int mMaxU_Green;
+	int mMaxV_Green;
+	int mMinY_Whitegoal;
+	int mMinPoleWidth;
+	int mMinPoleHeight;
+	int mPoleWatchBelowLine;
+
+	int findMaxHeight(int startX,int startY);
+	bool poleCompare(const pair<int, Object>& firstElem, const std::pair<int, Object>& secondElem);
+};
+
+#endif /* GOALFIND_H_ */

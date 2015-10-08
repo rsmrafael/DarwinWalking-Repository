@@ -1,0 +1,76 @@
+[RobotData]
+;-90
+MinPanAngle = -135.0
+;+90
+MaxPanAngle = +135.0
+;
+MinTiltAngle = 0.0
+;
+MaxTiltAngle = 90.0
+; 0.11
+PanGainP = 0.1
+; 0.05; 0.22
+PanGainD = 0.1
+; 0.11
+TiltGainP = 0.1
+; 0.05; 0.22
+TiltGainD = 0.1
+; distance of camera to ground
+CameraHeight = 455.0
+; offset of camera to center of robot in x (front)
+CameraOffsetX = 50.0
+; 
+FocalPixelLengthX = 362
+;
+FocalPixelLengthY = 435
+; image width (pixel) / 2
+PrinciplePointX = 320
+; image height (pixel) / 2
+PrinciplePointY = 240
+
+[Ball]
+;Size 1
+Diameter = 130
+
+[Field]
+; A
+Length = 9000
+; B
+Width = 6000
+; G 
+PenaltyMarkDistance = 1800
+; H
+CenterCircleDiameter = 1500
+; I
+BorderStripWidthMin = 700
+
+[Goal]
+; C 
+Depth = 500
+; D 
+Width = 1800
+; E 
+AreaLength = 600
+; F 
+AreaWidth = 3450
+PoleDiameter = 100
+CrossbarDiameter = 100
+CrossbarHeight = 1100
+NetHeight = 1000
+
+[Line]
+Width = 50
+;penalty mark and center mark
+SegmentLength = 100
+
+[Robot]
+HeightMin = 400
+HeightMedian = 500
+HeightMax = 900
+WidthMin = 100
+WidthMedian = 200
+WidthMax = 400
+
+[Obstacle]
+HeightMedian = 1000
+WidthMedian = 300

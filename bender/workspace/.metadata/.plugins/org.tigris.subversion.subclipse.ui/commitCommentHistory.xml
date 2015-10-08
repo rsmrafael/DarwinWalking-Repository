@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CommitComments>	<CommitComment>new balldetection if tilt &lt; 30</CommitComment>
+	<CommitComment>Fix bug with rows and cols for head</CommitComment>
+	<CommitComment>Behavior role FieldRunner added and included</CommitComment>
+	<CommitComment>GoalSidePrediction: update background with debug output</CommitComment>
+	<CommitComment>RobotData: *CameraHeight 415 -&gt; 455
+RobotConfiguration: +cameraOffsetX
+BallDetection: *length of vector: add cameraOffsetX</CommitComment>
+	<CommitComment>RobotData: *CameraHeight 415 -&gt; 455
+BallDetection: </CommitComment>
+	<CommitComment>Fixed back in delay loop</CommitComment>
+	<CommitComment>Behavior: *fix searching ball (do not restart loop after ball was found) </CommitComment>
+	<CommitComment>Behavior: +config parameter (mitecom + dynamic role change)</CommitComment>
+	<CommitComment>RoboW in Berlin 2014-03
+-added motions
+-detection constants changed
+-Ball vector debug output</CommitComment>
+</CommitComments>

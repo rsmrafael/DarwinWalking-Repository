@@ -1,0 +1,260 @@
+/*
+ * GoalieDetection.cpp
+ *
+ *  Created on: Sep 3, 2012
+ *      Author: jan
+ */
+
+#include "GoalieDetection.h"
+#include "../../Debugging/Debugger.h"
+#include "../../Debugging/DebugDrawer.h"
+#include "../../Config.h"
+
+GoalieDetection::GoalieDetection()
+:	mDebugDrawings(1),
+	mMinColorCloudPoints(6),
+	mMinCloudDistance(15),
+	mSteps(1),
+	mMinRobotPointsPercentage(0.6),
+	mRobotFeetWidthPercentage(0.2),
+	mMaxY_Black(80),
+	mMaxV_Gray(60),
+	mMinU_Cyan(160),
+	mMaxV_Cyan(80),
+	mMinU_Magenta(140),
+	mMinV_Magenta(140) {
+	this->configChanged();
+
+	Config::getInstance()->registerConfigChangeHandler(this);
+}
+
+GoalieDetection::~GoalieDetection() {
+	Config::getInstance()->removeConfigChangeHandler(this);
+}
+
+bool GoalieDetection::execute() {
+	vector<PointCloudObject_t> cyanClouds;
+	vector<PointCloudObject_t> magentaClouds;
+
+	// separate points to clouds
+	list<Point>::const_iterator pointIt = getCyanPoints().getCloud()->begin();
+	for (; pointIt != getCyanPoints().getCloud()->end(); ++pointIt) {
+		addPointToNearestCloud((*pointIt), cyanClouds);
+	}
+	eraseSmallClouds(cyanClouds);
+
+	pointIt = getMagentaPoints().getCloud()->begin();
+	for (; pointIt != getMagentaPoints().getCloud()->end(); ++pointIt) {
+		addPointToNearestCloud((*pointIt), magentaClouds);
+	}
+	eraseSmallClouds(magentaClouds);
+
+	size_t goalPoles = getGoalPoles().getObjects().size();
+	if (goalPoles < 2) {
+		//not enough Poles here
+		getGoalKeeper().notSeen();
+		return true;
+	}
+
+	Object first = getGoalPoles().getObjects().front();
+	Object second = getGoalPoles().getObjects().back();
+
+	getGoalPoles().getObjects().front();
+	Point firstTop(first.lastImageTopLeftX, first.lastImageTopLeftY);
+	Point secondTop(second.lastImageTopLeftX, second.lastImageTopLeftY);
+
+	int between = abs(second.lastImageTopLeftX - first.lastImageTopLeftX);
+	int width = between + second.originalWidth;
+	int height = 0;
+	if (first.lastImageHeight > second.lastImageHeight) {
+		height = first.lastImageHeight;
+	} else {
+		height = second.lastImageHeight;
+	}
+	height += abs(first.lastImageHeight - second.lastImageHeight);
+
+	BoundingBox goal = BoundingBox(firstTop, width, height);
+	if (mDebugDrawings == 1) {
+		DRAW_BOX("GoalArea", goal.topLeft.getX(), goal.topLeft.getY(),
+				goal.width, goal.height, DebugDrawer::YELLOW);
+	}
+
+	bool cyan = false;
+	bool magenta = false;
+	cyan = detectGoalieByColor(goal, cyanClouds, Object::ROBOT_CYAN);
+	if (!cyan) {
+		magenta = detectGoalieByColor(goal, magentaClouds, Object::ROBOT_MAGENTA);
+	}
+	if (!cyan && !magenta) {
+		getGoalKeeper().notSeen();
+	}
+
+	return true;
+}
+
+bool GoalieDetection::detectGoalieByColor(BoundingBox goal,
+		vector<PointCloudObject_t> &cloudList, int color) {
+	vector<PointCloudObject_t>::iterator cloudIt;
+	size_t cloudHeight, cloudWidth;
+	for (cloudIt = cloudList.begin(); cloudIt != cloudList.end(); ++cloudIt) {
+		cloudHeight = cloudIt->maxY - cloudIt->minY;
+		cloudWidth = cloudIt->maxX - cloudIt->minX;
+
+		//found Marker
+		if (mDebugDrawings == 1) {
+			DRAW_BOX("Marker", cloudIt->minX, cloudIt->maxX, cloudWidth,
+					cloudHeight, DebugDrawer::LIGHT_YELLOW);
+		}
+
+		if (cloudIt->cloud->doBoundingBoxesOverlap(goal)) {
+			BoundingBox marker = BoundingBox(
+					Point(cloudIt->minX, cloudIt->minY), cloudWidth,
+					cloudHeight);
+
+			int startX = marker.topLeft.getX();
+			int endX = startX + cloudWidth;
+
+			//check feet or whole line at fieldLine.y
+//				if (checkWholeFieldLine(startX, endX)) {
+			if (checkFieldLineForFeet(startX, endX)) {
+				getGoalKeeper().updateObject(marker.topLeft.getX(),
+						marker.topLeft.getY(), cloudWidth, cloudHeight);
+				if (mDebugDrawings) {
+					DRAW_BOX("GOALIE!", marker.topLeft.getX(),
+							marker.topLeft.getY(), marker.width, marker.height,
+							DebugDrawer::ORANGE);
+				}
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+bool GoalieDetection::checkForColor(YUVImage::YUVData color) {
+	if (color.Y < mMaxY_Black) {
+		return true;
+	} else if (color.V < mMaxV_Gray) {
+		return true;
+	} else if (color.U > mMinU_Cyan && color.V < mMaxV_Cyan) {
+		return true;
+	} else if (color.U > mMinU_Magenta && color.V > mMinV_Magenta) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool GoalieDetection::checkWholeFieldLine(int startX, int endX) {
+	float correct = 0.f, incorrect = 0.f;
+	const YUVImage* yuvImage = &getImage();
+	for (size_t i = startX; i < endX; i = i + mSteps) {
+		int yPos = getFieldLines().getY(i);
+		struct YUVImage::YUVData currentColor = yuvImage->getValue(i, yPos);
+
+		if (checkForColor(currentColor)) {
+			correct++;
+		} else {
+			incorrect++;
+		}
+	}
+	float result = correct / (correct + incorrect);
+	return result > mMinRobotPointsPercentage;
+}
+
+bool GoalieDetection::checkFieldLineForFeet(int startX, int endX) {
+	size_t range = (endX - startX) * mRobotFeetWidthPercentage;
+	float correct = 0.f, incorrect = 0.f;
+	const YUVImage* yuvImage = &getImage();
+
+	//left leg
+	for (size_t i = startX; i < startX + range; i = i + mSteps) {
+		int yPos = getFieldLines().getY(i);
+		struct YUVImage::YUVData currentColor = yuvImage->getValue(i, yPos);
+		if (checkForColor(currentColor)) {
+			correct++;
+		} else {
+			incorrect++;
+		}
+	}
+
+	//right leg
+	for (size_t i = endX - range; i < endX; i = i + mSteps) {
+		int yPos = getFieldLines().getY(i);
+		struct YUVImage::YUVData currentColor = yuvImage->getValue(i, yPos);
+		if (checkForColor(currentColor)) {
+			correct++;
+		} else {
+			incorrect++;
+		}
+	}
+
+	float result = correct / (correct + incorrect);
+	return result > mMinRobotPointsPercentage;
+}
+
+void GoalieDetection::addPointToNearestCloud(const Point &point,
+		vector<PointCloudObject_t> &cloudList) const {
+	int x = point.getX();
+	int y = point.getY();
+	vector<PointCloudObject_t>::iterator it;
+	for (it = cloudList.begin(); it != cloudList.end(); ++it) {
+		if (x > (*it).minX - mMinCloudDistance
+				&& x < (*it).maxX + mMinCloudDistance
+				&& y > (*it).minY - mMinCloudDistance
+				&& y < (*it).maxY + mMinCloudDistance) {
+			(*it).cloud->addPoint(point);
+			if (x < (*it).minX) {
+				(*it).minX = x;
+			} else if (x > (*it).maxX) {
+				(*it).maxX = x;
+			}
+			if (y < (*it).minY) {
+				(*it).minY = y;
+			} else if (y > (*it).maxY) {
+				(*it).maxY = y;
+			}
+			return;
+		}
+	}
+
+	PointCloudObject_t cloudObj;
+	cloudObj.cloud = new PointCloud();
+	cloudObj.cloud->addPoint(point);
+	cloudObj.minX = x;
+	cloudObj.maxX = x;
+	cloudObj.minY = y;
+	cloudObj.maxY = y;
+	cloudList.push_back(cloudObj);
+}
+
+void GoalieDetection::eraseSmallClouds(
+		vector<PointCloudObject_t> &cloudList) const {
+	vector<PointCloudObject_t>::iterator cloudIt;
+	for (cloudIt = cloudList.begin(); cloudIt != cloudList.end();) {
+		if (cloudIt->cloud->getSize() < mMinColorCloudPoints) {
+			delete cloudIt->cloud;
+			cloudIt = cloudList.erase(cloudIt);
+		} else {
+			++cloudIt;
+		}
+	}
+}
+
+void GoalieDetection::configChanged() {
+	Debugger::INFO("GoalieDetection", "config changed");
+	ConfigFile *config = Config::getInstance();
+
+	mDebugDrawings = config->get<double>("Vision", "Goalie_debugDrawings", 1);
+	mMinColorCloudPoints = config->get<double>("Vision", "Robot_minColorCloudPoints", 6);
+	mMinCloudDistance = config->get<double>("Vision", "minCloudDistance", 10);
+	mSteps = config->get<double>("Vision", "Robot_IterateSteps", 1);
+	mMinRobotPointsPercentage = config->get<double>("Vision", "Goalie_RobotPointsPercentage", 0.6);
+	mRobotFeetWidthPercentage = config->get<double>("Vision", "Goalie_FeetPercentage of Body", 0.2);
+	mMaxY_Black = config->get<double>("Vision", "Black_MaxY", 80);
+	mMaxV_Gray =  config->get<double>("Vision", "Gray_MaxV", 60);
+	mMinU_Cyan = config->get<double>("Vision", "Cyan_minU", 160);
+	mMaxV_Cyan = config->get<double>("Vision", "Cyan_maxV", 110);
+	mMinU_Magenta = config->get<double>("Vision", "Magenta_minU", 140);
+	mMinV_Magenta = config->get<double>("Vision", "Magenta_minV", 140);
+}

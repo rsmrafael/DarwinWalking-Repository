@@ -1,0 +1,104 @@
+/*
+ * BodyStatus.cpp
+ *
+ *  Created on: 11.12.2012
+ *      Author: Stefan Krupop
+ */
+
+#include "BodyStatus.h"
+#include "ServoStatus.h"
+#include "../Messages/Representations.pb.h"
+#include "../Messages/OstreamOutputStream.h"
+#include "../Messages/IstreamInputStream.h"
+#include "../Utils/Constants.h"
+
+BodyStatus::BodyStatus() {
+	mPan = 0;
+	mTilt = 0;
+	mVoltage = 0.0;
+
+	for (int i = 0; i < SERVO_COUNT_MAX; ++i) {
+		setServoStatus(i, 0.0, 0.0, 0.0);
+	}
+}
+
+BodyStatus::~BodyStatus() {
+	for (ServoStatusIterC it = mServoStatus.begin(); it != mServoStatus.end(); ++it) {
+		delete it->second;
+	}
+	mServoStatus.clear();
+}
+
+void BodyStatus::setPanTilt(int panDeg, int tiltDeg) {
+	mPan = panDeg;
+	mTilt = tiltDeg;
+}
+
+void BodyStatus::setVoltage(double voltage) {
+	mVoltage = voltage;
+}
+
+int BodyStatus::getPan() const {
+	return mPan;
+}
+
+int BodyStatus::getTilt() const {
+	return mTilt;
+}
+
+double BodyStatus::getVoltage() const {
+	return mVoltage;
+}
+
+const map<int, ServoStatus*> BodyStatus::getServos() const {
+	return mServoStatus;
+}
+
+ServoStatus* BodyStatus::getServo(int id) {
+	ServoStatusIter it = mServoStatus.find(id);
+	if (it != mServoStatus.end()) {
+		return (*it).second;
+	}
+	return NULL;
+	//return mServoStatus[id];
+}
+
+void BodyStatus::setServoStatus(int id, double maxPositionError,
+		double temperature, double voltage) {
+	ServoStatus* servo;
+	ServoStatusIter it = mServoStatus.find(id);
+	if (it == mServoStatus.end()) {
+		servo = new ServoStatus((uint8_t)id);
+		mServoStatus.insert(pair<int, ServoStatus*>(id, servo));
+	} else {
+		servo = (*it).second;
+	}
+	servo->setStatus(maxPositionError, temperature, voltage);
+	//lint -e{429} 'newSet' lost the custody
+}
+
+void Serializer<BodyStatus>::serialize(const BodyStatus& representation, ostream& stream) {
+	protobuf::BodyStatus status;
+
+	status.set_voltage(representation.getVoltage());
+	status.set_pan((double) representation.getPan() * DEGREE_TO_RADIAN);
+	status.set_tilt((double) representation.getTilt() * DEGREE_TO_RADIAN);
+
+	const map<int, ServoStatus*> lst = representation.getServos();
+	for (map<int, ServoStatus*>::const_iterator it = lst.begin(); it != lst.end(); ++it) {
+		protobuf::ServoStatus* servoStat = status.add_servos();
+		it->second->writeProtoBuf(servoStat);
+	}
+
+	OstreamOutputStream buf(&stream);
+	status.SerializeToZeroCopyStream(&buf);
+}
+
+void Serializer<BodyStatus>::deserialize(istream& stream, BodyStatus& representation) {
+	protobuf::BodyStatus status;
+
+	IstreamInputStream buf(&stream);
+	status.ParseFromZeroCopyStream(&buf);
+
+	representation.setVoltage(0.0);
+}

@@ -1,0 +1,229 @@
+/*
+ * Histogramm.cpp
+ *
+ *  Created on: Sep 24, 2012
+ *      Author: jan
+ */
+
+#include "Histogram.h"
+#include "../Messages/Line.pb.h"
+#include "../Messages/Histogram.pb.h"
+#include "../Messages/OstreamOutputStream.h"
+#include "../Messages/IstreamInputStream.h"
+#include <algorithm>
+
+using namespace std;
+
+static bool sortArea( const Area &i,  const Area &j) { return (i.combinedValue>j.combinedValue); }
+
+Histogram::Histogram() {
+	mMaxValue = 255;
+	mMinValue = 0;
+	mStepSize = 16;
+
+	for (int i = mMinValue; i <= mMaxValue; i += mStepSize) {
+		addEntry(i, 0);
+	}
+}
+
+Histogram::~Histogram() {
+	clearHist();
+}
+
+void Histogram::clearHist() {
+	mData.clear();
+
+	for (int i = mMinValue; i <= mMaxValue; i += mStepSize) {
+		addEntry(i, 0);
+	}
+}
+
+void Histogram::setType(int minValue, int maxValue, int stepSize) {
+	mMinValue = minValue;
+	mMaxValue = maxValue;
+	mStepSize = stepSize;
+
+	mData.clear();
+}
+
+void Histogram::addData(int data) {
+
+	if (data >= mMinValue && data <= mMaxValue) {
+
+		// round the data to a stepValue (integer division!)
+		int roundedData = data / mStepSize;
+		roundedData *= mStepSize;
+
+		int value = 0;
+		map<int, int>::iterator it;
+		it = mData.find(roundedData);
+
+		if (it != mData.end()) {
+			value = it->second;
+			//mData.erase(it);
+		}
+
+		++value;
+		mData[roundedData] = value;
+	}
+}
+
+void Histogram::addDataBytes(int data, int bytes) {
+
+	if (data >= mMinValue && data <= mMaxValue) {
+
+		int roundedData = 0;
+		uint32_t uData = (uint32_t)data;
+		while( bytes > 0) {
+			uint8_t byte = (uint8_t)(uData & 0xFF);
+			byte /= (uint8_t)mStepSize;
+			byte *= (uint8_t)mStepSize;
+			roundedData = (int)(((uint32_t)roundedData << 8) | byte);
+			uData >>= 8;
+			--bytes;
+		}
+
+		int value = 0;
+		map<int, int>::iterator it;
+		it = mData.find(roundedData);
+
+		if (it != mData.end()) {
+			value = it->second;
+			//mData.erase(it);
+		}
+
+		++value;
+		mData[roundedData] = value;
+	}
+}
+
+const map<int, int> Histogram::getHistData() const {
+	return mData;
+}
+
+void Histogram::addEntry(int key, int value) {
+	mData[key] = value;
+}
+
+
+static pair<int, int> flip_pair(const pair<int, int> &p) {
+	return pair<int, int>(p.second, p.first);
+}
+
+
+static map<int, int> flip_map(const map<int, int> &src) {
+	map<int, int> dst;
+	transform(src.begin(), src.end(), inserter(dst, dst.begin()), flip_pair);
+	return dst;
+}
+
+const vector<int> Histogram::getMaxima(size_t numOfMaxima) const {
+
+	vector<int> maxima;
+	map<int, int> flippedData = flip_map(mData);
+
+	size_t counter = 0;
+	for (map<int, int>::const_iterator mapIterator = flippedData.begin();
+			mapIterator != flippedData.end(); ++mapIterator) {
+		maxima.push_back((*mapIterator).second);
+		++counter;
+
+		if (counter > numOfMaxima) {
+			break;
+		}
+	}
+
+	return maxima;
+}
+
+const vector<int> Histogram::getMinima(size_t numOfMinima) const {
+
+	vector<int> minima;
+	map<int, int> flippedData = flip_map(mData);
+
+	size_t counter = 0;
+	for (map<int, int>::const_iterator mapIterator = flippedData.end();
+			mapIterator != flippedData.begin(); --mapIterator) {
+		minima.push_back((*mapIterator).second);
+		++counter;
+
+		if (counter > numOfMinima) {
+			break;
+		}
+	}
+
+	return minima;
+}
+
+vector<Area> Histogram::getMaxAreas(int maxSize, int numOfMaxima) const {
+	vector<Area> possibleAreas;
+	for (map<int, int>::const_iterator mapIterator = mData.begin();
+			mapIterator != mData.end(); ++mapIterator) {
+
+	}
+
+	vector<Area> results;
+
+	//lint -e864
+	sort(possibleAreas.begin(), possibleAreas.end(), sortArea);
+
+	for (int i = 0; i < numOfMaxima; ++i){
+		//lint -e571
+		results.push_back(possibleAreas[(size_t) i]);
+	}
+	return results;
+}
+
+int Histogram::calculateMean() const {
+	int mean = 0;
+	int counter = 1;
+	for (map<int, int>::const_iterator it = mData.begin();
+			it != mData.end(); ++it) {
+		counter += it->second;
+		mean -= (mean - it->first) / counter;
+	}
+	return mean;
+}
+
+int Histogram::calculateMode() const {
+	int mode = 0;
+	int maximum = 0;
+	for (map<int, int>::const_iterator it = mData.begin();
+			it != mData.end(); ++it) {
+		if( it->second > maximum) {
+			maximum = it->second;
+			mode = it->first;
+		}
+	}
+	return mode;
+}
+
+void Serializer<Histogram>::serialize(const Histogram& representation,
+		ostream& stream) {
+
+	protobuf::Histogram histogram;
+
+	const map<int, int> data = representation.getHistData();
+
+	for (map<int, int>::const_iterator mapIterator = data.begin();
+			mapIterator != data.end(); ++mapIterator) {
+		histogram.add_value((*mapIterator).second);
+	}
+
+	histogram.set_maxvalue(representation.getMaxValue());
+	histogram.set_minvalue(representation.getMinValue());
+	histogram.set_stepsize(representation.getStepSize());
+
+	OstreamOutputStream buf(&stream);
+	histogram.SerializeToZeroCopyStream(&buf);
+}
+
+void Serializer<Histogram>::deserialize(istream& stream,
+		Histogram& representation) {
+	protobuf::Histogram hist;
+
+	IstreamInputStream buf(&stream);
+	hist.ParseFromZeroCopyStream(&buf);
+
+	representation.addData(0);
+}

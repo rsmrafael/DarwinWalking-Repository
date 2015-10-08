@@ -1,0 +1,127 @@
+/*
+ * RelativePositionDetection.cpp
+ *
+ *  Created on: 06.03.2015
+ *      Author: Oliver Krebs
+ */
+
+#include "RelativePositionDetection.h"
+#include "../../Debugging/DebugDrawer.h"
+#include "../../Utils/Constants.h"
+#include "../../Config.h"
+#include <vector>
+
+RelativePositionDetection::RelativePositionDetection()
+:	mPanAngle(0.0),
+ 	mTiltAngle(0.0),
+ 	mRadiansPerPixelH(0.0f),
+ 	mRadiansPerPixelV(0.0f),
+ 	mPrinciplePointX(0),
+ 	mPrinciplePointY(0),
+ 	mSizeToDistanceMultiplier(0.5f),
+ 	mDistanceFromAngleWeight(0.5f),
+ 	mDistanceFromSizeWeight(0.5f),
+ 	mCameraHeight(0.0f),
+ 	mCameraOffsetX(0.0f),
+ 	mUsePrinciplePoint(true),
+ 	mDebugDrawings(0)
+{
+
+}
+
+RelativePositionDetection::~RelativePositionDetection() {
+
+}
+
+bool RelativePositionDetection::execute() {
+	// TODO add angle of objects to panAngle and tiltAngle
+	// TODO use object size in image for distance approximation
+	mPanAngle = DEGREE_TO_RADIAN * getBodyStatus().getPan();
+	mTiltAngle = DEGREE_TO_RADIAN * getBodyStatus().getTilt();
+
+	const RobotConfiguration& botConf = getRobotConfiguration();
+	const CameraSettings& camSet = getCameraSettings();
+	mRadiansPerPixelH = DEGREE_TO_RADIAN * botConf.cameraOpeningHorizontal
+			/ (double) (camSet.width);
+	mRadiansPerPixelV = DEGREE_TO_RADIAN * botConf.cameraOpeningVertical
+			/ (double) (camSet.height);
+
+	mPrinciplePointX = botConf.principlePointX;
+	mPrinciplePointY = botConf.principlePointY;
+	mCameraHeight 	 = botConf.cameraHeight;
+	mCameraOffsetX 	 = botConf.cameraOffsetX;
+
+	updateVector(getBall(), &getBallVector());
+	updateVectors( getGoalPoles().getObjects(), &getGoalPolesVectors().data);
+	updateVectors( getCyanRobots().getObjects(), &getCyanRobotsVectors().data);
+	updateVectors( getMagentaRobots().getObjects(), &getMagentaRobotsVectors().data);
+	updateVectors( getRobots().getObjects(), &getRobotsVectors().data);
+	return true;
+}
+
+void RelativePositionDetection::updateVectors(const std::vector<Object> &objects, std::vector<Vector> *vectors) {
+	vectors->clear();
+	for (auto obj : objects) {
+		//const Object &obj = (*it);
+		Vector pos = Vector();
+		updateVector(obj, &pos);
+		vectors->push_back(pos);
+	}
+}
+
+void RelativePositionDetection::updateVector(const Object &object, Vector *pos) {
+	if (!object.lastImageSeen) {
+		return;
+	}
+	double pan = mPanAngle;
+	double tilt = mTiltAngle;
+
+	if (mUsePrinciplePoint) {
+		int objX = object.lastImageX; // center
+		int objY = (object.lastImageTopLeftY + object.lastImageHeight); // bottom
+		pan -= (double) (mPrinciplePointX - objX) * mRadiansPerPixelH;
+		tilt += (double) (mPrinciplePointY - objY) * mRadiansPerPixelV;
+	}
+
+	double distanceFromAngle = mCameraHeight * tan(tilt);
+	distanceFromAngle += mCameraOffsetX;
+
+	// TODO check why inf
+/*	double distanceFromSize = mSizeToDistanceMultiplier
+			* (double) object.lastImageWidth / (double) object.originalWidth;
+
+	double distance = mDistanceFromAngleWeight * distanceFromAngle
+			+ mDistanceFromSizeWeight * distanceFromSize;
+	pos->updateVector(pan, distance);
+	*/
+	pos->updateVector(pan, distanceFromAngle);
+
+	showDebugInformations(object, pos, tilt);
+}
+
+void RelativePositionDetection::showDebugInformations(const Object &object, Vector *pos, double tilt) {
+	double pan = pos->getAngle();
+	double distance = pos->getLength();
+	Debugger::INFO("RelativePositionDetection", "%s-Vector %.1f; %.1f : %.1f",
+			object.toString().c_str(), pan*RADIAN_TO_DEGREE, tilt*RADIAN_TO_DEGREE, distance);
+
+#ifdef _DEBUG
+	if( mDebugDrawings >= 2) {
+		int x = getBall().lastImageTopLeftX;
+		int y = getBall().lastImageTopLeftY;
+		DRAW_TEXT(object.toString(), x + 2, y + 10, DebugDrawer::YELLOW,
+			"%.0f mm (%d px; %.2f deg)", distance, getBall().lastImageWidth, tilt*RADIAN_TO_DEGREE);
+		DRAW_TEXT(object.toString(), x + 2, y + 24, DebugDrawer::YELLOW,
+			"Pan: %.2f deg", pan*RADIAN_TO_DEGREE);
+	}
+#endif
+}
+
+void RelativePositionDetection::configChanged() {
+	ConfigFile *config = Config::getInstance();
+	mDebugDrawings = config->get<int>("Vision", "Ball_debugDrawings", 0);
+	mDistanceFromAngleWeight = config->get<double>("Support", "DistanceFromAngleWeight", 0.5);
+	mDistanceFromSizeWeight = config->get<double>("Support", "DistanceFromSizeWeight", 0.5);
+	mSizeToDistanceMultiplier = config->get<double>("Support", "SizeToDistanceMultiplier", 0.5);
+	mUsePrinciplePoint = config->get<bool>("Support", "UsePrinciplePoint", true);
+}

@@ -1,0 +1,33 @@
+/*
+ * Communicator.h
+ *
+ *  Created on: 24.06.2009
+ *      Author: Stefan
+ */
+
+#ifndef COMMUNICATOR_H_
+#define COMMUNICATOR_H_
+
+using namespace std;
+
+#include "AbstractCommunicator.h"
+
+
+class Communicator : public AbstractCommunicator {
+public:
+
+	Communicator(string device);
+	~Communicator();
+
+	void GetStatusRequest(StatusItem item, double* data1, double* data2);
+protected:
+	void SendData(unsigned char type, unsigned char instruction, unsigned char controller, size_t commandLen, unsigned char* commandContent);
+	int ReadByte();
+	int ReadShort();
+private:
+	bool InitComPort(string device);
+	int mComFileDescriptor;
+	struct termios mOldComSettings;
+};
+
+#endif /* COMMUNICATOR_H_ */

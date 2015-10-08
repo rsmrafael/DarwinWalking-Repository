@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Delete resource &apos;WolvesKI2 - BlackBoard/src/Modules/Vision/GoalDetection.cpp.edited&apos;" deleteContents="false" description="Delete resource &apos;WolvesKI2 - BlackBoard/src/Modules/Vision/GoalDetection.cpp.edited&apos;" element1="/WolvesKI2 - BlackBoard/src/Modules/Vision/GoalDetection.cpp.edited" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="1" stamp="1358782687116"/>
+</session>

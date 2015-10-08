@@ -1,0 +1,178 @@
+/*
+ * Behavior.h
+ *
+ *  Created on: 13.02.2014
+ *      Author: Oliver Krebs
+ */
+
+#ifndef BEHAVIOR_H_
+#define BEHAVIOR_H_
+
+#include "../../ModuleManager/Module.h"
+#include "../../Representations/Object.h"
+#include "../../Representations/ObjectList.h"
+#include "../../Representations/RobotConfiguration.h"
+#include "../../Representations/BodyStatus.h"
+#include "../../Representations/YUVImage.h"
+#include "../../Representations/BehaviorStatus.h"
+#include "../../Representations/BodyAction.h"
+#include "../../Representations/GameStatus.h"
+#include "../../Representations/GoalSide.h"
+#include "../../Communication/MitecomCommunicator.h"
+#include "../../Network/Network.h"
+#include "../../GameEventListener.h"
+#include "../../Game.h"
+
+BEGIN_DECLARE_MODULE(Behavior)
+	REQUIRE(RobotConfiguration,RobotConfiguration)
+	REQUIRE(BodyStatus,BodyStatus)
+	REQUIRE(YUVImage,Image)
+	REQUIRE(Object,Ball)
+	REQUIRE(Object,BallPredict)
+	REQUIRE(ObjectList,GoalPoles)
+	REQUIRE(GameStatus,GameStatus)
+	REQUIRE(Object, GoalKeeper)
+	REQUIRE(GoalSide,GoalSide)
+	PROVIDE(BehaviorStatus,BehaviorStatus)
+	PROVIDE(BodyAction,BodyAction)
+END_DECLARE_MODULE(Behavior)
+
+class Behavior :
+	public BehaviorBase,
+	public ConfigChangeListener,
+	public GameEventListener
+{
+public:
+	Behavior(Game *game, MitecomCommunicator *com);
+	virtual ~Behavior();
+
+	virtual bool execute();
+	virtual void configChanged();
+
+	virtual void isPenalizedHasChanged(bool penalized);
+	virtual void gameResultHasChanged(Game::GameResult result);
+	virtual void gameStateHasChanged(Game::GameState state);
+	virtual void kickOffHasChanged(bool haveKickOff);
+
+protected:
+	enum State {
+		searchBall,
+		trackBall,
+		moveTowardsBall,
+		searchGoal,
+		circleToGoal,
+		moveHalfCircle,
+		prepareKick,
+		checkBallFound,
+		checkGoalFound,
+		doKick,
+		checkKick,
+		reactToSaveBall,
+		doNothing,
+		delayLoopState
+	};
+
+	void calculateWalkSteps( int pan, int tilt, int16_t &rlStep, int16_t &fbStep) const;
+	void calculateFitWalkSteps( int pan, int16_t &rlStep, int16_t &fbStep) const;
+	void calculateTurnWalkSteps( int pan, int16_t &rlStep) const;
+
+	bool executeStriker();
+	bool executeSupporter();
+	bool executeDefender();
+	bool executeGoalkeeper();
+
+	void updateCommunicator();
+	void updateTeamMates();
+	void updateState();
+
+	State processDelayLoop();
+	State processSearchBall();
+	State processTrackBall();
+	State processMoveTowardsBall(int targetDistance = 300);
+	State processSearchGoal();
+	State processCircleToGoal();
+	State processMoveHalfCircle();
+	State processCheckBallFound();
+	State processCheckGoalFound();
+	State processPrepareKick();
+	State processDoKick();
+	State processCheckKick();
+	State processReactToSaveBall();
+
+	bool processTracker(const Object& object) const;
+	bool searchObject(bool topRowOnly);
+	void enterDelayState(State returnState, uint64_t delay);
+
+	void changeRole(int role);
+	void changeRole(std::string role);
+
+	std::string getStateName(State state) const;
+
+	int32_t mCurrentRole;
+	State mCurrentState;
+	State mReturnToState;
+	State mLastAnnouncedState;
+	uint64_t mDelayLoopDuration;
+	uint64_t mLoopStartTime;
+	uint64_t mLastRoleDecideTime;
+
+	uint32_t mSearchObjectFoundCounter;
+	uint32_t mSearchObjectNotFoundCounter;
+	vect3d_t mBall;
+	vect3d_t mTarget;
+	vect3d_t mKickoffTarget;
+	uint64_t mKickingBegun;
+
+	// Configuration variables
+	bool mAllowKick;
+	bool mSearchGoal;
+	bool mIsKickOff;
+	bool mHaveGoalie; // our team has a goalie inside goal
+	bool mUseMitecom;
+	bool mDynamicRoleChange;
+	bool mIsPenalized;
+	bool mIsBallSeenStable;
+	int mNumberOfKicks; // number of successful kicks
+	int mNumberOfKickTries;
+	int mNumberOfKickTriesMax;
+	int mKickTiltDefault;
+	int mKickTilt;
+	int mTowardsBallLeftTurnAngle;
+	int mTowardsBallRightTurnAngle;
+	int mKickLeftTurnAngle;
+	int mKickRightTurnAngle;
+	int16_t mTurningXMovement;
+	int mKickLeftPan;
+	uint64_t mKickingTryTimeout;
+	int mKickoffKickTimeout;
+	int mMinKickBallRange;
+
+	int mWalkingSpeedAvg;
+	int mKickingDistanceMax;
+	int mSearchObjectRow;
+	int mSearchObjectPan;
+	int mSearchObjectTilt;
+	int mSearchObjectPanDir;
+	int mSearchObjectTiltDir;
+	int mSearchObjectLoopPoint;
+	int mSearchObjectUpdateCnt;
+
+	int mLastBallPan;
+	int mLastBallTilt;
+	int mLastGoalPan;
+	int mLastGoalTilt;
+
+	// goalie
+	int mReactTilt;
+	bool mPanTiltCorrection;
+	int mMaxPanAngle;
+	double mPanTiltScaling;
+	double mReactDistance;
+
+	MixedTeamMates mTeamMates;
+	MixedTeamMate mMyInfo;
+	Game *mGame;
+	MitecomCommunicator *mCommunicator;
+};
+
+#endif /* BEHAVIOR_H_ */

@@ -1,0 +1,303 @@
+/*
+ * Communicator.cpp
+ *
+ *  Created on: 24.06.2009
+ *      Author: Stefan
+ */
+
+#include "Communicator.h"
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+#ifndef WIN32
+#include <sys/signal.h>
+#endif
+#include <sys/types.h>
+#include <string.h>
+
+#define TIMEOUT_US	100000
+
+#define CONTROLLER_ADDRESS	1
+
+#define TYPE_INSTRUCTION	1
+
+#define STATE_IDLE			0xfff0
+#define STATE_START			0xfff1
+#define STATE_ADDRESS		0xfff2
+#define STATE_INSTRUCTION	0xfff3
+#define STATE_LENGTH1		0xfff4
+
+Communicator::Communicator(string device) {
+	mDeviceName = device;
+	mComFileDescriptor = -1;
+#ifndef WIN32
+	mOldComSettings.c_cflag = 0;
+	mOldComSettings.c_iflag = 0;
+	mOldComSettings.c_ispeed = 0;
+	mOldComSettings.c_ospeed = 0;
+#else
+	mOldComSettings.dummy = 0;
+#endif
+	InitComPort(mDeviceName);
+
+	memset(&parser_currentMessage, 0, sizeof(parser_currentMessage));
+	parser_state = STATE_IDLE;
+	memset(&mStatusMessage, 0, sizeof(mStatusMessage));
+	mStatusMessageAvailable = false;
+
+	this->start(this);
+}
+
+Communicator::~Communicator() {
+	if (mComFileDescriptor >= 0) {
+#ifndef WIN32
+		tcsetattr(mComFileDescriptor, TCSANOW, &mOldComSettings); // Restore old com port settings
+#endif
+		close(mComFileDescriptor); //close the com port
+	}
+	this->stop();
+}
+
+void Communicator::execute(void* arg) {
+#define MESSAGE_BUFFER_LEN	100
+	unsigned char buf[MESSAGE_BUFFER_LEN];
+
+	while (IsRunning()) {
+    	ssize_t res = read(mComFileDescriptor, (char *)buf, sizeof(buf));
+    	if (res > 0) {
+    		//Debugger::DEBUG("[Communicator]", "Received %u bytes", res);
+    		for (unsigned int i = 0; i < (size_t)res; ++i) {
+    			ProcessChar(buf[i]);
+    		}
+    	}
+	}
+}
+
+void Communicator::ProcessChar(unsigned char ch) {
+	if (ch == START_BYTE) {
+		parser_state = STATE_START;
+		parser_checksum = 0;
+		parser_temp = 0;
+		memset(&parser_currentMessage, 0, sizeof(parser_currentMessage));
+	} else if (parser_state == STATE_START) {
+		if (ch == (0x10 | CONTROLLER_ADDRESS) || ch == (0x20 | CONTROLLER_ADDRESS)) {
+			parser_currentMessage.type = ((ch & 0xF0) >> 4);
+			parser_state = STATE_ADDRESS;
+		} else {
+			//Debugger::DEBUG("[Communicator]", "Message is not for this controller");
+			parser_state = STATE_IDLE; // Message is not for this controller
+		}
+		parser_checksum += ch;
+	} else if (parser_state == STATE_ADDRESS) {
+		parser_currentMessage.instruction = ch;
+		parser_state = STATE_INSTRUCTION;
+		parser_checksum += ch;
+	} else if (parser_state == STATE_INSTRUCTION) {
+		parser_temp = ch;
+		parser_state = STATE_LENGTH1;
+		parser_checksum += ch;
+	} else if (parser_state == STATE_LENGTH1) {
+		parser_currentMessage.length = (parser_temp << 8) | ch;
+		parser_state = 0;
+		parser_checksum += ch;
+	} else if (parser_state < parser_currentMessage.length) {
+		if (parser_state < sizeof(parser_currentMessage.data)) {
+			parser_currentMessage.data[parser_state] = ch;
+		}
+		parser_state++;
+		parser_checksum += ch;
+	} else if (parser_state == parser_currentMessage.length) {
+		if (parser_checksum == ch) {
+			ProcessMessage(&parser_currentMessage);
+		} else {
+			//Debugger::ERR("[Communicator]", "Invalid checksum");
+		}
+		parser_state = STATE_IDLE;
+	}
+}
+
+void Communicator::ProcessMessage(const struct parser_message* message) {
+	if (message->instruction == INSTRUCTION_STATUSMESSAGE) {
+		if (message->length == sizeof(statusMessage_t)) {
+			memcpy(&mStatusMessage, message->data, sizeof(statusMessage_t));
+			mStatusMessageAvailable = true;
+		} else {
+			//Debugger::ERR("Communicator", "statusMessage_t size mismatch!");
+		}
+	}
+}
+
+const struct ICommunicator::statusMessage_t* Communicator::GetStatusMessage() {
+	if (mStatusMessageAvailable) {
+		return &mStatusMessage;
+	}
+	return NULL;
+}
+
+void Communicator::GetStatusRequest(StatusItem item, double* data1, double* data2) {
+    char data[1];
+    //lint -e{641} Enum to int
+    data[0] = item;
+
+    SendData(REQUEST, INSTRUCTION_GETSTATUS, CONTROLLER_MOVEMENT, (size_t)1, (unsigned char*)&data[0]);
+
+    if (item == Communicator::BatteryVoltage) {
+    	int raw = ReadShort();
+    	if (raw >= 0) {
+    		*data1 = (raw / 100.0);
+    	} else {
+    		//Debugger::ERR("Communicator", "Timeout while waiting for status reply from body");
+    	}
+    } else if (item == Communicator::IMUData) {
+		int raw = ReadShort();
+		if (raw >= 0) {
+			*data1 = (double)((short)raw);
+		} else {
+			//Debugger::ERR("Communicator", "Timeout while waiting for status reply from body (short 1)");
+		}
+		raw = ReadShort();
+		if (raw >= 0) {
+			*data2 = (double)((short)raw);
+		} else {
+			//Debugger::ERR("Communicator", "Timeout while waiting for status reply from body (short 2)");
+		}
+    }
+}
+
+bool Communicator::InitComPort(string device) {
+#ifndef WIN32
+	// open the device(com port)
+    mComFileDescriptor = open(device.c_str(), O_RDWR | O_NOCTTY);
+    if (mComFileDescriptor < 0) {
+        perror(device.c_str());
+        return false;
+    }
+
+    struct termios newComSettings;
+    if (tcgetattr(mComFileDescriptor, &mOldComSettings) != 0) { // save current port settings
+    	//Debugger::ERR("Communicator", "Error reading current port settings!");
+    	close(mComFileDescriptor);
+    	mComFileDescriptor = -1;
+    	return false;
+    }
+    memcpy(&newComSettings, &mOldComSettings, sizeof(struct termios));
+    // set new port settings for canonical input processing
+    newComSettings.c_cflag = B19200 | CS8 | CLOCAL | CREAD;
+    newComSettings.c_iflag = IGNPAR;
+    newComSettings.c_oflag = 0;
+
+    newComSettings.c_lflag = 0;       //ICANON;
+
+    newComSettings.c_cc[VMIN] = 1;
+    newComSettings.c_cc[VTIME] = 0;
+
+    tcflush(mComFileDescriptor, TCIFLUSH);
+    tcsetattr(mComFileDescriptor, TCSANOW, &newComSettings);
+    return true;
+#else
+    mComFileDescriptor = -1;
+    return false;
+#endif
+}
+
+void Communicator::SendData(unsigned char type, unsigned char instruction, unsigned char controller, size_t commandLen, unsigned char* commandContent) {
+	unsigned char header[5];
+	unsigned char checksum = 0;
+
+	if (mComFileDescriptor < 0) {
+		return;
+	}
+
+	header[0] = START_BYTE;
+	header[1] = ((type & 0xF0) | (controller & 0x0F));
+	header[2] = instruction;
+	header[3] = ((commandLen >> 8) & 0xFF);
+	header[4] = (commandLen & 0xFF);
+
+	for (unsigned char i = 1; i < 5; i++) { // 1 = without startbyte
+		checksum += header[i];
+	}
+	for (unsigned char i = 0; i < commandLen; i++) {
+		checksum += commandContent[i];
+	}
+
+	ssize_t written = write(mComFileDescriptor, &header[0], (size_t)5);
+	if (commandLen > 0) {
+		written = write(mComFileDescriptor, commandContent, commandLen);
+	}
+	if (written <= 0) {
+		//Debugger::ERR("Communicator", "Error writing, re-opening port...");
+		close(mComFileDescriptor); //close the com port
+		InitComPort(mDeviceName);
+		return;
+	}
+	written = write(mComFileDescriptor, &checksum, (size_t)1);
+	if (written <= 0) {
+		//Debugger::ERR("Communicator", "Error writing, re-opening port...");
+		close(mComFileDescriptor); //close the com port
+		InitComPort(mDeviceName);
+		return;
+	}
+}
+
+int Communicator::ReadByte() {
+	unsigned char buf[10];
+
+	fd_set setRead;
+	int notused = 63;
+	int cnt;
+
+	FD_ZERO(&setRead);
+	FD_SET(mComFileDescriptor, &setRead);
+
+    struct timeval timeout;
+    timeout.tv_usec = TIMEOUT_US;
+    timeout.tv_sec  = 0;
+    cnt = select(notused, &setRead, NULL, NULL, &timeout);
+    if (cnt > 0) {
+        if (FD_ISSET(mComFileDescriptor, &setRead)) {
+        	ssize_t res = read(mComFileDescriptor, (char *)buf, (size_t)10);
+        	if (res > 0) {
+        		return (int)buf[0];
+        	} else {
+        		return -1;
+        	}
+        } else {
+        	return -1;
+        }
+    } else {
+    	// Timeout
+    	return -1;
+    }
+}
+
+int Communicator::ReadShort() {
+	unsigned char buf[10];
+
+	fd_set setRead;
+	int notused = 63;
+	int cnt;
+
+	FD_ZERO(&setRead);
+	FD_SET(mComFileDescriptor, &setRead);
+
+    struct timeval timeout;
+    timeout.tv_usec = TIMEOUT_US;
+    timeout.tv_sec  = 0;
+    cnt = select(notused, &setRead, NULL, NULL, &timeout);
+    if (cnt > 0) {
+        if (FD_ISSET(mComFileDescriptor, &setRead)) {
+        	ssize_t res = read(mComFileDescriptor, (char *)buf, (size_t)10);
+        	if (res > 0) {
+        		return (buf[0] << 8) | buf[1];
+        	} else {
+        		return -1;
+        	}
+        } else {
+        	return -1;
+        }
+    } else {
+    	// Timeout
+    	return -1;
+    }
+}

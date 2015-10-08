@@ -1,0 +1,154 @@
+Marvin (1)
+==========
+
+walktuner:
+
+Walking Mode(on/off)       ON
+X offset(mm)               -18
+Y offset(mm)               5
+Z offset(mm)               10
+Roll(x) offset(degree)     0.0
+Pitch(y) offset(degree)    0.0
+Yaw(z) offset(degree)      0.0
+Hip pitch offset(degree)   7.3
+Auto balance(on/off)       OFF
+Period time(msec)          400
+DSP ratio                  0.10
+Step forward/back ratio    0.28
+Step forward/back(mm)      0
+Step right/left(mm)        0
+Step direction(degree)     0
+Turning aim(on/off)        OFF
+Foot height(mm)            23
+Swing right/left(mm)       23.0
+Swing top/down(mm)         0
+Pelvis offset(degree)      8.0
+Arm swing gain             1.5
+Balance knee gain          0.30
+Balance ankle pitch gain   0.90
+Balance hip roll gain      0.30
+Balance ankle roll gain    0.70
+P gain                     32
+I gain                     0
+D gain                     0
+] 
+
+offsettuner:
+
+ID: 1(R_SHO_PITCH)  [1480]     0  [1480]| 1501     21      0      0      0
+ID: 2(L_SHO_PITCH)  [2610]     0  [2610]| 2511    -99      0      0      0
+ID: 3(R_SHO_ROLL)   [1747]     0  [1747]| 1835     88      0      0      0
+ID: 4(L_SHO_ROLL)   [2343]     0  [2343]| 2261    -82      0      0      0
+ID: 5(R_ELBOW)      [2147]     0  [2147]| 2355    208      0      0      0
+ID: 6(L_ELBOW)      [1944]     0  [1944]| 1735   -209      0      0      0
+ID: 7(R_HIP_YAW)    [2047]     0  [16384| 0      -16384    0      0      0
+ID: 8(L_HIP_YAW)    [2047]     0  [16384| 0      -16384    0      0      0
+ID: 9(R_HIP_ROLL)   [2047]    -7  [16384| 0      -16384    0      0      0
+ID:10(L_HIP_ROLL)   [2047]    -7  [16384| 0      -16384    0      0      0
+ID:11(R_HIP_PITCH)  [2013]     0  [16384| 0      -16384    0      0      0
+ID:12(L_HIP_PITCH)  [2080]     0  [16384| 0      -16384    0      0      0
+ID:13(R_KNEE)       [2047]     0  [16384| 0      -16384    0      0      0
+ID:14(L_KNEE)       [2047]     0  [16384| 0      -16384    0      0      0
+ID:15(R_ANK_PITCH)  [2063]     0  [16384| 0      -16384    0      0      0
+ID:16(L_ANK_PITCH)  [2030]     0  [16384| 0      -16384    0      0      0
+ID:17(R_ANK_ROLL)   [2047]     2  [16384| 0      -16384    0      0      0
+ID:18(L_ANK_ROLL)   [2047]   -10  [16384| 0      -16384    0      0      0
+ID:19(HEAD_PAN)     [2047]     0  [2047]| 2048      1      0      0      0
+ID:20(HEAD_TILT)    [2170]     0  [2170]| 2171      1      0      0      0
+                     GOAL  OFFSET MODVAL PRSPOS ERRORS P_GAIN I_GAIN D_GAIN
+]
+
+kickertest:
+
+        == Kicker-Test ==
+             X    Y    Z
+BALL       100   70    0      *
+TARGET     100   45    5
+KICKTYPE  2 (MEDIUM)
+Init-PosL -0 0 185
+Init-PosR -12 10 185
+Servo-PID 32.0 -0.0 0.0
+Balance    -72   66 0
+L-Hip (P,R   0    0
+L-Ank (P,R   0    0
+R-Hip (P,R   0    0
+R-Ank (P,R   0    0
+ Result=
+
+
+Jonny (2):
+==============
+
+walktuner:
+
+Walking Mode(on/off)       ON
+X offset(mm)               -15
+Y offset(mm)               5
+Z offset(mm)               10
+Roll(x) offset(degree)     0.0
+Pitch(y) offset(degree)    0.0
+Yaw(z) offset(degree)      0.0
+Hip pitch offset(degree)   4.9
+Auto balance(on/off)       OFF
+Period time(msec)          450
+DSP ratio                  0.10
+Step forward/back ratio    0.28
+Step forward/back(mm)      0
+Step right/left(mm)        0
+Step direction(degree)     0
+Turning aim(on/off)        OFF
+Foot height(mm)            23
+Swing right/left(mm)       23.0
+Swing top/down(mm)         0
+Pelvis offset(degree)      8.0
+Arm swing gain             1.5
+Balance knee gain          0.30
+Balance ankle pitch gain   0.90
+Balance hip roll gain      0.50
+Balance ankle roll gain    1.00
+P gain                     32
+I gain                     0
+D gain                     0
+]
+
+offsettuner:
+
+ID: 1(R_SHO_PITCH)  [1480]     0  [1480]| 1504     24      0      0      0
+ID: 2(L_SHO_PITCH)  [2610]     0  [2610]| 2514    -96      0      0      0
+ID: 3(R_SHO_ROLL)   [1747]     0  [1747]| 1823     76      0      0      0
+ID: 4(L_SHO_ROLL)   [2343]     0  [2343]| 2264    -79      0      0      0
+ID: 5(R_ELBOW)      [2147]     0  [2147]| 2361    214      0      0      0
+ID: 6(L_ELBOW)      [1944]     0  [1944]| 1746   -198      0      0      0
+ID: 7(R_HIP_YAW)    [2047]     0  [16384| 0      -16384    0      0      0
+ID: 8(L_HIP_YAW)    [2047]     0  [16384| 0      -16384    0      0      0
+ID: 9(R_HIP_ROLL)   [2047]     0  [16384| 0      -16384    0      0      0
+ID:10(L_HIP_ROLL)   [2047]     0  [16384| 0      -16384    0      0      0
+ID:11(R_HIP_PITCH)  [2013]     0  [16384| 0      -16384    0      0      0
+ID:12(L_HIP_PITCH)  [2080]     0  [16384| 0      -16384    0      0      0
+ID:13(R_KNEE)       [2047]     0  [16384| 0      -16384    0      0      0
+ID:14(L_KNEE)       [2047]   -12  [16384| 0      -16384    0      0      0
+ID:15(R_ANK_PITCH)  [2063]     0  [16384| 0      -16384    0      0      0
+ID:16(L_ANK_PITCH)  [2030]     0  [16384| 0      -16384    0      0      0
+ID:17(R_ANK_ROLL)   [2047]     0  [16384| 0      -16384    0      0      0
+ID:18(L_ANK_ROLL)   [2047]     0  [16384| 0      -16384    0      0      0
+ID:19(HEAD_PAN)     [2047]     0  [2047]| 2045     -2      0      0      0
+ID:20(HEAD_TILT)    [2170]     0  [2170]| 2174      4      0      0      0
+                     GOAL  OFFSET MODVAL PRSPOS ERRORS P_GAIN I_GAIN D_GAIN
+]
+
+kickertest:
+
+        == Kicker-Test ==
+             X    Y    Z
+BALL       100   70    0      *
+TARGET     100   45    5
+KICKTYPE  2 (MEDIUM)
+Init-PosL 0 0 185
+Init-PosR 0 0 185
+Servo-PID 32.0 0.0 0.0
+Balance    -65   63 0
+L-Hip (P,R   0    0
+L-Ank (P,R   0    0
+R-Hip (P,R   0    0
+R-Ank (P,R   0    0
+ Result=

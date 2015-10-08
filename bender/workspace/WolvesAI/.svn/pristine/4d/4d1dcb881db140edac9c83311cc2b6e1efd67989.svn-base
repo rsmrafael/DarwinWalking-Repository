@@ -1,0 +1,108 @@
+/*
+ * ConfigurationProvider.cpp
+ *
+ *  Created on: 29.08.2012
+ *      Author: Stefan Krupop
+ */
+
+#include "ConfigurationProvider.h"
+#include "../Config.h"
+#include "../Debugging/Debugger.h"
+
+ConfigurationProvider::ConfigurationProvider(Body* body, Game* game) {
+	mBody = body;
+	mGame = game;
+	int panErr = Config::GetInt("Robot", "panError", 0);
+	int tiltErr = Config::GetInt("Robot", "tiltError", 0);
+	getBodyStatus().setPanTiltError(panErr, tiltErr);
+	loadCameraSettings();
+	mCameraSettingsChangedState = getCameraSettings().changedStatus;
+}
+
+ConfigurationProvider::~ConfigurationProvider() {
+	mBody = NULL;
+	mGame = NULL;
+}
+
+bool ConfigurationProvider::execute() {
+	if (mBody != NULL) {
+		getBodyStatus().setPanTilt(mBody->PanTilt()->GetPan(), mBody->PanTilt()->GetTilt());
+		const struct ICommunicator::statusMessage_t* status = mBody->GetStatusMessage();
+		if (status != NULL) {
+			getBodyStatus().setVoltage((double)status->voltage / 100.0);
+			for (uint8_t i = 0; i < SERVO_COUNT_MAX; ++i) {
+				const struct ICommunicator::servoData_t* servo = &(status->servo_status[i]);
+				getBodyStatus().setServoStatus(i, (double)servo->maxPositionError / 10.0, (double)servo->temperature, (double)servo->voltage / 10.0);
+				getOdometry().update(status->odometry.xPos, status->odometry.yPos, status->odometry.viewDirection, status->odometry.weight);
+			}
+		}
+	}
+	if (mGame != NULL) {
+		GameStatus& gs = getGameStatus();
+		gs.haveKickOff = mGame->haveKickOff();
+		gs.kickOffTime = mGame->getKickOffTime();
+		gs.gameState = mGame->getGameState();
+		gs.isFirstHalf = mGame->isFirstHalf();
+	}
+	if (getCameraSettings().changedStatus != mCameraSettingsChangedState) {
+		saveCameraSettings();
+		mCameraSettingsChangedState = getCameraSettings().changedStatus;
+	}
+
+	return true;
+}
+
+void ConfigurationProvider::loadCameraSettings() const {
+	CameraSettings& settings = getCameraSettings();
+	settings.width 			= Config::GetInt("Camera", "width", 800); //352
+	settings.height 		= Config::GetInt("Camera", "height", 600); //288
+	settings.frameIntervalNumerator 	= Config::GetInt("Camera", "frameIntervalNumerator", 1);
+	settings.frameIntervalDenominator	= Config::GetInt("Camera", "frameIntervalDenominator", 30);
+	settings.brightness 	= Config::GetDouble("Camera", "brightness", 0.0); //4: 0.2876
+	settings.contrast 		= Config::GetDouble("Camera", "contrast", 0.0); //4: 0.2765
+	settings.saturation 	= Config::GetDouble("Camera", "saturation", 0.0); //4: 0.6123
+
+	settings.autohue 		= Config::GetDouble("Camera", "autohue", 0.0);
+	settings.hue 			= Config::GetDouble("Camera", "hue", 0.0);
+	settings.redbalance 	= Config::GetDouble("Camera", "redbalance", 0.0);
+	settings.bluebalance 	= Config::GetDouble("Camera", "bluebalance", 0.0);
+	settings.gamma 			= Config::GetDouble("Camera", "gamma", 0.0);
+	settings.exposure 		= Config::GetDouble("Camera", "exposure", 0.0);
+	settings.autogain 		= Config::GetDouble("Camera", "autogain", 0.0);
+	settings.gain 			= Config::GetDouble("Camera", "gain", 0.0);
+	settings.sharpness 		= Config::GetDouble("Camera", "sharpness", 0.0);
+	settings.powerlinefreq  = Config::GetDouble("Camera", "powerlinefreq", 0.0);
+	settings.autowhitebalance 		= Config::GetDouble("Camera", "autowhitebalance", 0.0);
+	settings.whitebalancetemp 		= Config::GetDouble("Camera", "whitebalancetemp", 0.0);
+	settings.backlightcompensation 	= Config::GetDouble("Camera", "backlightcompensation", 0.0);
+	settings.autoexposure 			= Config::GetDouble("Camera", "autoexposure", 0.0);
+
+	settings.setChanged();
+}
+
+void ConfigurationProvider::saveCameraSettings() const {
+	Debugger::INFO("ConfigurationProvider", "Saving camera settings...");
+	CameraSettings& settings = getCameraSettings();
+	Config::SetInt("Camera", "width", settings.width);
+	Config::SetInt("Camera", "height", settings.height);
+	Config::SetInt("Camera", "frameIntervalNumerator", settings.frameIntervalNumerator);
+	Config::SetInt("Camera", "frameIntervalDenominator", settings.frameIntervalDenominator);
+	Config::SetDouble("Camera", "brightness", settings.brightness);
+	Config::SetDouble("Camera", "contrast", settings.contrast);
+	Config::SetDouble("Camera", "saturation", settings.saturation);
+	Config::SetDouble("Camera", "autohue", settings.autohue);
+	Config::SetDouble("Camera", "hue", settings.hue);
+	Config::SetDouble("Camera", "autowhitebalance", settings.autowhitebalance);
+	Config::SetDouble("Camera", "redbalance", settings.redbalance);
+	Config::SetDouble("Camera", "bluebalance", settings.bluebalance);
+	Config::SetDouble("Camera", "gamma", settings.gamma);
+	Config::SetDouble("Camera", "exposure", settings.exposure);
+	Config::SetDouble("Camera", "autogain", settings.autogain);
+	Config::SetDouble("Camera", "gain", settings.gain);
+	Config::SetDouble("Camera", "sharpness", settings.sharpness);
+	Config::SetDouble("Camera", "powerlinefreq", settings.powerlinefreq);
+	Config::SetDouble("Camera", "whitebalancetemp", settings.whitebalancetemp);
+	Config::SetDouble("Camera", "backlightcompensation", settings.backlightcompensation);
+	Config::SetDouble("Camera", "autoexposure", settings.autoexposure);
+	Config::GetInstance()->saveConfig();
+}

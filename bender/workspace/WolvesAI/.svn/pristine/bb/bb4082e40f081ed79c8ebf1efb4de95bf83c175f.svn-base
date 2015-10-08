@@ -1,0 +1,4 @@
+#!/bin/sh
+
+ifconfig eth0 192.168.23.15`fw_printenv -n botid`
+#dhcpcd &

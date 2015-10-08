@@ -1,0 +1,62 @@
+/*
+ * BehaviorConstants.h
+ *
+ *  Created on: 26.03.2014
+ *      Author: Oliver Krebs
+ */
+
+#ifndef BEHAVIORCONSTANTS_H_
+#define BEHAVIORCONSTANTS_H_
+
+#define NO_OBJECT_MAX_COUNT		15
+#define NO_BALL_MAX_COUNT		10//3	// ball not seen more times than that => ball lost
+#define NO_GOAL_MAX_COUNT		10//5
+
+#define BALL_FOUND_THRESHOLD 	2//5		// Number of subsequent ball detections needed
+#define GOAL_FOUND_THRESHOLD 	2//20		// Number of subsequent goal detections needed
+
+#define OBJECT_LOST_THRESHOLD 	10//8 // searchBall: ball not seen more times than that => ball lost
+#define MAX_LOST_COUNTER		5//10
+
+#define FOLLOW_MAX_RL_TURN		300.0//200.0	// Body scales these to mm/step
+#define FOLLOW_MIN_RL_TURN		3
+#define FOLLOW_MAX_FB_STEP		100.0//100.0
+#define FOLLOW_MIN_FB_STEP		20 // 50.0
+
+#define FIT_MAX_RL_TURN			100.0	// Body scales these to mm/step
+#define FIT_FB_STEP				20.0
+
+#define BALL_NEAR_TILT			35//old:-55
+
+#define GOAL_LEFT_ANGLE			-10//-5
+#define GOAL_RIGHT_ANGLE		10//5
+
+#define UPDATES_PER_POINT		3//5 // # of calls before advancing to next point
+#define MAX_LOOP_POINTS			9
+
+const uint64_t SCAN_FIELD_TIMEOUT = 30000;	// maximal time (ms) in state SCAN_FIELD
+
+const uint64_t TURN_DURATION	= 3000; // time in milliseconds robot is turning if object not found
+const uint64_t CIRCLE_DURATION	= 3000;
+
+const uint64_t ROLE_DECIDE_CHANGE_INTERVAL = 5000; // ms
+
+// constants
+const int BALL_DISTANCE_STRIKER   = 300;
+const int BALL_DISTANCE_SUPPORTER = 800;
+const int BALL_DISTANCE_DEFENDER = 2000;
+
+const int PAN_SEARCH_MIN[] = 	{-135, -135, -45};
+const int PAN_SEARCH_MAX[] = 	{+135, +135, +45};
+const int PAN_SEARCH_STEP  = 	+10;//+15;
+
+const int TILT_SEARCH_MIN  = 	 20; //old:-70;
+const int TILT_SEARCH_MAX  = 	 80; //old:-10;
+const int TILT_SEARCH_STEP = 	+30;//30 //old:+30;
+
+const double CIRCLE_DISTANCE_MIN = 100.0; // circle radius (75) + reserve
+
+#define TOP_ROW		0	// first row (tilt=80 deg)
+#define BOT_ROW		2	// last row (tilt=20 deg)
+
+#endif /* BEHAVIORCONSTANTS_H_ */

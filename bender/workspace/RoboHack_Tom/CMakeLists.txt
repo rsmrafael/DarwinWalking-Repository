@@ -1,0 +1,107 @@
+# <Copyright Holder>. Copyright (C) <Copyright Year(s)>. <License>.
+
+#
+# Project Properties
+#
+CMAKE_MINIMUM_REQUIRED (VERSION 2.6.2)
+PROJECT (WolvesAI)
+SET (APPLICATION_NAME "WolvesAI")
+SET (APPLICATION_CODENAME "${PROJECT_NAME}")
+SET (APPLICATION_COPYRIGHT_YEARS "2014")
+SET (APPLICATION_VERSION_MAJOR 1)
+SET (APPLICATION_VERSION_MINOR 0)
+SET (APPLICATION_VERSION_PATCH 0)
+SET (APPLICATION_VERSION_TYPE SNAPSHOT)
+SET (APPLICATION_VERSION_STRING "${APPLICATION_VERSION_MAJOR}.${APPLICATION_VERSION_MINOR}.${APPLICATION_VERSION_PATCH}-${APPLICATION_VERSION_TYPE}")
+SET (APPLICATION_VENDOR_ID "de.wfwolves")
+SET (APPLICATION_VENDOR_NAME "WF Wolves")
+SET (APPLICATION_VENDOR_URL "wfwolves.de")
+SET (APPLICATION_ID "${APPLICATION_VENDOR_ID}.${PROJECT_NAME}")
+
+#Build type decisions
+IF( NOT CMAKE_BUILD_TYPE )
+  SET( CMAKE_BUILD_TYPE Debug )
+ENDIF( NOT CMAKE_BUILD_TYPE )
+IF(CMAKE_BUILD_TYPE MATCHES Debug)
+  add_definitions(-D_DEBUG -DDEBUG_X86)
+ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
+
+#
+# Debugging Options
+#
+SET (CMAKE_VERBOSE_MAKEFILE 1) # Use 1 for debugging of the makefile, 0 for release
+
+#
+# Jenkins build options
+#
+IF (DEFINED ENV{JENKINS})
+	MESSAGE(STATUS "Jenkins environment variable is defined, setting to $ENV{JENKINS}.")
+	SET(JENKINS $ENV{JENKINS})
+ELSEIF(NOT DEFINED JENKINS)
+	MESSAGE(STATUS "Jenkins was not defined, setting to zero.")
+	SET(JENKINS 0)
+ENDIF (DEFINED ENV{JENKINS})
+
+IF(${JENKINS})
+	MESSAGE(STATUS "Building on Jenkins CI build server...")
+	add_definitions(-DJENKINS)
+ELSE()
+	MESSAGE(STATUS "Not building as Jenkins build.")
+ENDIF(${JENKINS})
+
+#
+# Project Output Paths
+#
+SET (MAINFOLDER ${PROJECT_SOURCE_DIR})
+SET (EXECUTABLE_OUTPUT_PATH "${MAINFOLDER}/bin")
+SET (LIBRARY_OUTPUT_PATH "${MAINFOLDER}/lib")
+
+#
+# Project Search Paths
+#
+LIST (APPEND CMAKE_PREFIX_PATH "${MAINFOLDER}")
+LIST (APPEND CMAKE_PREFIX_PATH "${MAINFOLDER}/tools")
+LIST (APPEND CMAKE_PREFIX_PATH "${MAINFOLDER}/thirdparty")
+SET (CMAKE_MODULE_PATH "${MAINFOLDER}/tools/share/cmake")
+INCLUDE_DIRECTORIES("${MAINFOLDER}/include")
+
+INCLUDE(${CMAKE_MODULE_PATH}/ProtobufGenCpp.cmake)
+
+#
+# Locate Project Prerequisites 
+#
+#SET (Boost_ADDITIONAL_VERSIONS "1.39" "1.39.0" "1.40" "1.40.0" "1.41" "1.41.0" "1.42" "1.42.0" "1.43" "1.43.0" "1.44" "1.44.0" "1.45" "1.45.0" "1.46" "1.46.0" "1.47" "1.47.0" "1.48" "1.48.0" "1.49" "1.49.0" "1.50" "1.50.0")
+#FIND_PACKAGE (Boost 1.37 COMPONENTS "date_time" "filesystem" "graph" "iostreams" "program_options" "regex" "serialization" "signals" "system" "thread" "wserialization" REQUIRED)
+FIND_PACKAGE(JPEG REQUIRED)
+FIND_PACKAGE(Protobuf REQUIRED)
+FIND_PACKAGE(CppUnit)
+FIND_PACKAGE (Threads)
+#LINK_DIRECTORIES(${Boost_LIBRARY_DIRS})
+
+#
+# Add Build Targets
+#
+ADD_SUBDIRECTORY(src)
+ADD_SUBDIRECTORY(test)
+
+#
+# Add Install Targets
+#
+IF (EXISTS "${MAINFOLDER}/include/${PROJECT_NAME}" AND IS_DIRECTORY "${MAINFOLDER}/include/${PROJECT_NAME}")
+    INSTALL(DIRECTORY "${MAINFOLDER}/include/${PROJECT_NAME}" DESTINATION "include")
+ENDIF (EXISTS "${MAINFOLDER}/include/${PROJECT_NAME}" AND IS_DIRECTORY "${MAINFOLDER}/include/${PROJECT_NAME}")
+
+#
+# Add Documentation Targets
+#
+INCLUDE (DocumentationTargets)
+# add a target to generate API documentation with Doxygen
+find_package(Doxygen)
+if(DOXYGEN_FOUND)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+add_custom_target(doc
+${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+COMMENT "Generating API documentation with Doxygen" VERBATIM
+)
+endif(DOXYGEN_FOUND)

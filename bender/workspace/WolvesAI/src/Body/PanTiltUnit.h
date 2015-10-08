@@ -1,0 +1,124 @@
+/*
+ * PanTiltUnit.h
+ *
+ *  Created on: 25.06.2009
+ *      Author: Stefan
+ */
+
+#ifndef PANTILTUNIT_H_
+#define PANTILTUNIT_H_
+
+#include "ICommunicator.h"
+
+/*!
+ * PanTiltUnit handle the communication with the Pan and the tilt servos of the head.
+ */
+class PanTiltUnit {
+public:
+
+	/**
+	 * Constructor variable initialization and set Camera to basic position.
+	 * @param comm	the communicator
+	 */
+	PanTiltUnit(ICommunicator* comm);
+
+	/**
+	 * Destructor
+	 */
+	~PanTiltUnit();
+
+	/**
+	 * Set the position of the Pan and Tilt servo.
+	 * @param PanDeg	pan angle in degree
+	 * @param TiltDeg	tilt angle in degree
+	 */
+	void SetPosition(double PanDeg, double TiltDeg);
+
+	/**
+	 * set the position of pan servo
+	 * @param PanDeg	pan angle in degree
+	 */
+	void SetPan(double PanDeg);
+
+	/**
+	 * set the position of tilt servo
+	 * @param TiltDeg	tilt angle in degree
+	 */
+	void SetTilt(double TiltDeg);
+
+	/**
+	 * set Pan and tilt correction for the difference to the standard position.
+	 */
+	void SetPanTiltCorrection(double panCorr, double tiltCorr);
+
+	/**
+	 * move pan and tilt to basic position
+	 */
+	void MoveToHome();
+
+	/**
+	 * get the tilt angle
+	 * @return tilt angle in degree
+	 */
+	double GetTilt() const;
+
+	/**
+	 * get the pan angle
+	 * @return pan angle in degree
+	 */
+	double GetPan() const;
+
+	/**
+	 * initialize the tracking of objects
+	 */
+	void InitTracking();
+
+	/**
+	 * move next step for tracking object
+	 * @param disablePan	if set to true, not move pan
+	 */
+	void MoveTracking(bool disablePan);
+
+	/**
+	 * move next step for tracking object with given error values
+	 * @param errorX		the tracking error in x
+	 * @param errorY		the tracking error in y
+	 * @param disablePan	if set to true, not move pan
+	 */
+	void MoveTracking(double errorX, double errorY, bool disablePan);
+
+private:
+	/**
+	 * update communication; set new values for pan and tilt
+	 */
+	void Execute();
+
+	ICommunicator* mComm; 	//!< Communication to the body
+
+	static double sMinPanExt;		//!< minimal pan angle
+	static double sMaxPanExt;		//!< maximal pan angle
+	static double sMinPan;		//!< minimal pan angle
+	static double sMaxPan;		//!< maximal pan angle
+	static double sMinTiltExt;		//!< minimal tilt angle
+	static double sMinTilt;		//!< minimal tilt angle
+	static double sMaxTilt;		//!< maximal tilt angle
+
+	static double sPanGainP;	//!< P Gain for pan tracking
+	static double sPanGainD;	//!< D Gain for pan tracking
+	static double sTiltGainP;	//!< P Gain for tilt tracking
+	static double sTiltGainD;	//!< D Gain for tilt tracking
+
+	double mPan;  			//!< The Pan to be set in Execute with error
+    double mTilt; 			//!< The Tilt to be set in Execute with error
+
+	double mPanCorrection;  //!< The pan difference given by the Basic Pose
+	double mTiltCorrection; //!< The tilt difference given by the Basic Pose
+
+	double mPanErr; 		//!< The Pan error to the tracking position
+	double mPanErrDiff;		//!< The Pan error Difference since the last run
+	double mTiltErr;		//!< The Tilt error to the tracking position
+	double mTiltErrDiff;	//!< The Tilt error Difference since the last run
+
+};
+
+#endif /* PANTILTUNIT_H_ */
